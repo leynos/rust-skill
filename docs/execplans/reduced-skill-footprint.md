@@ -5,7 +5,7 @@ This ExecPlan (execution plan) is a living document. The sections
 `Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
 proceeds.
 
-Status: DRAFT
+Status: IN PROGRESS
 
 ## Purpose / big picture
 
@@ -447,8 +447,9 @@ Acceptance criteria:
   patterns.
 - [x] 2026-03-09 14:18 GMT: Drafted reduction strategy and target `skills/`
   tree.
-- [ ] Implementation approved by user.
-- [ ] New `skills/` tree created.
+- [x] 2026-03-09 14:26 GMT: Implementation approved by user.
+- [x] 2026-03-09 14:33 GMT: Added the router and six language skills under
+  `skills/`, each with compact references.
 - [ ] Old `current-skills/` tree deprecated or removed.
 
 ## Surprises & Discoveries
@@ -487,6 +488,12 @@ Acceptance criteria:
 
    This follows the user's stated goal and keeps the context window available
    for the actual task.
+
+5. Do not commit `current-skills/`.
+
+   The user explicitly asked to leave the source tree uncommitted. Treat it as
+   local source material only; commit the new `skills/` tree and supporting
+   docs without staging `current-skills/`.
 
 ## Outcomes & Retrospective
 
