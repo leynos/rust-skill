@@ -13,6 +13,7 @@ shutdown behaviour shape the design more than syntax does.
 
 - Decide who owns a task and how it stops before wiring the happy path.
 - Prefer message passing over shared mutable state when ownership is unclear.
+- Never hold a lock guard across an `.await`.
 - Keep blocking and CPU-heavy work out of async executors.
 - Treat `Send` and `Sync` errors as design feedback, not compiler trivia.
 - Cancellation needs an explicit contract, not just dropped futures.
@@ -30,6 +31,7 @@ shutdown behaviour shape the design more than syntax does.
 ## Red flags
 
 - `Arc<Mutex<_>>` spreads through handlers and tasks,
+- a lock guard lives across an `.await`,
 - spawned tasks outlive the code that should supervise them,
 - cancellation means "drop it and hope",
 - blocking DB, filesystem, or compression work runs on the async executor,

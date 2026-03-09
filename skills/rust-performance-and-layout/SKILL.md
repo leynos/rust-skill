@@ -12,6 +12,7 @@ Use this when performance matters enough to justify design pressure.
 
 - Measure before changing shapes.
 - Fix the largest hot-path cost, not the most obvious micro-optimization.
+- Keep iterator pipelines lazy until you genuinely need a collection.
 - Reuse allocations and tighten data movement before reaching for cleverness.
 - Keep layout decisions explicit when they affect cache use or FFI.
 - Prefer simple code unless profiling proves it is the bottleneck.
@@ -29,6 +30,10 @@ Use this when performance matters enough to justify design pressure.
 ## Red flags
 
 - benchmarking starts after the rewrite,
+- iterator chains collect into temporary `Vec`s only to be filtered or walked
+  again,
+- hot loops build strings with repeated `format!()` calls,
+- index-based loops appear where iterators express the same walk clearly,
 - tiny local wins complicate the API surface,
 - hot-path code formats strings or allocates collections repeatedly,
 - data layout changes happen without measuring access patterns,

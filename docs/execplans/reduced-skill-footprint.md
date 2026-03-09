@@ -460,6 +460,9 @@ Acceptance criteria:
   publishability, helper-crate, metadata, and `cargo-binstall` guidance.
 - [x] 2026-03-09 14:50 GMT: Added a concrete workspace layout example to
   `arch-crate-design`.
+- [x] 2026-03-09 15:03 GMT: Swept the legacy anti-pattern material and ported
+  the retainable descriptions into the contextual skills instead of reviving a
+  standalone anti-pattern skill.
 
 ## Surprises & Discoveries
 
@@ -510,6 +513,15 @@ Acceptance criteria:
    is justified, how inherited metadata and publish order affect design, how
    helper crates avoid cycles, when to ask for package metadata, and how to
    think about `cargo-binstall` support for binary crates.
+
+7. Keep anti-pattern guidance contextual.
+
+   The old `m15-anti-pattern` split is not worth preserving as a first-class
+   skill. The worthwhile parts are local warnings attached to the relevant
+   design pressure: clone-to-escape in ownership work, stringly APIs in type
+   design, silent error swallowing in error handling, lock-across-await in
+   async work, and premature collection or formatting churn in performance
+   work.
 
 ## Outcomes & Retrospective
 

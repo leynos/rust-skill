@@ -28,6 +28,8 @@ Use this when the code must uphold invariants the compiler cannot check.
 ## Red flags
 
 - `unsafe` appears only to silence the borrow checker,
+- `transmute` or raw-pointer tricks appear before a safe conversion or wrapper
+  was ruled out,
 - pointer validity and aliasing rules are not written down,
 - `CString::as_ptr()` outlives the owning `CString`,
 - FFI code can panic across the boundary,

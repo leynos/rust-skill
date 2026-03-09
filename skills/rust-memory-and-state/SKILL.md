@@ -13,6 +13,8 @@ how long must it stay valid?"
 
 - Prefer one clear owner and cheap borrowed reads.
 - Reach for cloning last, not first.
+- If cloning appears mainly to placate the borrow checker, fix the data flow
+  before keeping the clone.
 - Treat `Rc`, `Arc`, `RefCell`, `Mutex`, and `RwLock` as ownership decisions,
   not syntax bandages.
 - If a lifetime gets hard to express, ask whether the type should own the data.
@@ -34,6 +36,7 @@ how long must it stay valid?"
 ## Red flags
 
 - clones multiply each time the borrow checker complains,
+- `Rc` or `Arc` shows up where one owner plus borrowed readers would do,
 - `Arc<Mutex<T>>` appears before the real sharing pattern is known,
 - references are stored where owning data would simplify the type,
 - resource release depends on "remember to call close()",

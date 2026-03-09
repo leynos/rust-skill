@@ -14,6 +14,8 @@ shape belongs at this boundary?"
 - Keep library errors typed and inspectable.
 - Let binaries optimise for reporting and context.
 - Panic only for broken invariants, not expected failure.
+- If a caller could reasonably recover, return an error rather than `panic!`
+  or `.expect()`.
 - Add context where it helps a future reader act.
 - Separate retryable, terminal, and caller-bug failures early.
 
@@ -31,6 +33,8 @@ shape belongs at this boundary?"
 ## Red flags
 
 - `.unwrap()` is used in production paths,
+- `.expect()` guards network, filesystem, parse, or user-input failures,
+- errors are discarded with `let _ =`, `.ok()`, or empty `Err(_) => {}`,
 - error messages become the contract because types are too vague,
 - caller mistakes, transient IO, and invariant breaks share one bucket,
 - context is added everywhere but none of it helps triage,
