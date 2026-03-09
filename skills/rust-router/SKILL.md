@@ -13,8 +13,8 @@ follow-on skill.
 
 - Start from the concrete problem: error, boundary, hot path, or unsafe edge.
 - Prefer one language skill plus at most one domain or architecture skill.
-- Do not load tool-wrapper Rust skills. Use the general `leta` skill for code
-  navigation, references, implementations, and refactors.
+- Use the general `leta` skill for code navigation, references,
+  implementations, and refactors.
 - If the answer starts turning into a tutorial, stop and cut back to the
   decision that matters.
 - When a local fix needs clones, locks, trait-object escape hatches, or unsafe
