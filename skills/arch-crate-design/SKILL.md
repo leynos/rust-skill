@@ -61,6 +61,43 @@ how to write the next function.
   release URL, archive format, and binary path are known. Use overrides when
   some targets ship different artifact names.
 
+## Example workspace layout
+
+```plaintext
+my-product/
+├── Cargo.toml
+├── crates/
+│   ├── core-lib/
+│   │   ├── Cargo.toml
+│   │   └── src/lib.rs
+│   ├── http-api/
+│   │   ├── Cargo.toml
+│   │   └── src/lib.rs
+│   ├── cli-app/
+│   │   ├── Cargo.toml
+│   │   └── src/main.rs
+│   └── test-support/
+│       ├── Cargo.toml
+│       └── src/lib.rs
+└── xtask/
+    ├── Cargo.toml
+    └── src/main.rs
+```
+
+Suggested roles:
+
+- `core-lib`: reusable domain logic and typed APIs.
+- `http-api`: transport and framework glue built on the library crates.
+- `cli-app`: the user-facing binary with thin process wiring.
+- `test-support`: private test helpers; keep `publish = false` unless it is
+  intentionally reusable outside the workspace.
+- `xtask`: developer automation and release tooling; keep it out of the
+  publishable dependency graph.
+
+This shape is justified only when the split matches real boundaries. If
+`http-api` and `cli-app` are just thin shells over `core-lib`, the workspace is
+earning its keep. If all crates depend on each other freely, it is not.
+
 ## Red flags
 
 - binaries contain most of the business logic,

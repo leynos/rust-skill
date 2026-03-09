@@ -458,6 +458,8 @@ Acceptance criteria:
   to mark `skills/` as canonical without committing `current-skills/`.
 - [x] 2026-03-09 14:48 GMT: Expanded `arch-crate-design` with workspace,
   publishability, helper-crate, metadata, and `cargo-binstall` guidance.
+- [x] 2026-03-09 14:50 GMT: Added a concrete workspace layout example to
+  `arch-crate-design`.
 
 ## Surprises & Discoveries
 
