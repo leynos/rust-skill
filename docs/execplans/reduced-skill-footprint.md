@@ -5,7 +5,7 @@ This ExecPlan (execution plan) is a living document. The sections
 `Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
 proceeds.
 
-Status: IN PROGRESS
+Status: COMPLETE
 
 ## Purpose / big picture
 
@@ -450,7 +450,12 @@ Acceptance criteria:
 - [x] 2026-03-09 14:26 GMT: Implementation approved by user.
 - [x] 2026-03-09 14:33 GMT: Added the router and six language skills under
   `skills/`, each with compact references.
-- [ ] Old `current-skills/` tree deprecated or removed.
+- [x] 2026-03-09 14:37 GMT: Added four domain or architecture skills.
+- [x] 2026-03-09 14:38 GMT: Verified the final committed first-class tree is
+  one router, six language skills, and four domain or architecture skills.
+- [x] 2026-03-09 14:36 GMT: Added architecture and domain skills plus
+  [docs/skill-catalogue-status.md](/data/leynos/Projects/rust-skill/docs/skill-catalogue-status.md)
+  to mark `skills/` as canonical without committing `current-skills/`.
 
 ## Surprises & Discoveries
 
@@ -502,3 +507,12 @@ should be deleted or merged, and a replacement `skills/` tree that fits the
 requested shape. The next step is user approval. After approval, implementation
 should proceed by creating the new router and one exemplar skill first, then
 expanding the rest while holding the line on size and repetition.
+
+Implementation reached the planned end state on 2026-03-09. The branch now has
+one router, six language skills, four domain or architecture skills, compact
+references for the language set, and an explicit note that `current-skills/`
+is legacy source material rather than committed output.
+
+Validation passed with `markdownlint-cli2 docs/**/*.md 'skills/**/*.md'` and
+`git diff --check`. The final first-class `SKILL.md` footprint is 18,279 bytes,
+down from the 194,029-byte `current-skills/` baseline.
