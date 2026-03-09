@@ -456,6 +456,8 @@ Acceptance criteria:
 - [x] 2026-03-09 14:36 GMT: Added architecture and domain skills plus
   [docs/skill-catalogue-status.md](/data/leynos/Projects/rust-skill/docs/skill-catalogue-status.md)
   to mark `skills/` as canonical without committing `current-skills/`.
+- [x] 2026-03-09 14:48 GMT: Expanded `arch-crate-design` with workspace,
+  publishability, helper-crate, metadata, and `cargo-binstall` guidance.
 
 ## Surprises & Discoveries
 
@@ -499,6 +501,13 @@ Acceptance criteria:
    The user explicitly asked to leave the source tree uncommitted. Treat it as
    local source material only; commit the new `skills/` tree and supporting
    docs without staging `current-skills/`.
+
+6. `arch-crate-design` should cover packaging posture, not just layering.
+
+   The useful version of this skill needs concrete guidance on when a workspace
+   is justified, how inherited metadata and publish order affect design, how
+   helper crates avoid cycles, when to ask for package metadata, and how to
+   think about `cargo-binstall` support for binary crates.
 
 ## Outcomes & Retrospective
 
