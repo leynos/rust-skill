@@ -1,13 +1,13 @@
 ---
 name: domain-embedded-and-iot
-description: Use for Rust `no_std`, firmware, device control, interrupts, constrained edge nodes, and IoT systems where memory, timing, and hardware contracts dominate.
+description: Use for Rust `no_std`, firmware, device control, interrupts, constrained edge nodes, and Internet of Things (IoT) systems where memory, timing, and hardware contracts dominate.
 globs: ["**/Cargo.toml", "**/*.rs", "**/.cargo/config.toml"]
 ---
 
 # Rust Embedded and IoT
 
-Use this when hardware or edge-device constraints change the normal Rust trade
-offs.
+Use this when hardware or edge-device constraints change the normal Rust
+trade-offs.
 
 ## Working stance
 

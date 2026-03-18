@@ -54,7 +54,7 @@ follow-on skill.
 
 - borrow-checker fixes keep adding clones or `Arc<Mutex<_>>` without clarity,
 - a public API needs `dyn Any`, erased errors, or unstable generic sprawl,
-- async code needs shared mutable state and cancellation semantics at once,
+- async code requires shared mutable state and cancellation semantics at once,
 - performance claims appear before measurements,
 - unsafe code exists without a crisp invariant list.
 

@@ -16,7 +16,7 @@ ______________________________________________________________________
   the original local source material.
 - **Rust-specific judgement**: The catalogue focuses on ownership, APIs,
   errors, async, performance, unsafe code, and crate design.
-- **Clear routing**: `rust-router` points you to the smallest useful skill
+- **Clear routing**: `rust-router` directs to the smallest useful skill
   instead of loading half the catalogue at once.
 - **Practical tone**: The skills aim to sound like a helpful technical lead,
   not a life coach with a megaphone.
@@ -39,7 +39,7 @@ Use $rust-router to route this Rust task, then help me fix an E0382 moved-value
 error in my handler.
 ```
 
-If you already know the pressure point, call the skill directly:
+When the pressure point is already known, call the skill directly:
 
 ```text
 Use $rust-errors to review this error enum for a publishable library crate.

@@ -162,8 +162,9 @@ earn its bytes by doing one of four things:
    choosing between generics and trait objects, error layering across library
    and binary boundaries, or state and cancellation design for async systems.
 3. It carries less obvious language or ecosystem facts. Examples:
-   pinning, variance pressure from pointer types, FFI soundness obligations,
-   `Send`/`Sync` consequences, or public API stability trade-offs.
+   pinning, variance pressure from pointer types, foreign function interface
+   (FFI) soundness obligations, `Send`/`Sync` consequences, or public API
+   stability trade-offs.
 4. It frames the work in a way that changes the next decision immediately.
    Examples: "model invariants first", "measure before optimising", or "prefer
    one owner and many readers until the data says otherwise".
@@ -318,7 +319,8 @@ skills/
 ```
 
 This tree deliberately drops first-class skills for fintech, cloud-native, and
-ML in the first pass. They are too specialised for the default Rust catalogue.
+machine learning (ML) in the first pass. They are too specialised for the
+default Rust catalogue.
 If later evidence shows repeated need, they can return as slim add-on skills or
 domain-specific references.
 

@@ -41,7 +41,7 @@ how to write the next function.
 ## Packaging and release guidance
 
 - `workspace.package` is the right place for shared package metadata such as
-  version, edition, `rust-version`, license, repository, and `publish`, but
+  version, edition, `rust-version`, licence, repository, and `publish`, but
   members must opt in with `{key}.workspace = true`.
 - Keep publishability in mind when splitting crates. If one crate must be
   published before another, release order becomes part of the design.
@@ -52,7 +52,7 @@ how to write the next function.
   reusable and publishable on their own.
 - Prompt the user for package metadata when creating a new library crate, a
   binary meant for external installation, or any crate that may be published.
-  Minimum useful fields are name, description, license, repository, readme,
+  Minimum useful fields are name, description, licence, repository, readme,
   homepage or docs URL if applicable, and whether publishing is intended.
 - For internal app crates, do not stop work to demand full crates.io discovery
   metadata unless the user signals distribution or publishability.

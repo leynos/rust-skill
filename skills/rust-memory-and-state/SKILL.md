@@ -1,6 +1,6 @@
 ---
 name: rust-memory-and-state
-description: Use for ownership, borrowing, lifetimes, aliasing, smart pointers, interior mutability, RAII, and resource handoff in Rust.
+description: Use for ownership, borrowing, lifetimes, aliasing, smart pointers, interior mutability, resource acquisition is initialisation (RAII), and resource handoff in Rust.
 globs: ["**/Cargo.toml", "**/*.rs"]
 ---
 
@@ -24,7 +24,7 @@ how long must it stay valid?"
 
 | Need | Default move |
 | --- | --- |
-| read only, caller keeps ownership | borrow `&T` or `&mut T` |
+| read-only, caller keeps ownership | borrow `&T` or `&mut T` |
 | return data past the borrower's scope | own it |
 | cheap duplicated scalar/value type | `Copy` or explicit clone |
 | shared single-thread ownership | `Rc<T>` |

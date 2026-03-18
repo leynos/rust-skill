@@ -16,7 +16,8 @@ Use this when the first skill is not obvious.
   `rust-performance-and-layout`, then `arch-crate-design` if the fix changes
   public shape or layering.
 - Raw pointers, `NonNull`, `MaybeUninit`, or `extern "C"`:
-  `rust-unsafe-and-ffi`, then `domain-embedded-and-iot` when hardware or edge
+  `rust-unsafe-and-ffi` (foreign function interface (FFI)), then
+  `domain-embedded-and-iot` (Internet of Things (IoT)) when hardware or edge
   constraints matter.
 
 Domain pairings:

@@ -1,6 +1,6 @@
 ---
 name: domain-cli-and-daemons
-description: Use for Rust CLIs, workers, daemons, batch jobs, and services where process lifecycle, operator feedback, and shutdown rules matter.
+description: Use for Rust command-line interfaces (CLIs), workers, daemons, batch jobs, and services where process lifecycle, operator feedback, and shutdown rules matter.
 globs: ["**/Cargo.toml", "**/*.rs"]
 ---
 

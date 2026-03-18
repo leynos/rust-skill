@@ -1,6 +1,6 @@
 ---
 name: rust-unsafe-and-ffi
-description: Use for unsafe Rust, raw pointers, `MaybeUninit`, `NonNull`, FFI, ABI boundaries, layout guarantees, and soundness review.
+description: Use for unsafe Rust, raw pointers, `MaybeUninit`, `NonNull`, foreign function interface (FFI), application binary interface (ABI) boundaries, layout guarantees, and soundness review.
 globs: ["**/Cargo.toml", "**/*.rs"]
 ---
 
