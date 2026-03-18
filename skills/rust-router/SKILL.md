@@ -32,7 +32,7 @@ follow-on skill.
   `rust-async-and-concurrency`
 - Allocation pressure, layout, or benchmark discipline:
   `rust-performance-and-layout`
-- `unsafe`, FFI, layout guarantees, or soundness:
+- `unsafe`, foreign function interface (FFI), layout guarantees, or soundness:
   `rust-unsafe-and-ffi`
 - Crate boundaries, features, public surface, or layering:
   `arch-crate-design`
