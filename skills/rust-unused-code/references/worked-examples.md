@@ -7,7 +7,7 @@ suppression.
 
 Prefer putting the import and helper behind the same feature boundary.
 
-### Avoid
+### Avoid for feature-gated imports
 
 ```rust
 use rustls::ClientConfig;
@@ -21,7 +21,7 @@ pub fn connect() {
 In builds without `tls`, the import is still compiled into the module and
 becomes unused.
 
-### Prefer
+### Prefer for feature-gated imports
 
 ```rust
 #[cfg(feature = "tls")]
@@ -54,7 +54,7 @@ the compiled path actually uses it.
 Prefer a narrowly scoped inline module over compiling mutually exclusive
 helpers into a common module.
 
-### Avoid
+### Avoid for target-specific helper modules
 
 ```rust
 fn linux_socket_path() -> &'static str {
@@ -80,7 +80,7 @@ pub fn endpoint_name() -> &'static str {
 
 Each target compiles one unused helper.
 
-### Prefer
+### Prefer for target-specific helper modules
 
 ```rust
 #[cfg(target_os = "linux")]
@@ -97,20 +97,28 @@ mod endpoint {
     }
 }
 
+#[cfg(not(any(target_os = "linux", target_os = "windows")))]
+mod endpoint {
+    pub(super) fn name() -> &'static str {
+        compile_error!("this example only supports Linux and Windows targets");
+    }
+}
+
 pub fn endpoint_name() -> &'static str {
     endpoint::name()
 }
 ```
 
-Only the relevant implementation is compiled, and the shared surface remains
-obvious.
+Only the relevant implementation is compiled, the shared surface remains
+obvious, and unsupported targets fail explicitly instead of leaving the example
+with a missing module.
 
 ## Example 3: Test-only helper
 
 Keep test support code inside `#[cfg(test)]` instead of leaving production code
 with dead helpers.
 
-### Avoid
+### Avoid for test-only helpers
 
 ```rust
 fn sample_request() -> Request {
@@ -131,7 +139,7 @@ mod tests {
 
 `sample_request` is dead code in non-test builds.
 
-### Prefer
+### Prefer for test-only helpers
 
 ```rust
 #[cfg(test)]
@@ -156,7 +164,7 @@ The helper now exists only in the compilation mode that uses it.
 
 Use a local import when one test needs one trait or helper.
 
-### Avoid
+### Avoid for in-function test imports
 
 ```rust
 #[cfg(test)]
@@ -180,7 +188,7 @@ mod tests {
 
 `Write` is only needed by one test.
 
-### Prefer
+### Prefer for in-function test imports
 
 ```rust
 #[cfg(test)]
@@ -208,7 +216,7 @@ noise.
 
 ## Example 5: Do not paper over mismatched compilation with `allow`
 
-### Avoid
+### Avoid for mismatched compilation boundaries
 
 ```rust
 #[allow(dead_code)]
@@ -219,7 +227,7 @@ fn parse_unix_permissions(mode: u32) -> Permissions {
 
 This silences the symptom while leaving the compiled module dishonest.
 
-### Prefer
+### Prefer for mismatched compilation boundaries
 
 ```rust
 #[cfg(unix)]
