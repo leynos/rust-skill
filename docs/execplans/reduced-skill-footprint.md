@@ -465,6 +465,9 @@ Acceptance criteria:
 - [x] 2026-03-09 15:03 GMT: Swept the legacy anti-pattern material and ported
   the retainable descriptions into the contextual skills instead of reviving a
   standalone anti-pattern skill.
+- [x] 2026-05-08 12:45 BST: Expanded `arch-crate-design` dependency-cycle
+  guidance to explain build, release, boundary, and test type-identity costs,
+  and to prefer extracting shared contracts into a lower crate.
 
 ## Surprises & Discoveries
 
