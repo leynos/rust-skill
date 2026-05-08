@@ -48,6 +48,14 @@ how to write the next function.
 - Avoid dependency cycles by keeping helpers and macros pointed inward or
   downward; if a support crate depends on the main crate and the main crate
   depends back on it, the split is wrong.
+- Treat each dependency edge as a build and release-order claim, not just an
+  import convenience. Cycles collapse API boundaries, make publish and compile
+  order fragile, and couple helper, test-support, or macro crates back to the
+  production code they are meant to support.
+- Be cautious even with dev-dependency cycles. Cargo can allow them when build
+  artifacts stay acyclic, but the shape can still link duplicate copies of the
+  same crate into tests and make same-named types incompatible. Prefer
+  extracting shared contracts into a lower crate instead.
 - Development utility crates should stay private unless they are genuinely
   reusable and publishable on their own.
 - Prompt the user for package metadata when creating a new library crate, a
