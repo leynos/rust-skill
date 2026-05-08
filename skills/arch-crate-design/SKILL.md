@@ -52,10 +52,10 @@ how to write the next function.
   import convenience. Cycles collapse API boundaries, make publish and compile
   order fragile, and couple helper, test-support, or macro crates back to the
   production code they are meant to support.
-- Be cautious even with dev-dependency cycles. Cargo can allow them when build
-  artifacts stay acyclic, but the shape can still link duplicate copies of the
-  same crate into tests and make same-named types incompatible. Prefer
-  extracting shared contracts into a lower crate instead.
+- Exercise caution with dev-dependency cycles. Cargo can allow them when build
+  artifacts stay acyclic, but the shape can still link duplicates of the same
+  crate into tests and make same-named types incompatible. Prefer extracting
+  shared contracts into a lower crate instead.
 - Development utility crates should stay private unless they are genuinely
   reusable and publishable on their own.
 - Prompt the user for package metadata when creating a new library crate, a
