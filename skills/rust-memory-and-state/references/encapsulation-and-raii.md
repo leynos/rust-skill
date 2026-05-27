@@ -41,7 +41,7 @@ state, and it is built from three cooperating pieces:
   forget on an unwind or early return.
 
 The same shape (acquire returns a guard; the guard's `Drop` releases the
-resource) generalises to transaction handles, file locks, span guards,
+resource) generalizes to transaction handles, file locks, span guards,
 cancellation tokens, and any other resource where forgetting to release is a
 bug.
 

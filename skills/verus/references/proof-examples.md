@@ -1,13 +1,13 @@
 # Verus proof examples
 
-Three worked patterns: canonicalisation of an unordered pair, an
+Three worked patterns: canonicalization of an unordered pair, an
 inductive concat lemma over `Seq`, and the total-ordering composition
 skeleton. They are intentionally generic — adapt the names to the
 production module being mirrored.
 
-## Canonicalisation: ordering an unordered pair
+## Canonicalization: ordering an unordered pair
 
-A common pattern is normalising an edge or pair so the smaller endpoint
+A common pattern is normalizing an edge or pair so the smaller endpoint
 is stored first. The spec function is total and the lemma is trivial,
 but it sets up the spec types the rest of the proofs depend on.
 

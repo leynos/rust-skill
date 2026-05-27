@@ -131,7 +131,7 @@ loads are emulated.
   the alignment requirement.
 - Miri tests gain a misaligned-pointer harness.
 - `read_unaligned` becomes a project convention for FFI slice
-  accessors; ADR-0007 generalises it to `BorrowedMutSlice`.
+  accessors; ADR-0007 generalizes it to `BorrowedMutSlice`.
 ```
 
 ## Practical rules

@@ -208,7 +208,7 @@ Stop and escalate if any of the following is true:
 
 - Risk: Imported references include language or patterns specific to the
   upstream project (for example, repository-relative paths such as
-  `tools/verus/VERSION` or product-specific examples) that do not generalise.
+  `tools/verus/VERSION` or product-specific examples) that do not generalize.
   Severity: low
   Likelihood: high
   Mitigation: when porting, replace product-specific examples with neutral

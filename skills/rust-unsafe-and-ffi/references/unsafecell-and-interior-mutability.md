@@ -12,7 +12,7 @@ Rust's aliasing model permits the compiler (and LLVM) to assume that a value
 behind `&T` does not change for the duration of the borrow. That assumption
 becomes `noalias` and `readonly` hints in codegen. Mutating through `&T`
 without `UnsafeCell` is therefore not "merely" undefined behaviour (UB) at
-the language level—the optimiser can and will reorder reads, hoist them out
+the language level—the optimizer can and will reorder reads, hoist them out
 of loops, and fold them with stale values.
 
 `UnsafeCell<T>` opts the field out of those assumptions. It is the single
@@ -30,7 +30,7 @@ it performs through `UnsafeCell::get`:
 - For cross-thread access, ordering is established by `Sync` and by the
   primitives the wrapper uses (atomics, OS locks, RCU schemes, and so on).
 - Reads and writes do not violate the validity invariants of `T` itself (for
-  example, a partially initialised `Box<T>` is never observed).
+  example, a partially initialized `Box<T>` is never observed).
 
 If any of these can be broken, the wrapper is unsound and the bug surfaces
 as miscompilation or torn reads, not as a panic.
@@ -38,9 +38,9 @@ as miscompilation or torn reads, not as a panic.
 ## Common UB pitfalls
 
 - Casting `&T` to `&mut T` (or to `*mut T` and writing through it) without
-  `UnsafeCell`. The optimiser is allowed to assume the value did not change.
+  `UnsafeCell`. The optimizer is allowed to assume the value did not change.
 - Holding a `&T` that aliases an active `&mut T` to the same `UnsafeCell`
-  field, even briefly. The wrapper must serialise access.
+  field, even briefly. The wrapper must serialize access.
 - Implementing `Sync` for a wrapper whose internal pointer dance is not
   actually thread-safe. `Sync` is a load-bearing claim, not a marker.
 - Returning a guard or reference whose lifetime outlives the locking state
