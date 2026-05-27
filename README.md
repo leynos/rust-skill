@@ -66,6 +66,9 @@ ______________________________________________________________________
 
 ## Learn more
 
+- [Users' guide](docs/users-guide.md) — installation, invocation, routing,
+  and when to reach for the verification, supply-chain, and decision-record
+  skills
 - [Skill catalogue status](docs/skill-catalogue-status.md) — what is active and
   what is legacy input
 - [Reduction execplan](docs/execplans/reduced-skill-footprint.md) — design,

@@ -61,3 +61,7 @@ The format is based on [Common Changelog](https://common-changelog.org).
 - `docs/execplans/advanced-encapsulation-and-verification.md`: the
   living ExecPlan governing this changelog block. Progress, surprises,
   and decisions are recorded inline as work advances.
+- `docs/users-guide.md`: operator-facing guide covering catalogue
+  installation, router invocation, and when to reach for the new
+  verification, supply-chain, and decision-record skills. Linked from
+  the README.

@@ -224,8 +224,10 @@ Stop and escalate if any of the following is true:
 
 ## Progress
 
-- [ ] Draft this ExecPlan and obtain user approval (revised draft includes
-  the kani/verus import and the `rust-prover-tools` rewiring).
+- [x] Draft this ExecPlan and obtain user approval (revised draft includes
+  the kani/verus import and the `rust-prover-tools` rewiring). _Done: user
+  approved the revised plan with "Approved. Please proceed with
+  implementation."_
 - [x] Stage 0: confirm tool names and current status (cargo-vet, cargo-mutants,
   loom, shuttle, turmoil, kani, verus, iai-callgrind, tango,
   cargo-semver-checks, cargo-public-api, and the install/run surface of
