@@ -70,14 +70,19 @@ for the fences chaos tools require.
 
 ## Routing into deep dives
 
+- Strategy design, shrinking discipline, regression files, the
+  filtering trap, and state-machine tests:
+  [`proptest`](../proptest/SKILL.md).
 - Kani harness shape, unwind discipline, contracts, stubbing:
   [`kani`](../kani/SKILL.md).
 - Verus modes, triggers, sequence proofs, `assert by`:
   [`verus`](../verus/SKILL.md).
 
-Both install via
-[`rust-prover-tools`](https://github.com/leynos/rust-prover-tools). The
-selection rules above stay authoritative for picking between them.
+Proptest is a regular Cargo dev-dependency; `kani` and `verus`
+install via
+[`rust-prover-tools`](https://github.com/leynos/rust-prover-tools).
+The selection rules above stay authoritative for picking between
+them.
 
 ## References
 
@@ -85,5 +90,6 @@ selection rules above stay authoritative for picking between them.
   "use when" rationale.
 - [`references/deterministic-chaos.md`](references/deterministic-chaos.md)
   — determinism fences for chaos tools.
-- Deep dives: [`../kani/SKILL.md`](../kani/SKILL.md),
+- Deep dives: [`../proptest/SKILL.md`](../proptest/SKILL.md),
+  [`../kani/SKILL.md`](../kani/SKILL.md),
   [`../verus/SKILL.md`](../verus/SKILL.md).

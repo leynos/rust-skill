@@ -27,7 +27,9 @@ shrinks failing cases to a minimal counter-example. Use it for pure
 functions where the input domain is too large to enumerate but a
 property (idempotence, round-trip, ordering, conservation) is easy to
 express. Always check in the regression file `proptest-regressions/`
-and promote shrunk failures to named unit tests.
+and promote shrunk failures to named unit tests. Load the
+[`../../proptest/SKILL.md`](../../proptest/SKILL.md) skill for
+strategy design, the filtering trap, and state-machine tests.
 
 ## "My tests pass but my logic is wrong"
 

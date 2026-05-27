@@ -21,6 +21,13 @@ The format is based on [Common Changelog](https://common-changelog.org).
 - `arch-decision-records` skill: captures architectural decisions in
   Y-Statement form, with three Rust-flavoured worked examples
   (typestate, verification-tool selection, unsafe alignment invariant).
+- `proptest` skill: deep-dive guidance for property-based testing in
+  Rust. Covers strategy design with `prop_compose!`, the filtering
+  trap and its fix, `ProptestConfig` knobs (cases, shrink iterations,
+  fork, timeout), regression-file discipline, the `proptest-derive`
+  vs `test-strategy` choice, and `proptest-state-machine`. Ships an
+  installation note, a strategy-pattern reference, and a
+  self-contained Rust source example.
 - `kani` skill: imported from `agent-helper-scripts` and rewired to
   install via `rust-prover-tools`. Replaces HNSW-specific examples with
   neutral graph-with-bidirectional-links harnesses; ships harness
@@ -55,6 +62,14 @@ The format is based on [Common Changelog](https://common-changelog.org).
   added pointers to the new rigorous-benchmarking reference.
 - `arch-crate-design/SKILL.md`: cross-linked the new `arch-supply-chain`
   skill from the packaging guidance.
+- `rust-router/SKILL.md` and `references/routing-matrix.md`: added the
+  `proptest` deep dive to the verification-routing entries.
+- `rust-verification/SKILL.md` and `references/tool-selection.md`:
+  routed into the new `proptest` deep dive alongside `kani` and
+  `verus`.
+- `docs/skill-catalogue-status.md` and `docs/users-guide.md`: listed
+  `proptest` under the verification tier and described when to reach
+  for it.
 
 ### Documentation
 

@@ -42,7 +42,7 @@ follow-on skill.
   `arch-decision-records`
 - Verification tool selection (Miri, proptest, `cargo-mutants`, `loom`,
   `shuttle`, `turmoil`, Kani, Verus): `rust-verification`; deep dives
-  in `kani` and `verus`
+  in `proptest`, `kani`, and `verus`
 - HTTP services, middleware, or request state: `domain-web-services`
 - CLIs, workers, daemons, or long-running jobs: `domain-cli-and-daemons`
 - `no_std`, firmware, devices, or edge nodes: `domain-embedded-and-iot`

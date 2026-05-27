@@ -15,7 +15,8 @@ When updating the Rust skill set from this point forward:
 ## Catalogue contents
 
 The catalogue is split into a router, six language skills, four
-architecture or domain skills, and two deep-dive verification skills:
+architecture or domain skills, and three deep-dive verification
+skills:
 
 - **Router**: `rust-router`.
 - **Language**: `rust-memory-and-state`, `rust-types-and-apis`,
@@ -26,11 +27,12 @@ architecture or domain skills, and two deep-dive verification skills:
   `domain-web-services`, `domain-cli-and-daemons`,
   `domain-embedded-and-iot`.
 - **Verification**: `rust-verification` (routes between tools), with
-  deep dives in `kani` and `verus`.
+  deep dives in `proptest`, `kani`, and `verus`.
 - **Focused**: `rust-unused-code` for `dead_code` and
   `unused_imports` decisions.
 
-`kani` and `verus` carry larger size envelopes than the rest because
-they are imported deep dives. Both install and run via
-[`rust-prover-tools`](https://github.com/leynos/rust-prover-tools);
-the catalogue does not carry forked install scripts.
+`proptest`, `kani`, and `verus` carry larger size envelopes than the
+rest because they are procedural deep dives. `proptest` installs as
+a regular Cargo dev-dependency; `kani` and `verus` install and run
+via [`rust-prover-tools`](https://github.com/leynos/rust-prover-tools)
+so the catalogue does not carry forked install scripts.

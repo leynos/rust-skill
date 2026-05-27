@@ -59,6 +59,8 @@ ______________________________________________________________________
   "impeccable software" stance: Miri, proptest, `cargo-mutants`, `loom`,
   `shuttle`, `turmoil`, Kani, and Verus on one side; `cargo-vet`,
   `cargo-deny`, SemVer guardrails, and Y-Statement ADRs on the other.
+  Deep dives for `proptest`, `kani`, and `verus` cover strategy design,
+  harness shape, and proof discipline respectively.
 - English-only rewrites of the new catalogue, with the older tree retained as
   local source material.
 

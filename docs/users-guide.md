@@ -23,8 +23,8 @@ The tiers are:
   async and concurrency, unsafe and FFI, performance and layout,
 - six **architecture and domain** skills — crate design, supply chain,
   decision records, web services, CLIs and daemons, embedded and IoT,
-- one **verification router** — `rust-verification` — and two deep dives,
-  `kani` and `verus`,
+- one **verification router** — `rust-verification` — and three deep dives,
+  `proptest`, `kani`, and `verus`,
 - one **focused** skill — `rust-unused-code` for `dead_code` and
   `unused_imports` decisions.
 
@@ -41,10 +41,14 @@ cp -a skills/* ~/.codex/skills/
 Re-run the copy when the catalogue is updated; skills are plain text and
 overwriting is safe.
 
-The two deep-dive skills, `kani` and `verus`, do not install their tools
-themselves. They delegate to
-[`rust-prover-tools`](https://github.com/leynos/rust-prover-tools), which
-exposes a single CLI for both:
+The `proptest` deep dive is a regular Cargo dev-dependency; the
+relevant lines for `Cargo.toml` and the recommended optional crates
+(`proptest-derive`, `test-strategy`, `proptest-state-machine`) live
+in its skill.
+
+The `kani` and `verus` deep dives delegate tool installation to
+[`rust-prover-tools`](https://github.com/leynos/rust-prover-tools),
+which exposes a single CLI for both:
 
 ```bash
 prover-tools kani install
@@ -116,7 +120,7 @@ covers the residual ambiguous cases.
 
 ## When to reach for the new skills
 
-The recent catalogue extension introduces five entry points covering
+The recent catalogue extension introduces six entry points covering
 verification, supply chain, and decision records. The short versions:
 
 ### `rust-verification` — pick the right adversarial tool
@@ -125,7 +129,17 @@ Use this skill when you need to prove or disprove a property and are
 unsure whether to reach for Miri, sanitizers, property tests,
 `cargo-mutants`, `loom`, `shuttle`, `turmoil`, Kani, or Verus. The
 skill's selection table maps failure modes to tools. From there it
-routes into the `kani` and `verus` deep dives.
+routes into the `proptest`, `kani`, and `verus` deep dives.
+
+### `proptest` — property-based testing
+
+Use this skill when a pure function has a property (round-trip,
+idempotence, ordering, conservation) that is easier to state than to
+enumerate, or when a parser or codec must round-trip across all
+valid inputs. The skill covers strategy design with `prop_compose!`,
+the filtering trap and its fix, regression-file discipline,
+state-machine tests via `proptest-state-machine`, and the
+`proptest-derive` vs `test-strategy` choice.
 
 ### `kani` — bounded model checking
 

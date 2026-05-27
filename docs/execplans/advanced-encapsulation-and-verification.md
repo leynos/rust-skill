@@ -84,6 +84,14 @@ Hard invariants that must not be violated during this work:
   the model already knows, and move the longest worked examples into
   `references/`, but do not pretend they will fit in 3 KB. See
   `Tolerances` for the cap.
+- The `proptest` deep dive is a third documented exception to the 3 KB
+  tolerance. Property-based testing in Rust carries the same procedural
+  payload as Kani and Verus harness writing: strategy design with
+  `prop_compose!`, the filtering trap and its compositional fix,
+  shrinking and regression-file discipline, and the
+  `proptest-derive`/`test-strategy` choice cannot all fit in 3 KB
+  without losing practical guidance. The cap matches the imported
+  deep-dive envelope. See `Tolerances` for the cap.
 - The imported skills must not retain `install-verus.sh`, `run-verus.sh`,
   or any other ad hoc tool-installation or runner script. Their imported
   content must direct the reader to
@@ -106,18 +114,21 @@ Hard invariants that must not be violated during this work:
 
 Stop and escalate if any of the following is true:
 
-- Scope: the new tree would add more than five first-class skills
-  (`rust-verification`, `arch-supply-chain`, `arch-decision-records`, plus
-  the two imported deep-dive skills `kani` and `verus`), or grow the total
-  committed `SKILL.md` footprint by more than roughly 100 percent over the
-  current baseline. The wider tolerance reflects the deliberately heavy
-  payload of the imported deep-dive skills.
+- Scope: the new tree would add more than six first-class skills
+  (`rust-verification`, `arch-supply-chain`, `arch-decision-records`, the
+  two imported deep-dive skills `kani` and `verus`, plus the freshly
+  authored `proptest` deep dive), or grow the total committed `SKILL.md`
+  footprint by more than roughly 100 percent over the current baseline.
+  The wider tolerance reflects the deliberately heavy payload of the
+  deep-dive skills.
 - Size: any newly authored compact `SKILL.md` exceeds 4 KB, or any single
   reference file exceeds 8 KB, without a recorded justification. The
   imported `kani/SKILL.md` and `verus/SKILL.md` are capped at the size of
   their upstream copies plus any incremental edits required for the
   `rust-prover-tools` rewiring; if either exceeds that envelope after
-  compression, stop and reconsider.
+  compression, stop and reconsider. The `proptest/SKILL.md` deep dive is
+  capped at roughly the `verus/SKILL.md` envelope (about 10 KB); its
+  references are bound by the standard 8 KB reference cap.
 - Router pressure: the router cannot describe the new routes in fewer than
   six additional bullet lines without losing clarity.
 - Naming overlap: the new skill names collide with existing skills or with
@@ -262,6 +273,18 @@ Stop and escalate if any of the following is true:
 - [x] Stage E: run the validation commands listed below and capture short
   transcripts under `Artifacts and notes`. _Done: see the validation
   block in `Surprises & Discoveries` below._
+- [x] Stage F: add `proptest` as a third verification deep dive
+  (`skills/proptest/SKILL.md`, `references/installation-note.md`,
+  `references/strategy-examples.md`, and `references/proptest-example.rs`)
+  and wire routing from `rust-router/SKILL.md`,
+  `rust-router/references/routing-matrix.md`,
+  `rust-verification/SKILL.md`,
+  `rust-verification/references/tool-selection.md`,
+  `docs/skill-catalogue-status.md`, `docs/users-guide.md`, the README,
+  and the CHANGELOG. _Done: proptest `SKILL.md` lands at roughly 10 KB
+  (within the new deep-dive cap), every reference fits inside the 8 KB
+  reference cap, and the catalogue surfaces distinguish proptest's
+  regular Cargo install from kani/verus's `rust-prover-tools` install._
 
 Each step must be committed individually with the commit gating described in
 the repository's `AGENTS.md` (or the parent `CLAUDE.md`) where applicable.
@@ -347,6 +370,40 @@ The tolerance envelope holds: five new first-class skills
 over 8 KB, router pressure absorbed in four extra route bullets, and
 the README extended by a single bullet that pairs verification with
 supply-chain content.
+
+### Stage F: `proptest` as a third deep dive
+
+After Stage E landed, the user asked for a `proptest` skill in the same
+vein as `kani` and `verus`. The decision points worth recording:
+
+- Envelope: proptest qualifies for the deep-dive exception because its
+  procedural payload — strategy design with `prop_compose!`, the
+  filtering trap and its compositional fix, shrinking discipline, the
+  `proptest-derive` versus `test-strategy` choice, and state-machine
+  testing via `proptest-state-machine` — does not fit in a 4 KB compact
+  envelope without losing the practical guidance that `kani` and `verus`
+  already provide for their respective tools. The cap was set at the
+  `verus/SKILL.md` envelope (~10 KB) and was met after two trim passes.
+- Installation story: unlike `kani` and `verus`, proptest is a regular
+  Cargo dev-dependency. No `rust-prover-tools` equivalent is needed, so
+  `skills/proptest/references/installation-note.md` is structurally
+  different from the kani/verus installation notes: it covers the
+  optional crates (`proptest-derive`, `test-strategy`,
+  `proptest-state-machine`), feature flags (`std`, `fork`, `timeout`,
+  `attr-macro`), and the `PROPTEST_*` environment variables.
+- Routing: `rust-verification` remains the selection layer with three
+  deep-dive destinations (`proptest`, `kani`, `verus`). The routing
+  matrix, users' guide, catalogue-status doc, and README each
+  distinguish proptest's Cargo install from kani/verus's
+  `rust-prover-tools` install so the reader is not misled into thinking
+  proptest requires the prover-tools CLI.
+- Lint stumbles: the first installation-note draft used a `Makefile`
+  fenced code block whose recipe lines need real tabs; `markdownlint`
+  MD010 (no hard tabs) rejects them. Rewriting the snippet as a `bash`
+  fence and noting "wrap each command in a Makefile target" cleared
+  the gate without losing the operator guidance. A line in
+  `strategy-examples.md` also tripped MD013 (line length 80) on a long
+  `fn` signature; splitting the parameter list across lines fixed it.
 
 ## Decision Log
 
