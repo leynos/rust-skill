@@ -36,6 +36,8 @@ in types, traits, and public signatures.
 
 - public APIs expose internal helper traits or incidental generic parameters,
 - public APIs accept `&String` or `&Vec<T>` where `&str` or `&[T]` would do,
+- public functions take two or more `bool` parameters (boolean blindness:
+  prefer named domain enums or an options struct),
 - strings represent closed sets, validated IDs, or states that should be
   enums or newtypes,
 - a trait object appears only to avoid naming a concrete type,
@@ -48,6 +50,9 @@ in types, traits, and public signatures.
 - crate features change core semantics rather than optional integration.
 
 Read [generics-vs-dyn.md](references/generics-vs-dyn.md),
-[newtypes-and-typestate.md](references/newtypes-and-typestate.md), and
-[public-api-boundaries.md](references/public-api-boundaries.md) when one of
-those forks becomes the main design pressure.
+[newtypes-and-typestate.md](references/newtypes-and-typestate.md),
+[public-api-boundaries.md](references/public-api-boundaries.md), and
+[misuse-resistant-apis.md](references/misuse-resistant-apis.md) when one of
+those forks becomes the main design pressure. The last covers typestate,
+hidden-inner newtypes, anti-boolean-blindness, relevant API Guidelines
+tags, and SemVer tooling (`cargo-semver-checks`, `cargo-public-api`).
