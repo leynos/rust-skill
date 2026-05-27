@@ -44,5 +44,8 @@ how long must it stay valid?"
 
 Read [borrow-and-own-patterns.md](references/borrow-and-own-patterns.md) for
 API choices, [interior-mutability.md](references/interior-mutability.md) for
-shared mutation, and [lifecycle-and-raii.md](references/lifecycle-and-raii.md)
-for resource scope patterns.
+shared mutation, [lifecycle-and-raii.md](references/lifecycle-and-raii.md)
+for resource scope patterns, and
+[encapsulation-and-raii.md](references/encapsulation-and-raii.md) for
+ownership as an architectural lever and the `Mutex`/`MutexGuard`/`Drop`
+wireframe.
