@@ -55,6 +55,10 @@ ______________________________________________________________________
   or IoT work.
 - Packaging guidance for workspaces, publishability, helper crates, and
   `cargo-binstall`.
+- Verification, supply-chain, and decision-record skills for the advanced
+  "impeccable software" stance: Miri, proptest, `cargo-mutants`, `loom`,
+  `shuttle`, `turmoil`, Kani, and Verus on one side; `cargo-vet`,
+  `cargo-deny`, SemVer guardrails, and Y-Statement ADRs on the other.
 - English-only rewrites of the new catalogue, with the older tree retained as
   local source material.
 

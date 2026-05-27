@@ -11,3 +11,26 @@ When updating the Rust skill set from this point forward:
 - add or revise first-class skills under `skills/`,
 - keep long examples and edge cases in `references/`,
 - treat `current-skills/` as legacy input, not as the place to extend.
+
+## Catalogue contents
+
+The catalogue is split into a router, six language skills, four
+architecture or domain skills, and two deep-dive verification skills:
+
+- **Router**: `rust-router`.
+- **Language**: `rust-memory-and-state`, `rust-types-and-apis`,
+  `rust-errors`, `rust-async-and-concurrency`, `rust-unsafe-and-ffi`,
+  `rust-performance-and-layout`.
+- **Architecture and domain**: `arch-crate-design`,
+  `arch-supply-chain`, `arch-decision-records`,
+  `domain-web-services`, `domain-cli-and-daemons`,
+  `domain-embedded-and-iot`.
+- **Verification**: `rust-verification` (routes between tools), with
+  deep dives in `kani` and `verus`.
+- **Focused**: `rust-unused-code` for `dead_code` and
+  `unused_imports` decisions.
+
+`kani` and `verus` carry larger size envelopes than the rest because
+they are imported deep dives. Both install and run via
+[`rust-prover-tools`](https://github.com/leynos/rust-prover-tools);
+the catalogue does not carry forked install scripts.
