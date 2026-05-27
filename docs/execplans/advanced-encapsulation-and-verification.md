@@ -243,18 +243,23 @@ Stop and escalate if any of the following is true:
   where the imported text restates familiar Rust, and move long worked
   examples into `references/`. _Done in commits c0ddec8 (kani) and 679a230
   (verus); shell scripts not carried across._
-- [ ] Stage B: add the new first-class skills (`rust-verification`,
+- [x] Stage B: add the new first-class skills (`rust-verification`,
   `arch-supply-chain`, and `arch-decision-records`; final names to be
   confirmed before file creation). `rust-verification` must explicitly
-  route into the imported `kani` and `verus` skills.
-- [ ] Stage C: create or update `CHANGELOG.md` in Common Changelog style with
+  route into the imported `kani` and `verus` skills. _Done in commits
+  576ecf9, 93645c1, and 53efd00; each new SKILL.md fits inside the 4 KB
+  envelope and lint cleanly._
+- [x] Stage C: create or update `CHANGELOG.md` in Common Changelog style with
   an `Unreleased` block summarising the additions, the imports, and the
-  `rust-prover-tools` rewiring.
-- [ ] Stage D: update `README.md` (one short paragraph and at most two
+  `rust-prover-tools` rewiring. _Done in commit c5128f7._
+- [x] Stage D: update `README.md` (one short paragraph and at most two
   bullets) and `docs/skill-catalogue-status.md` to mention the additions
-  and the imports.
-- [ ] Stage E: run the validation commands listed below and capture short
-  transcripts under `Artifacts and notes`.
+  and the imports. _Done in commit f2c22fa, alongside router and
+  routing-matrix updates so the new skills are reachable from one-line
+  questions._
+- [x] Stage E: run the validation commands listed below and capture short
+  transcripts under `Artifacts and notes`. _Done: see the validation
+  block in `Surprises & Discoveries` below._
 
 Each step must be committed individually with the commit gating described in
 the repository's `AGENTS.md` (or the parent `CLAUDE.md`) where applicable.
@@ -313,6 +318,33 @@ and `verus` skills can drop the shell-script fallback. The README of
 `rust-prover-tools` is currently a Copier template stub, so the cli.py
 module-level docstring (and its `Examples` section) is the canonical
 reference for these commands until the README is fleshed out.
+
+### Stage E: validation transcript
+
+Run from the worktree root after the Stage D commit (f2c22fa):
+
+- `find skills -name SKILL.md -print0 | xargs -0 wc -c | sort -n` —
+  17 SKILL.md files, total 59 483 bytes. The 11 compact skills sit
+  between 1.3 KB and 4 KB; `arch-crate-design` (5.8 KB) and the imported
+  `kani` (7.6 KB) and `verus` (10.2 KB) deep dives are the only files
+  above the 4 KB compact envelope, all justified by their roles.
+- `find skills -type f \( -name 'install-verus.sh' -o -name
+  'run-verus.sh' \)` — no matches; the retired shell scripts were not
+  carried across.
+- `grep -l rust-prover-tools skills/kani/SKILL.md skills/verus/SKILL.md
+  skills/kani/references/installation-note.md
+  skills/verus/references/installation-note.md` — all four files match,
+  confirming the rewiring covers both deep dives and both installation
+  notes.
+- `markdownlint-cli2 'docs/**/*.md' 'skills/**/*.md' 'README.md'
+  'CHANGELOG.md'` — 54 files linted, 0 errors.
+
+The tolerance envelope holds: five new first-class skills
+(`rust-verification`, `arch-supply-chain`, `arch-decision-records`,
+`kani`, `verus`), no compact `SKILL.md` over 4 KB, no reference file
+over 8 KB, router pressure absorbed in four extra route bullets, and
+the README extended by a single bullet that pairs verification with
+supply-chain content.
 
 ## Decision Log
 
