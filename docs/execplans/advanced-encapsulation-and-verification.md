@@ -232,15 +232,17 @@ Stop and escalate if any of the following is true:
   `https://github.com/leynos/rust-prover-tools`). Record any naming
   surprises in `Surprises & Discoveries`. _Done: the `rust-prover-tools`
   surface is recorded below; other tool names match the source brief._
-- [ ] Stage A: extend existing skills with the smallest changes that fit
+- [x] Stage A: extend existing skills with the smallest changes that fit
   (router routing entries; references in `rust-memory-and-state`,
   `rust-types-and-apis`, `rust-unsafe-and-ffi`, `rust-performance-and-layout`,
-  `arch-crate-design`).
-- [ ] Stage A.5: import the upstream `kani` and `verus` skills into
+  `arch-crate-design`). _Done across commits 041d3ae, c5abe0b, 5d89231,
+  adbd663, and 2300bd7._
+- [x] Stage A.5: import the upstream `kani` and `verus` skills into
   `skills/kani/` and `skills/verus/`, rewire their installation and runner
   guidance to `rust-prover-tools`, drop the ad hoc shell scripts, compress
   where the imported text restates familiar Rust, and move long worked
-  examples into `references/`.
+  examples into `references/`. _Done in commits c0ddec8 (kani) and 679a230
+  (verus); shell scripts not carried across._
 - [ ] Stage B: add the new first-class skills (`rust-verification`,
   `arch-supply-chain`, and `arch-decision-records`; final names to be
   confirmed before file creation). `rust-verification` must explicitly
