@@ -40,6 +40,9 @@ Use this when performance matters enough to justify design pressure.
 - unsafe code is introduced before safe structural fixes are tried.
 
 Read [allocation-and-reuse.md](references/allocation-and-reuse.md),
-[data-layout.md](references/data-layout.md), and
-[benchmark-discipline.md](references/benchmark-discipline.md) for the common
-forks.
+[data-layout.md](references/data-layout.md),
+[benchmark-discipline.md](references/benchmark-discipline.md), and
+[rigorous-benchmarking.md](references/rigorous-benchmarking.md) for the
+common forks. The last covers paired benchmarking (Tango), deterministic
+profiling (`iai-callgrind`), open-versus-closed load models, tail latency
+and goodput.

@@ -68,6 +68,10 @@ how to write the next function.
   and predictable, then add `[package.metadata.binstall]` only once the
   release URL, archive format, and binary path are known. Use overrides when
   some targets ship different artifact names.
+- For dependency auditing, SemVer guardrails, and trust delegation across
+  third-party crates, load the `arch-supply-chain` skill; it covers
+  `cargo-vet`, `cargo-audit`, `cargo-deny`, `cargo-semver-checks`, and
+  `cargo-public-api`.
 
 ## Example workspace layout
 

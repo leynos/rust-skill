@@ -55,6 +55,12 @@ ______________________________________________________________________
   or IoT work.
 - Packaging guidance for workspaces, publishability, helper crates, and
   `cargo-binstall`.
+- Verification, supply-chain, and decision-record skills for the advanced
+  "impeccable software" stance: Miri, proptest, `cargo-mutants`, `loom`,
+  `shuttle`, `turmoil`, Kani, and Verus on one side; `cargo-vet`,
+  `cargo-deny`, SemVer guardrails, and Y-Statement ADRs on the other.
+  Deep dives for `proptest`, `kani`, and `verus` cover strategy design,
+  harness shape, and proof discipline respectively.
 - English-only rewrites of the new catalogue, with the older tree retained as
   local source material.
 
@@ -62,6 +68,9 @@ ______________________________________________________________________
 
 ## Learn more
 
+- [Users' guide](docs/users-guide.md) — installation, invocation, routing,
+  and when to reach for the verification, supply-chain, and decision-record
+  skills
 - [Skill catalogue status](docs/skill-catalogue-status.md) — what is active and
   what is legacy input
 - [Reduction execplan](docs/execplans/reduced-skill-footprint.md) — design,

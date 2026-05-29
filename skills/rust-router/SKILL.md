@@ -36,6 +36,13 @@ follow-on skill.
   `rust-unsafe-and-ffi`
 - Crate boundaries, features, public surface, or layering:
   `arch-crate-design`
+- Dependency hygiene, `cargo-vet`, `cargo-deny`, SemVer guardrails:
+  `arch-supply-chain`
+- Recording a hard-to-reverse architectural decision (Y-Statement):
+  `arch-decision-records`
+- Verification tool selection (Miri, proptest, `cargo-mutants`, `loom`,
+  `shuttle`, `turmoil`, Kani, Verus): `rust-verification`; deep dives
+  in `proptest`, `kani`, and `verus`
 - HTTP services, middleware, or request state: `domain-web-services`
 - CLIs, workers, daemons, or long-running jobs: `domain-cli-and-daemons`
 - `no_std`, firmware, devices, or edge nodes: `domain-embedded-and-iot`
