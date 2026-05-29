@@ -83,9 +83,8 @@ router first and let it pick the pairing.
 
 ## How the router decides
 
-`rust-router` routes by the concrete problem in front of you, not by
-the file you happen to be editing. A short version of its decision
-table:
+`rust-router` routes by the concrete problem at hand, not by the file
+being edited. A short version of its decision table:
 
 - ownership, borrowing, aliasing, or interior mutability →
   `rust-memory-and-state`,
