@@ -49,7 +49,9 @@ ______________________________________________________________________
 
 ## Features
 
-- One router, six language skills, and four domain or architecture skills.
+- One router, six language skills, and six domain or architecture skills.
+- Focused testing and cleanup guidance for Rust unit-test shape and unused
+  code decisions.
 - Short `SKILL.md` files, with references for the longer comparison material.
 - Coverage for crate design, web services, CLI and daemon work, and embedded
   or IoT work.

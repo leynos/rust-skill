@@ -8,6 +8,12 @@ The format is based on [Common Changelog](https://common-changelog.org).
 
 ### Added
 
+- `rust-unit-testing` skill: covers Rust unit-test helper shape with
+  `rstest` fixtures and parameterized cases, `serial_test` isolation,
+  fallible setup, rich assertions through `googletest` and
+  `pretty_assertions`, and `insta` snapshots. Ships a worked helper-refactor
+  reference that separates dynamic error-source extraction, pure comparison,
+  and assertion formatting.
 - `rust-verification` skill: routes Rust verification work to the
   smallest adversary that matches the failure mode (Miri, sanitizers,
   proptest, cargo-mutants, turmoil, loom, shuttle, Kani, Verus). Ships
@@ -63,7 +69,8 @@ The format is based on [Common Changelog](https://common-changelog.org).
 - `arch-crate-design/SKILL.md`: cross-linked the new `arch-supply-chain`
   skill from the packaging guidance.
 - `rust-router/SKILL.md` and `references/routing-matrix.md`: added the
-  `proptest` deep dive to the verification-routing entries.
+  `rust-unit-testing` focused skill and the `proptest` deep dive to routing
+  entries.
 - `rust-verification/SKILL.md` and `references/tool-selection.md`:
   routed into the new `proptest` deep dive alongside `kani` and
   `verus`.

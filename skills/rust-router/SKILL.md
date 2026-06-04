@@ -28,6 +28,8 @@ follow-on skill.
   `rust-types-and-apis`
 - Error shape, panic boundary, or library-versus-binary handling:
   `rust-errors`
+- Unit-test helper shape, fixtures, table tests, serialized tests, or rich
+  assertions: `rust-unit-testing`
 - Tasks, `Send`/`Sync`, blocking, channels, or cancellation:
   `rust-async-and-concurrency`
 - Allocation pressure, layout, or benchmark discipline:
