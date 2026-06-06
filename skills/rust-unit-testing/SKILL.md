@@ -81,8 +81,9 @@ use serial_test::serial;
 #[test]
 #[serial(current_dir)]
 fn reads_config_from_current_directory() {
-    let temp = tempfile::tempdir().unwrap();
-    let _cwd = CurrentDirGuard::push(temp.path()).unwrap();
+    let temp = tempfile::tempdir().expect("temp directory creation should succeed");
+    let _cwd = CurrentDirGuard::push(temp.path())
+        .expect("current directory guard should install without error");
 
     assert!(load_config().is_ok());
 }
