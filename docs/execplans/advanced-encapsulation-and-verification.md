@@ -285,6 +285,13 @@ Stop and escalate if any of the following is true:
   (within the new deep-dive cap), every reference fits inside the 8 KB
   reference cap, and the catalogue surfaces distinguish proptest's
   regular Cargo install from kani/verus's `rust-prover-tools` install._
+- [x] Stage G: add `rust-unit-testing` as a focused first-class skill for
+  unit-test shape, assertion choice, fallible fixtures, `rstest`
+  parameterisation, `serial_test` isolation, and helper decomposition.
+  _Done in commit 203bc91, with follow-up review fixes in 8d3b93a.
+  The skill lives at `skills/rust-unit-testing/SKILL.md`; its worked
+  helper decomposition example lives at
+  `skills/rust-unit-testing/references/helper-refactor-example.md`._
 
 Each step must be committed individually with the commit gating described in
 the repository's `AGENTS.md` (or the parent `CLAUDE.md`) where applicable.
@@ -445,10 +452,51 @@ implementation.
 
 ## Outcomes & Retrospective
 
-To be completed after implementation. Compare the realised catalogue to the
-purpose and tolerances above. Record any references that should have been
-first-class skills (or vice versa) and any router entries that proved
-confusing in practice.
+The realised catalogue now covers the planned advanced verification and
+architecture surface and the later unit-testing addition. The work added or
+updated skills for Rust verification selection, Kani, Verus, proptest,
+supply-chain hygiene, ADRs, and unit-test structure, while keeping the router
+as the entry point for deciding which specialist skill to load. The
+`rust-unit-testing` addition deliberately sits beside `rust-unused-code` as a
+focused high-value skill rather than being folded into `rust-verification`:
+its concern is everyday unit-test shape and failure readability, not tool
+selection for adversarial verification.
+
+The final `rust-unit-testing` shape matches the requested scope. Its body
+covers `rstest` fixtures and cases, `serial_test` isolation, fallible setup,
+and assertion selection across `pretty_assertions`, `googletest`, and
+`insta`. The reference file records the reusable helper split that motivated
+the skill: a fallible extractor, a pure comparison/query helper, and a thin
+assertion wrapper that formats failures. Follow-up review tightened the
+examples by replacing bare `unwrap()` calls on `Parser::parse_name` and
+`extract_source(source)` with contextual `expect(...)` messages, and by
+rewriting the opening sentence into neutral guidance.
+
+The tolerance model mostly held. The compact 4 KB envelope remains suitable
+for routing and narrow decision skills, while procedural deep dives still need
+explicit exceptions. `skills/rust-unit-testing/SKILL.md` is 6301 bytes and
+`skills/rust-unit-testing/references/helper-refactor-example.md` is 4957
+bytes, so this skill follows the same pattern as other justified focused
+guides: keep the operational overview in `SKILL.md` and move the longer
+worked example into `references/`. No additional router confusion surfaced
+in this follow-up; the user-facing catalogue already points ordinary unit
+test fixture, assertion, snapshot, and serialisation questions to
+`rust-unit-testing`.
+
+Validation for the latest documentation state passed with:
+
+~~~plaintext
+markdownlint-cli2 v0.20.0 (markdownlint v0.40.0)
+Finding: docs/**/*.md skills/**/*.md README.md CHANGELOG.md
+Linting: 60 file(s)
+Summary: 0 error(s)
+~~~
+
+`git diff --check` also passed with no output. The main retrospective lesson
+is procedural rather than architectural: when a follow-up skill is added to a
+branch whose draft ExecPlan still exists, the `Progress` and
+`Outcomes & Retrospective` sections need to be updated in the same slice as
+the implementation, even if the code or documentation change itself is small.
 
 ## Context and orientation
 
