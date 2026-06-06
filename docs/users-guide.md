@@ -25,8 +25,9 @@ The tiers are:
   decision records, web services, CLIs and daemons, embedded and IoT,
 - one **verification router** — `rust-verification` — and three deep dives,
   `proptest`, `kani`, and `verus`,
-- one **focused** skill — `rust-unused-code` for `dead_code` and
-  `unused_imports` decisions.
+- two **focused** skills — `rust-unit-testing` for unit-test shape and
+  assertions, and `rust-unused-code` for `dead_code` and `unused_imports`
+  decisions.
 
 ## Installing the catalogue
 
@@ -92,6 +93,8 @@ being edited. A short version of its decision table:
   `rust-types-and-apis`,
 - error shape, panic boundary, or library-versus-binary handling →
   `rust-errors`,
+- unit-test fixtures, table tests, assertion helper refactors, snapshots,
+  or serialized tests → `rust-unit-testing`,
 - tasks, `Send`/`Sync`, blocking, channels, or cancellation →
   `rust-async-and-concurrency`,
 - allocation pressure, layout, or benchmark discipline →
@@ -139,6 +142,16 @@ valid inputs. The skill covers strategy design with `prop_compose!`,
 the filtering trap and its fix, regression-file discipline,
 state-machine tests via `proptest-state-machine`, and the
 `proptest-derive` vs `test-strategy` choice.
+
+### `rust-unit-testing` — unit-test shape and assertions
+
+Use this skill when ordinary Rust unit tests need clearer structure:
+`rstest` fixtures and parameterized cases, fallible setup helpers,
+`serial_test` for genuine global-state isolation, rich matcher assertions
+with `googletest`, diff-friendly equality with `pretty_assertions`, and
+snapshot tests with `insta`. It also carries a worked example for splitting
+one mixed assertion helper into extraction, pure comparison, and a thin
+assertion wrapper.
 
 ### `kani` — bounded model checking
 

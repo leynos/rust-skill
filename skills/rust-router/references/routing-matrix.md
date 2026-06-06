@@ -9,6 +9,9 @@ Use this when the first skill is not obvious.
   `rust-types-and-apis`, then `arch-crate-design` if the boundary is public.
 - `Result` shape, `thiserror`, `anyhow`, retryability, or panic policy:
   `rust-errors`, then `arch-crate-design` if crates or binaries disagree.
+- Unit-test fixtures, table tests, assertion helper refactors, snapshot
+  assertions, or serialized tests: `rust-unit-testing`, then `rust-errors`
+  if the helper is primarily about error source shape.
 - `Send`, `Sync`, `spawn`, channel choice, or async shutdown:
   `rust-async-and-concurrency`, then `domain-web-services` when request
   handling or service shutdown is involved.

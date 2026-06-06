@@ -14,7 +14,7 @@ When updating the Rust skill set from this point forward:
 
 ## Catalogue contents
 
-The catalogue is split into a router, six language skills, four
+The catalogue is split into a router, six language skills, six
 architecture or domain skills, and three deep-dive verification
 skills:
 
@@ -28,8 +28,9 @@ skills:
   `domain-embedded-and-iot`.
 - **Verification**: `rust-verification` (routes between tools), with
   deep dives in `proptest`, `kani`, and `verus`.
-- **Focused**: `rust-unused-code` for `dead_code` and
-  `unused_imports` decisions.
+- **Focused**: `rust-unit-testing` for unit-test helper shape, fixtures,
+  parameterization, serialization, and assertions; `rust-unused-code` for
+  `dead_code` and `unused_imports` decisions.
 
 `proptest`, `kani`, and `verus` carry larger size envelopes than the
 rest because they are procedural deep dives. `proptest` installs as
