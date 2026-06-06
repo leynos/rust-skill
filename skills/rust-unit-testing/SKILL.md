@@ -5,8 +5,8 @@ description: Design and maintain Rust unit tests with clear helper boundaries, r
 
 # Rust unit testing
 
-Use this when the problem is not "how do I run `cargo test`" but "how should
-this Rust test be shaped so failures explain the defect?"
+Use this guidance when the issue concerns structuring Rust tests so failures
+clearly explain defects, rather than how to run `cargo test`.
 
 ## Working stance
 
@@ -53,7 +53,12 @@ fn parser() -> Parser {
 #[case::trims_outer_whitespace("  alpha  ", "alpha")]
 #[case::preserves_inner_whitespace("alpha  beta", "alpha  beta")]
 fn parses_names(parser: Parser, #[case] input: &str, #[case] expected: &str) {
-    assert_eq!(parser.parse_name(input).unwrap(), expected);
+    assert_eq!(
+        parser
+            .parse_name(input)
+            .expect("parse_name failed for input: {input}"),
+        expected,
+    );
 }
 ```
 

@@ -134,7 +134,7 @@ The extractor can now be asserted directly:
 ```rust
 use pretty_assertions::assert_eq;
 
-let actual = extract_source(source).unwrap();
+let actual = extract_source(source).expect("failed to extract source in test");
 
 assert_eq!(
     actual,
