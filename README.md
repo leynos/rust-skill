@@ -63,6 +63,9 @@ ______________________________________________________________________
   `cargo-deny`, SemVer guardrails, and Y-Statement ADRs on the other.
   Deep dives for `proptest`, `kani`, and `verus` cover strategy design,
   harness shape, and proof discipline respectively.
+- A focused `nll-to-polonius` migration skill for adopting the Polonius borrow
+  checker, retiring confirmed NLL workarounds, and evolving internal APIs
+  towards borrow-centric designs where compatibility permits.
 - English-only rewrites of the new catalogue, with the older tree retained as
   local source material.
 
@@ -80,6 +83,8 @@ ______________________________________________________________________
 - [Rust router](skills/rust-router/SKILL.md) — the main entry point
 - [Crate design](skills/arch-crate-design/SKILL.md) — workspace, packaging, and
   release-shape guidance
+- [NLL to Polonius](skills/nll-to-polonius/SKILL.md) — Polonius adoption,
+  workaround audits, and borrow-centric API evolution
 
 ______________________________________________________________________
 

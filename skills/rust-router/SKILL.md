@@ -22,6 +22,8 @@ follow-on skill.
 
 ## Route by question
 
+- Polonius adoption, NLL workarounds, defensive clones caused by the borrow
+  checker, or borrow-centric API evolution: `nll-to-polonius`
 - Ownership, borrowing, aliasing, or interior mutability:
   `rust-memory-and-state`
 - Trait bounds, generics, API shape, newtypes, or typestate:
@@ -51,6 +53,9 @@ follow-on skill.
 
 ## Pairing rules
 
+- Polonius migrations usually pair `nll-to-polonius` with
+  `rust-types-and-apis` only when public API compatibility constrains the
+  migration.
 - Web services usually pair `domain-web-services` with
   `rust-async-and-concurrency` or `rust-errors`.
 - CLIs and daemons usually pair `domain-cli-and-daemons` with `rust-errors`.

@@ -5,6 +5,10 @@ Use this when the first skill is not obvious.
 - `E0382`, `E0502`, `E0597`, moved value, or borrow overlap:
   `rust-memory-and-state`, then `rust-types-and-apis` if the local fix still
   looks wrong.
+- Polonius adoption, an NLL workaround audit, defensive clones added for the
+  borrow checker, double lookups, or clone-modify-writeback sequences:
+  `nll-to-polonius`; add `rust-types-and-apis` only when public API stability
+  constrains the migration.
 - Trait bound failures, object safety, `impl Trait`, or public API shape:
   `rust-types-and-apis`, then `arch-crate-design` if the boundary is public.
 - `Result` shape, `thiserror`, `anyhow`, retryability, or panic policy:
