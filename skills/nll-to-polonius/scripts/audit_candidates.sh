@@ -54,10 +54,10 @@ search '(keys|iter)\(\)\.cloned\(\)\.collect' || true
 section "Clone clusters (top 15 files by clone() count — audit for §2.3)"
 if command -v rg >/dev/null 2>&1; then
     rg --count --glob '*.rs' --glob '!target' '\.clone\(\)' \
-        | sort -t: -k2 -rn | head -15
+        | sort -t: -k2 -rn | head -15 || true
 else
     grep -rc --include='*.rs' --exclude-dir=target '\.clone()' . \
-        | sort -t: -k2 -rn | head -15
+        | sort -t: -k2 -rn | head -15 || true
 fi
 
 printf '\nDone. Classify every suspect (patterns.md §5) before rewriting.\n'
