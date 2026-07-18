@@ -27,7 +27,10 @@ The tiers are:
   `proptest`, `kani`, and `verus`,
 - two **focused** skills — `rust-unit-testing` for unit-test shape and
   assertions, and `rust-unused-code` for `dead_code` and `unused_imports`
-  decisions.
+  decisions,
+- one **migration** skill — `nll-to-polonius` for adopting the Polonius borrow
+  checker and retiring designs imposed by non-lexical lifetime (NLL)
+  limitations.
 
 ## Installing the catalogue
 
@@ -89,6 +92,8 @@ being edited. A short version of its decision table:
 
 - ownership, borrowing, aliasing, or interior mutability →
   `rust-memory-and-state`,
+- Polonius adoption, NLL workaround audits, borrow-checker-driven defensive
+  clones, or borrow-centric API evolution → `nll-to-polonius`,
 - trait bounds, generics, API shape, newtypes, or typestate →
   `rust-types-and-apis`,
 - error shape, panic boundary, or library-versus-binary handling →
@@ -122,8 +127,17 @@ covers the residual ambiguous cases.
 
 ## When to reach for the new skills
 
-The recent catalogue extension introduces six entry points covering
-verification, supply chain, and decision records. The short versions:
+The recent catalogue extensions cover verification, supply chain, decision
+records, and Polonius migration. The short versions:
+
+### `nll-to-polonius` — migrate beyond NLL constraints
+
+Use this skill when adopting `-Zpolonius=next`, auditing code for confirmed
+NLL workarounds, or redesigning internal lookup and caching APIs around
+returned borrows. It distinguishes lifetime limitations that Polonius can
+remove from aliasing, async, and thread-boundary constraints that still
+require ownership. Routine borrow errors continue to route to
+`rust-memory-and-state`.
 
 ### `rust-verification` — pick the right adversarial tool
 
