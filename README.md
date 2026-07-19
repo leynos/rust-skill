@@ -1,5 +1,8 @@
 # rust-skill
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](
+https://deepwiki.com/leynos/rust-skill)
+
 *A compact Rust skill catalogue for Codex, shaped to help with real Rust work
 without drowning out the work itself.*
 
