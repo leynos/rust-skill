@@ -66,6 +66,11 @@ name only.
 
 ## Invoking skills
 
+`rust-router` remains available for implicit invocation, so Codex can select it
+when a Rust task matches its description. The other 19 skills are
+explicit-only: they stay out of the default model context unless a user or
+agent specifically asks for one.
+
 Skills are addressed by name. The router is the usual entry point:
 
 ```text
@@ -73,8 +78,8 @@ Use $rust-router to route this Rust task, then help me untangle a
 borrow-checker error in this handler.
 ```
 
-When the pressure point is already obvious, call the relevant skill
-directly:
+When the pressure point is already obvious, invoke the relevant specialist
+directly with its `$skill-name`:
 
 ```text
 Use $rust-errors to review this error enum for a publishable library
@@ -100,6 +105,8 @@ being edited. A short version of its decision table:
   `rust-errors`,
 - unit-test fixtures, table tests, assertion helper refactors, snapshots,
   or serialized tests → `rust-unit-testing`,
+- `dead_code`, `unused_imports`, feature-gated reachability, or uncertain
+  unused-item removal → `rust-unused-code`,
 - tasks, `Send`/`Sync`, blocking, channels, or cancellation →
   `rust-async-and-concurrency`,
 - allocation pressure, layout, or benchmark discipline →
