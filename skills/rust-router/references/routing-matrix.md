@@ -16,6 +16,8 @@ Use this when the first skill is not obvious.
 - Unit-test fixtures, table tests, assertion helper refactors, snapshot
   assertions, or serialized tests: `rust-unit-testing`, then `rust-errors`
   if the helper is primarily about error source shape.
+- `dead_code`, `unused_imports`, feature-gated reachability, or an apparently
+  unused item whose removal is uncertain: `rust-unused-code`.
 - `Send`, `Sync`, `spawn`, channel choice, or async shutdown:
   `rust-async-and-concurrency`, then `domain-web-services` when request
   handling or service shutdown is involved.

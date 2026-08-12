@@ -32,6 +32,8 @@ follow-on skill.
   `rust-errors`
 - Unit-test helper shape, fixtures, table tests, serialized tests, or rich
   assertions: `rust-unit-testing`
+- `dead_code`, `unused_imports`, conditional compilation, or deciding whether
+  an apparently unused item should be removed: `rust-unused-code`
 - Tasks, `Send`/`Sync`, blocking, channels, or cancellation:
   `rust-async-and-concurrency`
 - Allocation pressure, layout, or benchmark discipline:
