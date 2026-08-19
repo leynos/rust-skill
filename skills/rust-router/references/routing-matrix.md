@@ -2,9 +2,17 @@
 
 Use this when the first skill is not obvious.
 
+Borrow-checker posture is ambient context, not a route of its own. For
+borrow-sensitive work, establish `nll`, `polonius-alpha`,
+`polonius-legacy`, or `unknown` using
+[polonius-alpha.md](polonius-alpha.md), then route by the concrete problem.
+A project using Polonius Alpha still uses the ordinary language skills;
+`nll-to-polonius` is for adoption, audits, and migration work.
+
 - `E0382`, `E0502`, `E0597`, moved value, or borrow overlap:
   `rust-memory-and-state`, then `rust-types-and-apis` if the local fix still
-  looks wrong.
+  looks wrong. Under `polonius-alpha`, try the direct borrow-flow form before
+  accepting defensive clones or indirection.
 - Polonius adoption, an NLL workaround audit, defensive clones added for the
   borrow checker, double lookups, or clone-modify-writeback sequences:
   `nll-to-polonius`; add `rust-types-and-apis` only when public API stability
@@ -20,10 +28,12 @@ Use this when the first skill is not obvious.
   unused item whose removal is uncertain: `rust-unused-code`.
 - `Send`, `Sync`, `spawn`, channel choice, or async shutdown:
   `rust-async-and-concurrency`, then `domain-web-services` when request
-  handling or service shutdown is involved.
+  handling or service shutdown is involved. Polonius may improve local borrow
+  flow, but it does not remove task, suspension-point, or thread ownership.
 - Allocation churn, enum size, layout, cache locality, or benchmarks:
   `rust-performance-and-layout`, then `arch-crate-design` if the fix changes
-  public shape or layering.
+  public shape or layering. Under `polonius-alpha`, revisit clone-heavy hot
+  paths but measure the rewritten design.
 - Raw pointers, `NonNull`, `MaybeUninit`, or `extern "C"`:
   `rust-unsafe-and-ffi` (foreign function interface (FFI)), then
   `domain-embedded-and-iot` (Internet of Things (IoT)) when hardware or edge

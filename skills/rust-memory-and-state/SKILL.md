@@ -33,6 +33,23 @@ how long must it stay valid?"
 | mutation behind shared access, multi-thread | `Mutex<T>` or `RwLock<T>` |
 | resource cleanup tied to scope | RAII guard or owning wrapper |
 
+## Polonius Alpha posture
+
+When the router identifies `polonius-alpha`:
+
+- try the direct conditional-borrow or reborrow form before adding clones,
+  repeated lookups, borrow-dodging ids, or interior mutability;
+- distinguish a lifetime that NLL over-extends from two borrows that are
+  genuinely live at the same time; Alpha improves the former and does not
+  permit the latter;
+- compile the candidate with the project's configured compiler rather than
+  reasoning from remembered borrow-checker folklore.
+
+Polonius Alpha does not remove ownership requirements at suspension, task,
+thread, process, or serialization boundaries. Read
+[polonius-alpha.md](../rust-router/references/polonius-alpha.md) for the shared
+project-posture test and semantic boundary.
+
 ## Red flags
 
 - clones multiply each time the borrow checker complains,

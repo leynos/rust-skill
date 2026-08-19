@@ -8,6 +8,10 @@ The format is based on [Common Changelog](https://common-changelog.org).
 
 ### Added
 
+- `rust-router/references/polonius-alpha.md`: shared detection of project
+  borrow-checker posture (`nll`, `polonius-alpha`, `polonius-legacy`, or
+  `unknown`), a compile canary, the Alpha semantic delta, and guidance for
+  ordinary ownership, async, and performance work.
 - `rust-unit-testing` skill: covers Rust unit-test helper shape with
   `rstest` fixtures and parameterized cases, `serial_test` isolation,
   fallible setup, rich assertions through `googletest` and
@@ -57,6 +61,19 @@ The format is based on [Common Changelog](https://common-changelog.org).
 
 ### Changed
 
+- `rust-router/SKILL.md` and `references/routing-matrix.md`: establish
+  borrow-checker posture as ambient context before borrow-sensitive routing
+  and keep Alpha-enabled projects on the ordinary language-skill paths.
+- `rust-memory-and-state`, `rust-async-and-concurrency`, and
+  `rust-performance-and-layout`: consume the shared Polonius Alpha posture
+  without creating parallel versions of the skills.
+- `nll-to-polonius/SKILL.md`, `references/patterns.md`, and
+  `references/documentation.md`: reflect the 4 August 2026 nightly default,
+  use `-Zpolonius=off` for NLL comparison, and stop requiring
+  `-Zpolonius=next` mechanically on current nightly.
+- `README.md` and `docs/users-guide.md`: explain ambient compiler posture,
+  the distinction between ordinary Alpha-aware work and migration, and the
+  refreshed nightly guidance.
 - `rust-unsafe-and-ffi/SKILL.md`: added the missing-`UnsafeCell` red
   flag, a reference to the new interior-mutability material, and a
   cross-link to the `rust-verification` skill.
@@ -84,6 +101,6 @@ The format is based on [Common Changelog](https://common-changelog.org).
   living ExecPlan governing this changelog block. Progress, surprises,
   and decisions are recorded inline as work advances.
 - `docs/users-guide.md`: operator-facing guide covering catalogue
-  installation, router invocation, and when to reach for the new
-  verification, supply-chain, and decision-record skills. Linked from
-  the README.
+  installation, router invocation, Polonius-aware compiler posture, and when
+  to reach for the verification, supply-chain, and decision-record skills.
+  Linked from the README.
