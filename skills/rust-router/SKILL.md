@@ -20,10 +20,31 @@ follow-on skill.
 - When a local fix needs clones, locks, trait-object escape hatches, or unsafe
   code, re-check the design before keeping the patch.
 
+## Establish borrow-checker posture
+
+For borrow-sensitive ownership, API, async, or performance work, establish the
+project's borrow-checker posture before recommending defensive workarounds.
+Classify it as `nll`, `polonius-alpha`, `polonius-legacy`, or `unknown`.
+
+- Inspect `rust-toolchain.toml`, `rust-toolchain`, `.cargo/config.toml`,
+  `.cargo/config`, CI commands, and relevant `RUSTFLAGS`.
+- An explicit `-Zpolonius=next`, `-Zpolonius=off`, or
+  `-Zpolonius=legacy` is decisive.
+- Current nightly enables Polonius Alpha by default unless the project opts
+  out with `-Zpolonius=off`.
+- For dated nightlies, compiler wrappers, or future stable compilers, use the
+  compile canary in
+  [polonius-alpha.md](references/polonius-alpha.md) instead of guessing from
+  the channel name.
+
+Treat posture as ambient context and route the concrete question normally. Do
+not load `nll-to-polonius` merely because a project uses Polonius Alpha; load
+it when adoption, workaround retirement, or API migration is itself the task.
+
 ## Route by question
 
-- Polonius adoption, NLL workarounds, defensive clones caused by the borrow
-  checker, or borrow-centric API evolution: `nll-to-polonius`
+- Polonius adoption, NLL workaround audits, defensive clones caused by the
+  borrow checker, or borrow-centric API evolution: `nll-to-polonius`
 - Ownership, borrowing, aliasing, or interior mutability:
   `rust-memory-and-state`
 - Trait bounds, generics, API shape, newtypes, or typestate:
@@ -58,6 +79,8 @@ follow-on skill.
 - Polonius migrations usually pair `nll-to-polonius` with
   `rust-types-and-apis` only when public API compatibility constrains the
   migration.
+- The shared Polonius posture reference is context, not a second first-class
+  skill.
 - Web services usually pair `domain-web-services` with
   `rust-async-and-concurrency` or `rust-errors`.
 - CLIs and daemons usually pair `domain-cli-and-daemons` with `rust-errors`.
@@ -69,10 +92,14 @@ follow-on skill.
 ## Escalate when
 
 - borrow-checker fixes keep adding clones or `Arc<Mutex<_>>` without clarity,
+- a recommendation depends on borrow acceptance but the project posture is
+  still unknown,
 - a public API needs `dyn Any`, erased errors, or unstable generic sprawl,
 - async code requires shared mutable state and cancellation semantics at once,
 - performance claims appear before measurements,
 - unsafe code exists without a crisp invariant list.
 
-Read [routing-matrix.md](references/routing-matrix.md) only when the route is
-still unclear.
+Read [polonius-alpha.md](references/polonius-alpha.md) when borrow-checker
+posture materially changes the design. Read
+[routing-matrix.md](references/routing-matrix.md) only when the route is still
+unclear.

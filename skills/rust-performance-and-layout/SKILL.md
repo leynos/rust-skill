@@ -27,6 +27,20 @@ Use this when performance matters enough to justify design pressure.
 | clone-heavy hot path | revisit ownership and API boundaries |
 | "faster" rewrite with no numbers | benchmark first |
 
+## Polonius Alpha posture
+
+When the router identifies `polonius-alpha`, treat clone-heavy and
+snapshot-heavy hot paths as possible NLL residue. Try the direct borrowed API
+before preserving repeated lookup, clone-modify-writeback, or eager error
+construction solely for borrow checking.
+
+Classify clones that carry real ownership across suspension, task, thread, or
+process boundaries separately; Polonius does not remove them. Benchmark the
+before and after designs. Fewer clones can improve runtime, but the checker
+itself changes compile-time analysis rather than runtime semantics. Read
+[polonius-alpha.md](../rust-router/references/polonius-alpha.md) for the shared
+project-posture test and semantic boundary.
+
 ## Red flags
 
 - benchmarking starts after the rewrite,

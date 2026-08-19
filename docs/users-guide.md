@@ -2,8 +2,8 @@
 
 This guide explains how to use the Rust skill catalogue in day-to-day Rust
 work: where to install it, how to invoke skills, how the router decides which
-skill to load, and what each newly-added verification, supply-chain, and
-decision-record skill is for.
+skill to load, how borrow-checker posture informs ordinary Rust reasoning, and
+what each verification, supply-chain, and decision-record skill is for.
 
 The companion document [`skill-catalogue-status.md`](skill-catalogue-status.md)
 lists the catalogue contents and tier shape. This guide is the operator-facing
@@ -18,19 +18,24 @@ callers do not load half the catalogue when one skill will do.
 
 The tiers are:
 
-- one **router** — `rust-router`,
-- six **language** skills — memory and state, types and APIs, errors,
+- one **router**: `rust-router`,
+- six **language** skills: memory and state, types and APIs, errors,
   async and concurrency, unsafe and FFI, performance and layout,
-- six **architecture and domain** skills — crate design, supply chain,
+- six **architecture and domain** skills: crate design, supply chain,
   decision records, web services, CLIs and daemons, embedded and IoT,
-- one **verification router** — `rust-verification` — and three deep dives,
+- one **verification router**, `rust-verification`, and three deep dives:
   `proptest`, `kani`, and `verus`,
-- two **focused** skills — `rust-unit-testing` for unit-test shape and
+- two **focused** skills: `rust-unit-testing` for unit-test shape and
   assertions, and `rust-unused-code` for `dead_code` and `unused_imports`
   decisions,
-- one **migration** skill — `nll-to-polonius` for adopting the Polonius borrow
-  checker and retiring designs imposed by non-lexical lifetime (NLL)
-  limitations.
+- one **migration** skill: `nll-to-polonius` for adopting Polonius Alpha,
+  retiring designs imposed by non-lexical lifetime (NLL) limitations, and
+  evolving internal APIs towards borrow-centric forms.
+
+For borrow-sensitive work, the router also establishes an ambient
+borrow-checker posture: `nll`, `polonius-alpha`, `polonius-legacy`, or
+`unknown`. That posture modifies the assumptions used by the ordinary
+language skills without loading a separate Polonius edition of each skill.
 
 ## Installing the catalogue
 
@@ -86,67 +91,90 @@ Use $rust-errors to review this error enum for a publishable library
 crate.
 ```
 
-The router is cheap to load. When a task spans more than one area —
-say, an async handler that also needs error-type advice — load the
-router first and let it pick the pairing.
+The router is cheap to load. When a task spans more than one area, such as an
+async handler that also needs error-type advice, load the router first and let
+it pick the pairing.
 
 ## How the router decides
 
-`rust-router` routes by the concrete problem at hand, not by the file
-being edited. A short version of its decision table:
+`rust-router` routes by the concrete problem at hand, not by the file being
+edited.
 
-- ownership, borrowing, aliasing, or interior mutability →
+For borrow-sensitive ownership, API, async, or performance work, it first
+inspects `rust-toolchain.toml`, Cargo configuration, CI commands, and
+Polonius flags. Current nightly enables Polonius Alpha by default unless the
+project uses `-Zpolonius=off`; explicit `next`, `off`, or `legacy` selection
+wins. For dated nightlies, wrappers, or future stable compilers, the router
+uses a small compile canary rather than guessing from a channel name.
+
+This is ambient context. A project using Alpha still routes ordinary ownership
+questions to `rust-memory-and-state`, async boundaries to
+`rust-async-and-concurrency`, and hot paths to
+`rust-performance-and-layout`. The migration skill is loaded only when
+adoption, NLL-residue auditing, or API evolution is itself the task.
+
+A short version of the decision table:
+
+- ownership, borrowing, aliasing, or interior mutability:
   `rust-memory-and-state`,
 - Polonius adoption, NLL workaround audits, borrow-checker-driven defensive
-  clones, or borrow-centric API evolution → `nll-to-polonius`,
-- trait bounds, generics, API shape, newtypes, or typestate →
+  clones, or borrow-centric API evolution: `nll-to-polonius`,
+- trait bounds, generics, API shape, newtypes, or typestate:
   `rust-types-and-apis`,
-- error shape, panic boundary, or library-versus-binary handling →
+- error shape, panic boundary, or library-versus-binary handling:
   `rust-errors`,
 - unit-test fixtures, table tests, assertion helper refactors, snapshots,
-  or serialized tests → `rust-unit-testing`,
+  or serialized tests: `rust-unit-testing`,
 - `dead_code`, `unused_imports`, feature-gated reachability, or uncertain
-  unused-item removal → `rust-unused-code`,
-- tasks, `Send`/`Sync`, blocking, channels, or cancellation →
+  unused-item removal: `rust-unused-code`,
+- tasks, `Send`/`Sync`, blocking, channels, or cancellation:
   `rust-async-and-concurrency`,
-- allocation pressure, layout, or benchmark discipline →
+- allocation pressure, layout, or benchmark discipline:
   `rust-performance-and-layout`,
-- `unsafe`, FFI, layout guarantees, or soundness review →
+- `unsafe`, FFI, layout guarantees, or soundness review:
   `rust-unsafe-and-ffi`,
-- crate boundaries, features, public surface, or layering →
+- crate boundaries, features, public surface, or layering:
   `arch-crate-design`,
-- dependency hygiene, `cargo-vet`, `cargo-deny`, SemVer guardrails →
+- dependency hygiene, `cargo-vet`, `cargo-deny`, SemVer guardrails:
   `arch-supply-chain`,
-- recording a hard-to-reverse architectural decision (Y-Statement) →
+- recording a hard-to-reverse architectural decision (Y-Statement):
   `arch-decision-records`,
 - choosing a verification tool (Miri, proptest, `cargo-mutants`, `loom`,
-  `shuttle`, `turmoil`, Kani, Verus) → `rust-verification`,
-- HTTP services, middleware, or request state → `domain-web-services`,
-- CLIs, workers, daemons, or long-running jobs →
+  `shuttle`, `turmoil`, Kani, Verus): `rust-verification`,
+- HTTP services, middleware, or request state: `domain-web-services`,
+- CLIs, workers, daemons, or long-running jobs:
   `domain-cli-and-daemons`,
-- `no_std`, firmware, devices, or edge nodes →
+- `no_std`, firmware, devices, or edge nodes:
   `domain-embedded-and-iot`.
 
-The router's pairing rules and escalation triggers live in its
-`SKILL.md`; the
+The router's pairing rules and escalation triggers live in its `SKILL.md`.
+The
+[Polonius Alpha project-posture reference](../skills/rust-router/references/polonius-alpha.md)
+defines checker detection and the semantic boundary consumed by ordinary
+skills. The
 [routing matrix](../skills/rust-router/references/routing-matrix.md)
 covers the residual ambiguous cases.
 
 ## When to reach for the new skills
 
 The recent catalogue extensions cover verification, supply chain, decision
-records, and Polonius migration. The short versions:
+records, and Polonius migration. The short versions follow.
 
-### `nll-to-polonius` — migrate beyond NLL constraints
+### `nll-to-polonius`: migrate beyond NLL constraints
 
-Use this skill when adopting `-Zpolonius=next`, auditing code for confirmed
-NLL workarounds, or redesigning internal lookup and caching APIs around
-returned borrows. It distinguishes lifetime limitations that Polonius can
-remove from aliasing, async, and thread-boundary constraints that still
-require ownership. Routine borrow errors continue to route to
-`rust-memory-and-state`.
+Use this skill when adopting Polonius Alpha, auditing code for confirmed NLL
+workarounds, or redesigning internal lookup and caching APIs around returned
+borrows. It distinguishes lifetime limitations that Alpha can remove from
+aliasing, suspension-point, async, and thread-boundary constraints that still
+require ownership.
 
-### `rust-verification` — pick the right adversarial tool
+As of 4 August 2026, current nightly enables Alpha by default.
+`-Zpolonius=off` is the NLL control; omitting `-Zpolonius=next` no longer
+switches a current nightly back to NLL. The migration skill refreshes
+toolchain and CI guidance around that default. Routine borrow errors continue
+to route to `rust-memory-and-state`, even in Alpha-enabled projects.
+
+### `rust-verification`: pick the right adversarial tool
 
 Use this skill when you need to prove or disprove a property and are
 unsure whether to reach for Miri, sanitizers, property tests,
@@ -154,7 +182,7 @@ unsure whether to reach for Miri, sanitizers, property tests,
 skill's selection table maps failure modes to tools. From there it
 routes into the `proptest`, `kani`, and `verus` deep dives.
 
-### `proptest` — property-based testing
+### `proptest`: property-based testing
 
 Use this skill when a pure function has a property (round-trip,
 idempotence, ordering, conservation) that is easier to state than to
@@ -164,7 +192,7 @@ the filtering trap and its fix, regression-file discipline,
 state-machine tests via `proptest-state-machine`, and the
 `proptest-derive` vs `test-strategy` choice.
 
-### `rust-unit-testing` — unit-test shape and assertions
+### `rust-unit-testing`: unit-test shape and assertions
 
 Use this skill when ordinary Rust unit tests need clearer structure:
 `rstest` fixtures and parameterized cases, fallible setup helpers,
@@ -174,7 +202,7 @@ snapshot tests with `insta`. It also carries a worked example for splitting
 one mixed assertion helper into extraction, pure comparison, and a thin
 assertion wrapper.
 
-### `kani` — bounded model checking
+### `kani`: bounded model checking
 
 Use this skill when writing a harness for a small, well-bounded
 property: an arithmetic invariant, a parser corner case, or a state
@@ -182,7 +210,7 @@ machine with a small alphabet. Kani is unwind-bounded by default;
 the skill describes how to set `#[kani::unwind(n)]`, when to use
 `kani::any` and `kani::assume`, and when to escalate to Verus instead.
 
-### `verus` — deductive verification
+### `verus`: deductive verification
 
 Use this skill when the property must hold for unbounded inputs, when
 the bounded loop in Kani times out, or when the proof composes
@@ -191,7 +219,7 @@ discipline, trigger heuristics for the underlying Z3 solver, the
 `broadcast use` pattern for sequence axioms, and the layout of a
 proof project that mirrors a production module.
 
-### `arch-supply-chain` — dependency hygiene and audits
+### `arch-supply-chain`: dependency hygiene and audits
 
 Use this skill when adding a dependency, tightening a lockfile policy,
 configuring `cargo-vet` or `cargo-deny`, or wiring SemVer guardrails
@@ -199,10 +227,10 @@ configuring `cargo-vet` or `cargo-deny`, or wiring SemVer guardrails
 references describe a decentralized audit setup with imports from
 the Bytecode Alliance and Mozilla, plus a `deny.toml` policy template.
 
-### `arch-decision-records` — Y-Statement ADRs
+### `arch-decision-records`: Y-Statement ADRs
 
-Use this skill when capturing a decision that is hard to reverse —
-a typestate, an `unsafe` invariant, a verification-tool choice, a
+Use this skill when capturing a decision that is hard to reverse:
+a typestate, an `unsafe` invariant, a verification-tool choice, or a
 public API shape. The skill gives the six-clause Y-Statement template
 and three worked Rust examples, and explains how to supersede an
 earlier ADR cleanly.
@@ -213,6 +241,9 @@ A few habits make the catalogue earn its keep:
 
 - **Route before you load.** A short prompt to `rust-router` costs
   little and avoids loading skills you will not use.
+- **Establish checker posture before preserving a workaround.** Under
+  Polonius Alpha, try the direct borrowing form and compile it before
+  accepting NLL-era clones or indirection.
 - **Prefer one language skill plus at most one domain or architecture
   skill** for any single task.
 - **Stop when the answer is turning into a tutorial.** Cut back to the
@@ -225,16 +256,18 @@ A few habits make the catalogue earn its keep:
 
 ## Further reading
 
-- [Skill catalogue status](skill-catalogue-status.md) — what is active
+- [Skill catalogue status](skill-catalogue-status.md): what is active
   and what is legacy input.
-- [Reduction execplan](execplans/reduced-skill-footprint.md) — the
+- [Reduction execplan](execplans/reduced-skill-footprint.md): the
   original rewrite plan and validation history.
-- [Advanced encapsulation and verification execplan](execplans/advanced-encapsulation-and-verification.md)
-  — the plan for the verification, supply-chain, and decision-record
+- [Advanced encapsulation and verification execplan](execplans/advanced-encapsulation-and-verification.md):
+  the plan for the verification, supply-chain, and decision-record
   extension.
-- [`rust-router` SKILL.md](../skills/rust-router/SKILL.md) — the
+- [`rust-router` SKILL.md](../skills/rust-router/SKILL.md): the
   authoritative routing rules.
-- [Routing matrix](../skills/rust-router/references/routing-matrix.md)
-  — the table the router falls back to for ambiguous cases.
-- [`CHANGELOG.md`](../CHANGELOG.md) — what changed in each release
+- [Polonius Alpha project posture](../skills/rust-router/references/polonius-alpha.md):
+  checker detection, the Alpha semantic delta, and ordinary-skill guidance.
+- [Routing matrix](../skills/rust-router/references/routing-matrix.md):
+  the table the router falls back to for ambiguous cases.
+- [`CHANGELOG.md`](../CHANGELOG.md): what changed in each release
   of the catalogue.

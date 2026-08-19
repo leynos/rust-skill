@@ -5,12 +5,14 @@ Contents:
 1. Patterns Polonius newly permits
 2. Defensive patterns that Polonius retires
 3. Look-alikes Polonius does not fix
-4. Acceptance matrix for the alpha analysis
+4. Acceptance matrix for the Alpha analysis
 5. The discriminator, restated
 
-Every "accepted under Polonius" claim below refers to the alpha analysis
-(`-Zpolonius=next`). Verify unfamiliar shapes by compiling a minimal
-reproduction; the analysis is still evolving and this document will age.
+Every "accepted under Polonius" claim below refers to Polonius Alpha. Current
+nightly enables Alpha by default as of 4 August 2026; `-Zpolonius=next`
+selects it explicitly, while `-Zpolonius=off` provides the NLL control.
+Verify unfamiliar shapes by compiling a minimal reproduction under both
+postures. The analysis is still evolving and this document will age.
 
 ## 1. Patterns Polonius newly permits
 
@@ -46,7 +48,7 @@ on the miss path. Contrast with the NLL-era workarounds in §2.1 and §2.2.
 Note the residual double work on the *miss* path (`insert` then a second
 `get_mut`): Polonius does not remove that, because `insert` returns the
 previous value, not a reference to the new one. The win is confined to the
-hit path and the conditional key clone — state this precisely when
+hit path and the conditional key clone; state this precisely when
 estimating benefit.
 
 ### 1.2 Borrow live on the success path, second borrow on the failure path
@@ -66,8 +68,8 @@ fn lookup(&mut self, key: &str) -> Result<&mut Entry, LookupError> {
 
 The `None` arm borrows `self` again while NLL still considers the
 `get_mut` loan live (it flows into the return type). Polonius sees the loan
-dead on the `None` path. The NLL-era workarounds — precomputing the error
-context before the lookup, or restructuring into two functions — do
+dead on the `None` path. The NLL-era workarounds, precomputing the error
+context before the lookup or restructuring into two functions, do
 speculative work on the hot path and can be retired.
 
 ### 1.3 Lending-iterator loops with conditional escape
@@ -136,7 +138,7 @@ Ok(map.get_mut(key).expect("just inserted"))
 Two hash-and-compare traversals on the hit path plus an `expect` that
 encodes a proof the compiler could not check. Rewrite to §1.1. **Caveat:**
 a bare `contains_key` + `insert` with no reference kept (write-only
-guarding) already compiles under NLL and is not a Polonius candidate — see
+guarding) already compiles under NLL and is not a Polonius candidate; see
 worked example W3.
 
 ### 2.2 `entry()` with an unconditionally cloned key
@@ -150,7 +152,7 @@ The entry API demands an owned key even when the entry already exists, so
 hit-dominant workloads pay a clone per call. It was the sanctioned NLL-era
 answer to §1.1, traded against §2.1. Under Polonius the direct form clones
 only on miss. The rewrite pays when (a) the key clone is non-trivial
-(String, Vec, PathBuf — not Copy types) and (b) hits dominate. Where
+(String, Vec, PathBuf, not Copy types) and (b) hits dominate. Where
 `or_insert_with` closures capture environment borrows that fight the entry
 borrow, the direct form also dissolves that knot.
 
@@ -165,11 +167,10 @@ self.apply(&name)?;                    // &mut self method
 Classify carefully. If the clone breaks a borrow that would otherwise be
 *live at the same instant* as the `&mut self` call, the clone is an
 aliasing fix and Polonius changes nothing (§3.1). If the clone breaks a
-borrow that NLL merely *over-extends* — typically because the borrowed
-value flows into a return or a conditional escape — it is a §1 shape in
-disguise. Test: comment out the clone, take a reference instead, and
-compile under both checkers. Only sites that fail NLL and pass Polonius
-qualify.
+borrow that NLL merely *over-extends*, typically because the borrowed value
+flows into a return or a conditional escape, it is a §1 shape in disguise.
+Test: comment out the clone, take a reference instead, and compile under both
+checkers. Only sites that fail NLL and pass Polonius qualify.
 
 ### 2.4 Index-returning helpers
 
@@ -197,7 +198,7 @@ self.rebuild();
 Most of these became unnecessary when NLL itself landed and are cargo cult.
 A minority guard genuine §1 shapes. Either way the block or `drop` can
 usually go; verify with a compile under the target checker and keep any
-`drop` whose purpose is a Drop side effect (locks, files) — those are
+`drop` whose purpose is a Drop side effect (locks, files). Those are
 semantic, not borrowck appeasement. Distinguish by the dropped type.
 
 ### 2.6 Precomputed error context
@@ -218,20 +219,19 @@ Rewriting these breaks the build and burns trust. Recognize and refuse.
 
 ### 3.1 Simultaneous borrows
 
-Two references genuinely alive at once — iterating a collection while
-inserting into it, holding `&self.a` while calling a `&mut self` method
-that could touch `a`, passing `&mut x` twice. These are aliasing
-violations; the clone/split/restructure workarounds remain load-bearing.
-`Vec::split_at_mut`, taking fields apart before the call, and interior
-mutability all stay.
+Two references genuinely alive at once, such as iterating a collection while
+inserting into it, holding `&self.a` while calling a `&mut self` method that
+could touch `a`, or passing `&mut x` twice. These are aliasing violations; the
+clone/split/restructure workarounds remain load-bearing. `Vec::split_at_mut`,
+taking fields apart before the call, and interior mutability all stay.
 
 ### 3.2 Loop-carried conditional reborrow (full flow-sensitivity)
 
-The alpha analysis explicitly excludes patterns like the iterative
+The Alpha analysis explicitly excludes patterns like the iterative
 linked-list truncation:
 
 ```rust
-// Still rejected by polonius alpha:
+// Still rejected by Polonius Alpha:
 fn remove_last_node<T>(mut node_ref: &mut List<T>) {
     loop {
         let next_ref = &mut node_ref.as_mut().unwrap().next;
@@ -253,12 +253,12 @@ promise Polonius relief.
 
 ### 3.3 Self-references, async-held borrows, and closure captures
 
-Different mechanisms entirely (no way to name the lifetime; the state
-machine holds the borrow; closure capture granularity). Out of scope.
+Different mechanisms entirely (no way to name the lifetime, the state
+machine holds the borrow, or closure capture granularity). Out of scope.
 
-## 4. Acceptance matrix (polonius alpha, mid-2026)
+## 4. Acceptance matrix (Polonius Alpha, August 2026)
 
-| Shape | NLL | Polonius alpha |
+| Shape | NLL | Polonius Alpha |
 | --- | --- | --- |
 | §1.1 conditional early return of borrow (case 3) | reject | **accept** |
 | §1.2 borrow on success path, re-borrow on failure path | reject | **accept** |
@@ -268,7 +268,7 @@ machine holds the borrow; closure capture granularity). Out of scope.
 | §3.2 loop-carried reborrow | reject | reject (needs flow-sensitivity) |
 | §3.3 self-referential / async-held / closure-capture | reject | reject |
 
-The alpha is a superset of NLL: nothing moves from accept to reject.
+Alpha is a superset of NLL: nothing moves from accept to reject.
 
 ## 5. The discriminator, restated
 
@@ -276,12 +276,13 @@ At each suspect site, ask in order:
 
 1. **Is the conflicting borrow live only because it escapes on *another*
    path (return, break-with-value, assignment to an outer binding)?**
-   Yes → §1 shape, candidate.
-2. **Are both borrows used on the *same* path?** Yes → aliasing, refuse
+   Yes: §1 shape, candidate.
+2. **Are both borrows used on the *same* path?** Yes: aliasing, refuse
    (§3.1).
 3. **Does the borrow travel around a loop back-edge before the conflict?**
-   Yes → probably §3.2, refuse unless a minimal repro compiles under the
-   flag.
-4. **When in doubt, compile.** A ten-line repro under
-   `RUSTFLAGS="-Zpolonius=next" cargo +nightly check` settles what no
-   amount of reasoning from this document can.
+   Yes: probably §3.2, refuse unless a minimal reproduction compiles under
+   Alpha.
+4. **When in doubt, compile.** Check the direct form under the project's
+   configured posture, then repeat on current nightly with
+   `-Zpolonius=off` as the NLL control. For an older pinned nightly that
+   predates the default, select Alpha explicitly with `-Zpolonius=next`.

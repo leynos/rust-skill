@@ -19,8 +19,9 @@ ______________________________________________________________________
   the original local source material.
 - **Rust-specific judgement**: The catalogue focuses on ownership, APIs,
   errors, async, performance, unsafe code, and crate design.
-- **Clear routing**: `rust-router` directs to the smallest useful skill
-  instead of loading half the catalogue at once.
+- **Clear routing**: `rust-router` directs to the smallest useful skill,
+  carrying compiler posture such as Polonius Alpha as shared context instead
+  of loading a parallel skill catalogue.
 - **Practical tone**: The skills aim to sound like a helpful technical lead,
   not a life coach with a megaphone.
 
@@ -66,9 +67,14 @@ ______________________________________________________________________
   `cargo-deny`, SemVer guardrails, and Y-Statement ADRs on the other.
   Deep dives for `proptest`, `kani`, and `verus` cover strategy design,
   harness shape, and proof discipline respectively.
-- A focused `nll-to-polonius` migration skill for adopting the Polonius borrow
-  checker, retiring confirmed NLL workarounds, and evolving internal APIs
-  towards borrow-centric designs where compatibility permits.
+- Router-level Polonius Alpha awareness for borrow-sensitive ownership,
+  async, and performance work. Current nightly defaults to Alpha; the router
+  detects explicit opt-in or opt-out flags and uses a compile canary when the
+  configured compiler is ambiguous.
+- A focused `nll-to-polonius` migration skill for adopting Polonius Alpha,
+  retiring confirmed NLL workarounds, and evolving internal APIs towards
+  borrow-centric designs where compatibility permits. It remains a migration
+  skill rather than replacing the ordinary Rust language skills.
 - English-only rewrites of the new catalogue, with the older tree retained as
   local source material.
 
@@ -76,17 +82,20 @@ ______________________________________________________________________
 
 ## Learn more
 
-- [Users' guide](docs/users-guide.md) — installation, invocation, routing,
-  and when to reach for the verification, supply-chain, and decision-record
-  skills
-- [Skill catalogue status](docs/skill-catalogue-status.md) — what is active and
+- [Users' guide](docs/users-guide.md): installation, invocation, routing,
+  Polonius-aware project posture, and when to reach for the verification,
+  supply-chain, and decision-record skills
+- [Skill catalogue status](docs/skill-catalogue-status.md): what is active and
   what is legacy input
-- [Reduction execplan](docs/execplans/reduced-skill-footprint.md) — design,
+- [Reduction execplan](docs/execplans/reduced-skill-footprint.md): design,
   rationale, and validation history for the rewrite
-- [Rust router](skills/rust-router/SKILL.md) — the main entry point
-- [Crate design](skills/arch-crate-design/SKILL.md) — workspace, packaging, and
+- [Rust router](skills/rust-router/SKILL.md): the main entry point
+- [Polonius Alpha project posture](skills/rust-router/references/polonius-alpha.md):
+  checker detection, the Alpha semantic delta, and the boundary shared by
+  ordinary Rust skills
+- [Crate design](skills/arch-crate-design/SKILL.md): workspace, packaging, and
   release-shape guidance
-- [NLL to Polonius](skills/nll-to-polonius/SKILL.md) — Polonius adoption,
+- [NLL to Polonius](skills/nll-to-polonius/SKILL.md): Polonius adoption,
   workaround audits, and borrow-centric API evolution
 
 ______________________________________________________________________
@@ -107,7 +116,7 @@ ______________________________________________________________________
 
 ## Licence
 
-MIT — see [LICENSE](LICENSE) for details.
+MIT: see [LICENSE](LICENSE) for details.
 
 ______________________________________________________________________
 

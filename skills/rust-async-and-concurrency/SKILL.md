@@ -28,6 +28,20 @@ shutdown behaviour shape the design more than syntax does.
 - Fire-and-forget looks tempting: prefer an owned task handle instead.
 - Data must cross threads in async code: use owned captures and `Send` types.
 
+## Polonius Alpha posture
+
+When the router identifies `polonius-alpha`, use its improved flow-sensitive
+borrowing for local control flow inside an async function. Before cloning only
+to end a local borrow, compile the direct form with the project's configured
+compiler.
+
+Do not infer that a locally accepted form can cross an `.await`, task, thread,
+channel, callback, or event-loop boundary. Suspension-point lifetimes,
+future self-reference, `Send`/`Sync`, supervision, and ownership transfer are
+unchanged. Read
+[polonius-alpha.md](../rust-router/references/polonius-alpha.md) for the shared
+project-posture test and semantic boundary.
+
 ## Red flags
 
 - `Arc<Mutex<_>>` spreads through handlers and tasks,
