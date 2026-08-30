@@ -31,6 +31,11 @@ The format is based on [Common Changelog](https://common-changelog.org).
   `prover-tools` targets, layout, the two production bridges (spec mirror
   and `#[path]` import) with their maintenance duties, lint policy, and
   the lemma-structure and refinement findings.
+- `rust-state-machines` skill: chooses between caller-driven typestate and
+  event-driven runtime ADTs; identifies correlated flags, `Option` fields,
+  sentinels, and unencapsulated transition ceremony; and covers parser,
+  protocol, actor, and device lifecycle machines. Ships references for
+  representation choices, domain patterns, and state-machine verification.
 - `rust-unit-testing` skill: covers Rust unit-test helper shape with
   `rstest` fixtures and parameterized cases, `serial_test` isolation,
   fallible setup, rich assertions through `googletest` and
@@ -110,6 +115,14 @@ The format is based on [Common Changelog](https://common-changelog.org).
 
 ### Changed
 
+- `rust-router/SKILL.md` and `references/routing-matrix.md`: route parser,
+  protocol, actor, and device lifecycle state to `rust-state-machines`, with
+  async and embedded pairing rules.
+- `rust-types-and-apis/SKILL.md` and `newtypes-and-typestate.md`: reserve the
+  existing typestate guidance for API-facing call-order constraints and
+  cross-link the state-machine specialist.
+- `README.md`, `docs/skill-catalogue-status.md`, and `docs/users-guide.md`:
+  list and explain the new focused state-machine skill.
 - Rigour escalation rules ported from the `python-skill` catalogue.
   `rust-router` gains a testing hierarchy (named test, `rstest` table,
   lightweight `proptest`, structured or stateful `proptest`, Kani,
@@ -178,11 +191,11 @@ The format is based on [Common Changelog](https://common-changelog.org).
   and decisions are recorded inline as work advances.
 - `docs/users-guide.md`: operator-facing guide covering catalogue
   installation, router invocation, and when to reach for the new
-  verification, supply-chain, and decision-record skills. Linked from
-  the README. Also explains that a manifest `name` is the discovery name,
-  that the install copy performs no validation of its own, and that
-  `make lint` is the contributor gate which validates every shipped
-  manifest before it is published.
+  verification, supply-chain, decision-record, and state-machine skills.
+  Linked from the README. Also explains that a manifest `name` is the
+  discovery name, that the install copy performs no validation of its own,
+  and that `make lint` is the contributor gate which validates every
+  shipped manifest before it is published.
 - `AGENTS.md`: commit-gate guidance for agents, covering the manifest
   contract and what to do when changing anything under `skills/`. Points
   tooling and dependency changes at the developers' guide.
