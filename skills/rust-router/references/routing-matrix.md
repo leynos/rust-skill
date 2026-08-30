@@ -9,8 +9,13 @@ Use this when the first skill is not obvious.
   borrow checker, double lookups, or clone-modify-writeback sequences:
   `nll-to-polonius`; add `rust-types-and-apis` only when public API stability
   constrains the migration.
-- Trait bound failures, object safety, `impl Trait`, or public API shape:
-  `rust-types-and-apis`, then `arch-crate-design` if the boundary is public.
+- Parser, codec, protocol, actor, or device lifecycle state; correlated flags,
+  sentinel values, or a typestate-versus-runtime-enum decision:
+  `rust-state-machines`; add `rust-async-and-concurrency` when event ordering,
+  cancellation, or task ownership is also load-bearing.
+- Trait bound failures, object safety, `impl Trait`, newtypes, or public API
+  shape: `rust-types-and-apis`, then `arch-crate-design` if the boundary is
+  public.
 - `Result` shape, `thiserror`, `anyhow`, retryability, or panic policy:
   `rust-errors`, then `arch-crate-design` if crates or binaries disagree.
 - Unit-test fixtures, table tests, assertion helper refactors, snapshot
@@ -47,6 +52,8 @@ Domain pairings:
 - CLI tools and background jobs: `domain-cli-and-daemons` plus `rust-errors`,
   or `rust-async-and-concurrency` if lifecycle and shutdown matter.
 - Embedded and edge-device work: `domain-embedded-and-iot` plus
-  `rust-memory-and-state` or `rust-unsafe-and-ffi`.
+  `rust-state-machines` for lifecycle and transfer-state design,
+  `rust-memory-and-state` for ownership, or `rust-unsafe-and-ffi` for hardware
+  contracts.
 
 Avoid loading more than two first-class skills until a real gap appears.
