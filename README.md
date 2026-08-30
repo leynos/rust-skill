@@ -17,8 +17,8 @@ ______________________________________________________________________
 
 - **Smaller default load**: The committed `skills/` tree is much lighter than
   the original local source material.
-- **Rust-specific judgement**: The catalogue focuses on ownership, APIs,
-  errors, async, performance, unsafe code, and crate design.
+- **Rust-specific judgement**: The catalogue focuses on ownership, state
+  machines, APIs, errors, async, performance, unsafe code, and crate design.
 - **Clear routing**: `rust-router` directs to the smallest useful skill
   instead of loading half the catalogue at once.
 - **Practical tone**: The skills aim to sound like a helpful technical lead,
@@ -53,8 +53,8 @@ ______________________________________________________________________
 ## Features
 
 - One router, six language skills, and six domain or architecture skills.
-- Focused testing and cleanup guidance for Rust unit-test shape and unused
-  code decisions.
+- Focused guidance for state-machine modelling, Rust unit-test shape, and
+  unused-code decisions.
 - Short `SKILL.md` files, with references for the longer comparison material.
 - Coverage for crate design, web services, CLI and daemon work, and embedded
   or IoT work.
@@ -84,6 +84,8 @@ ______________________________________________________________________
 - [Reduction execplan](docs/execplans/reduced-skill-footprint.md) — design,
   rationale, and validation history for the rewrite
 - [Rust router](skills/rust-router/SKILL.md) — the main entry point
+- [State machines](skills/rust-state-machines/SKILL.md) — runtime ADTs,
+  typestate, transition ownership, and verification
 - [Crate design](skills/arch-crate-design/SKILL.md) — workspace, packaging, and
   release-shape guidance
 - [NLL to Polonius](skills/nll-to-polonius/SKILL.md) — Polonius adoption,

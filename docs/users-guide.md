@@ -2,8 +2,7 @@
 
 This guide explains how to use the Rust skill catalogue in day-to-day Rust
 work: where to install it, how to invoke skills, how the router decides which
-skill to load, and what each newly-added verification, supply-chain, and
-decision-record skill is for.
+skill to load, and what each focused or advanced skill is for.
 
 The companion document [`skill-catalogue-status.md`](skill-catalogue-status.md)
 lists the catalogue contents and tier shape. This guide is the operator-facing
@@ -25,9 +24,9 @@ The tiers are:
   decision records, web services, CLIs and daemons, embedded and IoT,
 - one **verification router** — `rust-verification` — and three deep dives,
   `proptest`, `kani`, and `verus`,
-- two **focused** skills — `rust-unit-testing` for unit-test shape and
-  assertions, and `rust-unused-code` for `dead_code` and `unused_imports`
-  decisions,
+- three **focused** skills — `rust-state-machines` for logical state and
+  transition design, `rust-unit-testing` for unit-test shape and assertions,
+  and `rust-unused-code` for `dead_code` and `unused_imports` decisions,
 - one **migration** skill — `nll-to-polonius` for adopting the Polonius borrow
   checker and retiring designs imposed by non-lexical lifetime (NLL)
   limitations.
@@ -67,7 +66,7 @@ name only.
 ## Invoking skills
 
 `rust-router` remains available for implicit invocation, so Codex can select it
-when a Rust task matches its description. The other 19 skills are
+when a Rust task matches its description. The other 20 skills are
 explicit-only: they stay out of the default model context unless a user or
 agent specifically asks for one.
 
@@ -99,7 +98,10 @@ being edited. A short version of its decision table:
   `rust-memory-and-state`,
 - Polonius adoption, NLL workaround audits, borrow-checker-driven defensive
   clones, or borrow-centric API evolution → `nll-to-polonius`,
-- trait bounds, generics, API shape, newtypes, or typestate →
+- parser, codec, protocol, actor, or device lifecycle state; correlated flags,
+  sentinel values, or typestate-versus-runtime-ADT choices →
+  `rust-state-machines`,
+- trait bounds, generics, API shape, newtypes, or API-facing typestate →
   `rust-types-and-apis`,
 - error shape, panic boundary, or library-versus-binary handling →
   `rust-errors`,
@@ -134,8 +136,19 @@ covers the residual ambiguous cases.
 
 ## When to reach for the new skills
 
-The recent catalogue extensions cover verification, supply chain, decision
-records, and Polonius migration. The short versions:
+The recent catalogue extensions cover state-machine modelling, verification,
+supply chain, decision records, and Polonius migration. The short versions:
+
+### `rust-state-machines` — model transitions and invalid states
+
+Use this skill for parsers, codecs, protocols, actors, device lifecycles, or any
+state carrier built from correlated booleans, `Option` fields, sentinel values,
+or fields that must change together. It distinguishes caller-driven finite
+operation sequences, where typestate may prevent real misuse, from input- or
+event-driven machines, where a stable owner with a runtime ADT is normally the
+right representation. Its references cover parser, protocol, asynchronous, and
+device patterns plus transition-table, `trybuild`, property, Kani, and
+concurrency testing.
 
 ### `nll-to-polonius` — migrate beyond NLL constraints
 
@@ -234,6 +247,8 @@ A few habits make the catalogue earn its keep:
   extension.
 - [`rust-router` SKILL.md](../skills/rust-router/SKILL.md) — the
   authoritative routing rules.
+- [`rust-state-machines` SKILL.md](../skills/rust-state-machines/SKILL.md)
+  — state representation, transition design, and verification.
 - [Routing matrix](../skills/rust-router/references/routing-matrix.md)
   — the table the router falls back to for ambiguous cases.
 - [`CHANGELOG.md`](../CHANGELOG.md) — what changed in each release

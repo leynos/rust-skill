@@ -1,6 +1,6 @@
 ---
 name: rust-types-and-apis
-description: Use for trait bounds, generics, trait objects, newtypes, typestate, conversion boundaries, public API design, and crate-facing Rust interfaces.
+description: Use for trait bounds, generics, trait objects, newtypes, API-facing typestate, conversion boundaries, public API design, and crate-facing Rust interfaces.
 globs: ["**/Cargo.toml", "**/*.rs"]
 ---
 
@@ -26,7 +26,8 @@ in types, traits, and public signatures.
 - `dyn Trait`: runtime heterogeneity, plugin seams, or monomorphization costs
   matter more than static dispatch.
 - Newtype: domain distinction matters and misuse should not compile.
-- Typestate: operation order is finite and important enough to encode.
+- Typestate: a caller-selected operation order is finite and important enough
+  to encode; use `rust-state-machines` when modelling the machine itself.
 - Sealed trait: downstream implementations would weaken invariants.
 - `AsRef` or `Into` inputs: caller flexibility helps without hiding semantics.
 - `&str` or `&[T]` inputs: prefer them over `&String` or `&Vec<T>` when the
@@ -55,4 +56,6 @@ Read [generics-vs-dyn.md](references/generics-vs-dyn.md),
 [misuse-resistant-apis.md](references/misuse-resistant-apis.md) when one of
 those forks becomes the main design pressure. The last covers typestate,
 hidden-inner newtypes, anti-boolean-blindness, relevant API Guidelines
-tags, and SemVer tooling (`cargo-semver-checks`, `cargo-public-api`).
+tags, and SemVer tooling (`cargo-semver-checks`, `cargo-public-api`). Use
+`rust-state-machines` for parser, protocol, actor, and device lifecycle state
+or for choosing between typestate and a runtime ADT.
