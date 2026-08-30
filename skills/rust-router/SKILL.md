@@ -26,7 +26,10 @@ follow-on skill.
   checker, or borrow-centric API evolution: `nll-to-polonius`
 - Ownership, borrowing, aliasing, or interior mutability:
   `rust-memory-and-state`
-- Trait bounds, generics, API shape, newtypes, or typestate:
+- Parsers, codecs, protocols, actors, device lifecycles, correlated state
+  fields, or choosing between typestate and runtime ADTs:
+  `rust-state-machines`
+- Trait bounds, generics, API shape, newtypes, or API-facing typestate:
   `rust-types-and-apis`
 - Error shape, panic boundary, or library-versus-binary handling:
   `rust-errors`
@@ -58,6 +61,9 @@ follow-on skill.
 - Polonius migrations usually pair `nll-to-polonius` with
   `rust-types-and-apis` only when public API compatibility constrains the
   migration.
+- Event-driven state machines may pair `rust-state-machines` with
+  `rust-async-and-concurrency`; device lifecycle machines may pair it with
+  `domain-embedded-and-iot`.
 - Web services usually pair `domain-web-services` with
   `rust-async-and-concurrency` or `rust-errors`.
 - CLIs and daemons usually pair `domain-cli-and-daemons` with `rust-errors`.
@@ -69,6 +75,8 @@ follow-on skill.
 ## Escalate when
 
 - borrow-checker fixes keep adding clones or `Arc<Mutex<_>>` without clarity,
+- state invariants rely on correlated flags, sentinel values, or
+  `unreachable!()` branches,
 - a public API needs `dyn Any`, erased errors, or unstable generic sprawl,
 - async code requires shared mutable state and cancellation semantics at once,
 - performance claims appear before measurements,
