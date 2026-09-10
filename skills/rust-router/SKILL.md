@@ -1,7 +1,8 @@
 ---
 name: rust-router
 description: Route Rust work to the smallest useful skill. Use for Rust coding, design, compile errors, API questions, crate layout, async, performance, unsafe, or domain-specific Rust work.
-globs: ["**/Cargo.toml", "**/*.rs"]
+metadata:
+  globs: "**/Cargo.toml, **/*.rs"
 ---
 
 # Rust Router

@@ -1,7 +1,8 @@
 ---
 name: rust-performance-and-layout
 description: Use for Rust performance work, allocation pressure, data layout, hot-path APIs, benchmarks, and when layout or copying choices affect runtime behaviour.
-globs: ["**/Cargo.toml", "**/*.rs"]
+metadata:
+  globs: "**/Cargo.toml, **/*.rs"
 ---
 
 # Rust Performance and Layout

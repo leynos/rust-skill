@@ -1,7 +1,8 @@
 ---
 name: arch-crate-design
 description: Use for Rust crate boundaries, workspace structure, feature flags, public versus internal APIs, layering, and testable module design.
-globs: ["**/Cargo.toml", "**/*.rs"]
+metadata:
+  globs: "**/Cargo.toml, **/*.rs"
 ---
 
 # Rust Crate Design
