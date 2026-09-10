@@ -795,20 +795,37 @@ and prose recommendations do not count.
 | Confirmation outcome                         | PRs |
 | -------------------------------------------- | --- |
 | Candidates checked                           | 228 |
-| Confirmed (artefact in the merged diff)      | 124 |
+| Confirmed (artefact in the merged diff)      | 123 |
 | Refuted                                      | 103 |
-| Inconclusive                                 | 1   |
+| Inconclusive                                 | 2   |
 
-Refutation reasons: never merged at the time of the check (37),
-conventional test added instead (27), a non-Rust substitute such as
+Refutation reasons: never merged at the time of the check (39),
+conventional test added instead (30), a non-Rust substitute such as
 Hypothesis (10), the artefact never added before merge (9), deferred to
 a tracked issue (9), docs-only PR (6), declined with a recorded reason
-(1), and a handful of misclassifications. Confirmed cases by tool:
-proptest 118, Kani 3, both 2, Verus 0. By requesting reviewer, counting a
-PR once per reviewer that raised it: the pre-merge "Testing (Property /
-Proof)" row 96, CodeRabbit line comments 60, the human maintainer 18,
-Sourcery 3, `chatgpt-codex-connector` 1. The per-repository table is in
+(1, vendored third-party code). Confirmed cases by tool: proptest 118,
+Kani 3, both 2, Verus 0. By requesting reviewer, counting a PR once per
+reviewer that raised it: the pre-merge "Testing (Property / Proof)" row
+96, CodeRabbit line comments 60, the human maintainer 18, Sourcery 3,
+`chatgpt-codex-connector` 1. The per-repository table is in
 [Appendix B](#appendix-b-confirmed-omission-cases).
+
+Two further observations from the confirmed set:
+
+- **Latency.** Where the interval could be timed (82 of 123 cases), the
+  artefact landed within hours in 17, the same day in 31, and after a
+  day or more but inside the PR in 9, with 22 more inside the PR
+  lifecycle without a pinned time. Nothing in the dataset shows a
+  request surviving to a later PR and returning; retrofits land in the
+  same PR or become a refuted case, and the deferred-then-paid pairs
+  (`cuprum` #62 and #93, `netsuke` #315 and #325, `rstest-bdd` #691 and
+  its issue) are scored as one refuted and one confirmed case, which
+  understates how often the request is honoured.
+- **The check flips.** In 89 of 123 cases the pre-merge row or the
+  reviewer's follow-up explicitly moved to Passed or Resolved;
+  "Partially resolved" is the mechanism by which the reviewer forces a
+  second iteration (a wider strategy, a public rather than private entry
+  point, an independent oracle).
 
 ## Barriers to entry
 

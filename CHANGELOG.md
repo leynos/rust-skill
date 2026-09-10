@@ -12,7 +12,7 @@ The format is based on [Common Changelog](https://common-changelog.org).
   review findings on `proptest`, Kani, and Verus work across the
   `leynos` estate (57 repositories, 9,171 pull requests, 851 triaged
   findings), the standard `rust-prover-tools` integration shape, the
-  124 confirmed cases where verification was omitted, requested by a
+  123 confirmed cases where verification was omitted, requested by a
   reviewer, and landed before merge, and the barriers to entry each
   skill now addresses.
 - `proptest/references/review-failure-modes.md` and
