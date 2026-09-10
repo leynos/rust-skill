@@ -52,13 +52,18 @@ toolchain install`, and Bash 3.2 incompatibilities on macOS.
 
 <!-- markdownlint-disable MD010 -->
 ```makefile
-PROVER_TOOLS_REF_FILE ?= tools/rust-prover-tools/REF
+override PROVER_TOOLS_REF_FILE := tools/rust-prover-tools/REF
 override PROVER_TOOLS_REF := $(shell awk '/^ref:/ { print $$2 }' $(PROVER_TOOLS_REF_FILE))
 ifeq ($(shell printf '%s' '$(PROVER_TOOLS_REF)' | grep -Ec '^[0-9a-f]{40}$$'),0)
 $(error PROVER_TOOLS_REF missing or malformed; expected "ref: <40-hex>" in $(PROVER_TOOLS_REF_FILE))
 endif
 override PROVER_TOOLS_SOURCE := git+https://github.com/leynos/rust-prover-tools.git@$(PROVER_TOOLS_REF)
+PROVER_TOOLS_CONTRACT_TEST ?=
+ifeq ($(PROVER_TOOLS_CONTRACT_TEST),)
+override PROVER_TOOLS := uv tool run --from "$(PROVER_TOOLS_SOURCE)" prover-tools
+else
 PROVER_TOOLS ?= uv tool run --from "$(PROVER_TOOLS_SOURCE)" prover-tools
+endif
 VERUS_PROOF_FILE ?= verus/my_proofs.rs
 VERUS_FLAGS ?=
 
@@ -71,11 +76,15 @@ verus: ## Run the Verus proof entry point
 <!-- markdownlint-enable MD010 -->
 
 `tools/rust-prover-tools/REF` carries one `ref: <40-hex commit>` line
-(see the Kani on-ramp for the full file); the guard rejects a missing
-or malformed ref before `PROVER_TOOLS_SOURCE` can be left unpinned,
-and the `override` assignments stop an inherited environment value
-from repointing the pin. `PROVER_TOOLS` stays `?=` as the seam
-contract tests use to substitute a recording fake.
+(see the Kani on-ramp for the full file). The REF path is fixed with
+`override :=` because it is interpolated into a `$(shell ...)` call:
+Make expands variables before the shell runs, so quoting cannot make
+an environment-supplied path safe. The guard rejects a missing or
+malformed ref before `PROVER_TOOLS_SOURCE` can be left unpinned, and
+`PROVER_TOOLS` is locked to the pin-derived source unless
+`PROVER_TOOLS_CONTRACT_TEST` is set, which is the seam contract tests
+use to substitute a recording fake; production runs cannot repoint it
+from the environment.
 
 Keep `verus` out of `make test`, `make lint`, `make all`, and the
 pull-request formal gate until the proofs have been stable for a while;
@@ -132,4 +141,6 @@ with a 40-character commit, Makefile recipes that delegate through
 `$(PROVER_TOOLS)` and contain no `curl`, `unzip`, `sha256sum`, or
 `rustup toolchain install`, and a dry-run asserting the exact
 `prover-tools verus run --proof-file ...` invocation with a recording
-fake executable rather than `echo`.
+fake executable rather than `echo`. Tests exercise the seam with
+`PROVER_TOOLS_CONTRACT_TEST=1 PROVER_TOOLS=<fake>` on the `make`
+command line.

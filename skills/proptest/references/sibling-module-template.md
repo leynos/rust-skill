@@ -110,7 +110,12 @@ Only when the default 256 cases is wrong for a documented reason:
 proptest! {
     #![proptest_config(ProptestConfig {
         cases: match std::env::var("PROPTEST_CASES") {
-            Ok(v) => v.parse().expect("PROPTEST_CASES must be a positive integer"),
+            Ok(v) => match v.parse::<u32>() {
+                Ok(n) if n > 0 => n,
+                _ => panic!(
+                    "PROPTEST_CASES must be a positive integer, got {v:?}"
+                ),
+            },
             Err(_) => 256,
         },
         .. ProptestConfig::default()

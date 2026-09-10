@@ -173,9 +173,19 @@ unexpected_cfgs = { level = "warn", check-cfg = ["cfg(kani)"] }
 - Heap collections and strings dominate the proof budget: real
   `HashMap`, serde, hashing, and path types are lowered before the
   invariant is reached. Use fixed-size arrays, an explicit degree cap, or
-  a bounded array with an O(n²) linear scan in place of a `HashSet`; keep
-  a `cfg(kani)`-only compatibility collection private behind a `not(kani)`
-  type alias.
+  a bounded array with an O(n²) linear scan in place of a `HashSet`.
+  Define a private type alias that resolves to the bounded collection
+  under `cfg(kani)` and to the real `HashSet` or `HashMap` otherwise, so
+  production code compiles unchanged in both configurations; the alias
+  must expose the methods production calls.
+
+  ```rust
+  #[cfg(kani)]
+  type NodeSet = BoundedNodeSet;
+  #[cfg(not(kani))]
+  type NodeSet = std::collections::HashSet<NodeId>;
+  ```
+
 - Extract a generic kernel and prove it over `u8` with a thin adapter
   harness; this turned an 8 GiB blow-up at N=3 into a 7.6 s proof.
 - Nested loops need N² unwind. Recompute bounds after any refactor that
