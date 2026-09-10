@@ -28,11 +28,17 @@ Use this when the first skill is not obvious.
   `rust-unsafe-and-ffi` (foreign function interface (FFI)), then
   `domain-embedded-and-iot` (Internet of Things (IoT)) when hardware or edge
   constraints matter.
+- A `#[case]` table that samples one relation over a range, or a cheap
+  repeatable invariant with no obvious edge: `proptest` directly; no
+  selector step is needed.
 - A property must be proved rather than tested (UB sweep, schedule
-  chaos, structural invariant, algebraic property):
-  `rust-verification` to pick the tool, then `proptest` for randomized
-  property tests, `kani` for bounded model checking, or `verus` for
-  deductive proofs.
+  chaos, structural invariant, algebraic property), or the testing rung
+  is unclear: `rust-verification` to pick the tool, then `proptest` for
+  randomized property tests, `kani` for bounded model checking, or
+  `verus` for deductive proofs. Add `cargo-mutants` only when the
+  separate question is suite sensitivity.
+- Do not replace a finite standards table or named regression with
+  generated values merely because `proptest` is available.
 - Dependency audit, lockfile policy, banned crates, or breaking-change
   detection: `arch-supply-chain`, then `arch-crate-design` if the fix
   touches public surface.

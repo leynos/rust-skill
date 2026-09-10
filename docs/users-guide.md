@@ -140,6 +140,36 @@ The router's pairing rules and escalation triggers live in its
 [routing matrix](../skills/rust-router/references/routing-matrix.md)
 covers the residual ambiguous cases.
 
+
+## Testing hierarchy
+
+Pick the first level whose evidence matches the question:
+
+1. **Named unit test**: one scenario, regression, exact output, or
+   error contract matters.
+2. **Parameterized `rstest` table**: a finite truth table, standards
+   corpus, or set of cases whose rows each carry semantic meaning.
+3. **Lightweight `proptest`**: one round trip, invariant, oracle, or
+   metamorphic relation should hold across many cheap, repeatable
+   inputs. A growing set of representative `#[case]` rows is the usual
+   signal, and the estate's reviewers flag it as such.
+4. **Structured or stateful `proptest`**: valid data has dependent or
+   recursive structure, or failures depend on operation history.
+5. **Kani**: a small bounded function needs exhaustive exploration of
+   every reachable path within a stated bound.
+6. **Verus**: the property must hold with no bound, over a small stable
+   pure kernel.
+
+`cargo-mutants` sits beside the hierarchy. Use it when the question is
+whether the current suite would notice a plausible defect. Miri sits
+below it, on the tests that already touch `unsafe`.
+
+Leave the hierarchy for scheduling, integration, load, performance, or
+foreign-code failures. Those need `loom`, `shuttle`, or `turmoil`, real
+or simulated boundaries, benchmarks and profilers, or sanitizers.
+`rust-verification` is the escalation selector when the rung is
+unclear; a clear lightweight invariant goes straight to `proptest`.
+
 ## When to reach for the new skills
 
 The recent catalogue extensions cover verification, supply chain, decision

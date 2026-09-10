@@ -42,6 +42,104 @@ implementation, invariant predicate, prior version), or when a
 unit-test corpus keeps growing because each new bug needs another
 hand-written case.
 
+Treat a lightweight property as ordinary testing when the code is cheap
+to run, repeatable, and governed by a clear invariant. Start with a
+range or `any::<T>()`, one semantic assertion, and default settings.
+Custom strategies, configuration, and state machines are escalation
+tools, not an entrance fee.
+
+## Start light
+
+An `rstest` table often samples a property without saying so:
+
+```rust
+#[rstest]
+#[case(0)]
+#[case(1)]
+#[case(127)]
+#[case(128)]
+#[case(u64::MAX)]
+fn varint_roundtrips(#[case] n: u64) {
+    assert_eq!(decode_varint(&encode_varint(n)), n);
+}
+```
+
+Replace the representative sample with the domain, and keep any named
+edge case as an explicit unit test beside it:
+
+```rust
+proptest! {
+    #[test]
+    fn varint_roundtrips(n in any::<u64>()) {
+        prop_assert_eq!(decode_varint(&encode_varint(n)), n);
+    }
+}
+
+#[test]
+fn varint_roundtrips_at_the_one_byte_boundary() {
+    assert_eq!(decode_varint(&encode_varint(128)), 128);
+}
+```
+
+That is a complete property test. Do not add `prop_compose!`,
+`prop_assume!`, a `ProptestConfig`, or a state machine unless the domain
+forces the issue.
+
+A `#[case]` table is probably trying to do property testing when every
+row exercises the same assertion relation, the values are described as
+representative or edge cases, another bug adds another row without
+changing the test's meaning, several columns manually sample a
+cross-product, or the expected value comes from a simple invariant or a
+structurally different reference. Keep the table when the rows form a
+finite truth table or protocol corpus, each row has distinct semantic
+meaning, exact rendered output or error text matters, or the test is too
+slow or impure to repeat freely. A four-row standards table does not
+need a generator orbiting it.
+
+## Everyday properties
+
+Prefer properties that state behaviour independently of the
+implementation:
+
+- **Round trip:** `decode(encode(x)) == x`.
+- **Idempotence:** `normalize(normalize(x)) == normalize(x)`.
+- **Oracle or differential:** the optimized path agrees with a slow,
+  obviously different reference.
+- **Invariant or conservation:** sorting preserves the multiset; a
+  transaction preserves total value; a transform preserves a schema.
+- **Metamorphic relation:** changing the input in a known way changes,
+  or does not change, the output predictably.
+- **Totality or robustness:** valid-shaped input does not panic. Use this
+  only when accepting all such input is itself the contract; otherwise
+  assert a stronger semantic fact too.
+
+## Escalation ladder
+
+Stop at the first rung that answers the question:
+
+1. **Lightweight property:** ranges, regex literals, `any::<T>()`, one
+   invariant, default settings. This should be the common case.
+2. **Structured values:** `prop_compose!` or a derive crate when the
+   input is a struct or enum.
+3. **Dependent or recursive values:** `prop_flat_map`, `test-strategy`
+   field references, or recursive strategies only when valid fields
+   depend on one another or the data is recursive.
+4. **Operation histories:** `proptest-state-machine` when bugs depend on
+   sequences such as insert, delete, reorder, cache invalidation, or
+   protocol transitions.
+5. **Bounded path scrutiny:** move to `kani` when a small pure function
+   carries an invariant and every reachable path within a bound matters
+   more than broad sampling.
+6. **Suite sensitivity:** add `cargo-mutants` when the question is
+   whether the tests would notice a defect. Mutation testing audits the
+   suite; it does not replace the property.
+
+Escalate from a light property when the strategy starts encoding
+substantial domain rules, rejection dominates generation, the failure
+depends on history, or the assurance target changes from broad search to
+bounded exploration, unbounded proof, or suite sensitivity. Load
+`rust-verification` when that choice is unclear.
+
 Do not apply when the property requires exhaustive coverage of a
 bounded space (use Kani), when it must hold for unbounded inputs with
 a proof (use Verus), when the bug is a scheduling artefact (use
@@ -180,6 +278,14 @@ that once, outside the block). Before-and-after worked examples live in
   intended invariant certifies the bug.
 - **Disjunctive assertions.** `prop_assert!(a || b)` accepting two
   observed behaviours usually masks a defect.
+- **Building a strategy framework before the first property.** Start
+  with primitive strategies and let real constraints justify
+  abstraction.
+- **A state machine for a pure function.** A plain `proptest!` block is
+  cheaper to read, run, and debug.
+- **Swallowing the assertion.** An early `return Ok(())` on the `Err`
+  branch, or a `match` arm that asserts nothing, means the runner sees
+  no failure and the bug survives.
 - **Hiding regressions.** A `proptest-regressions/` file with a
   failing seed must be promoted to a named unit test with the shrunk
   input pinned and a comment recording the bug.

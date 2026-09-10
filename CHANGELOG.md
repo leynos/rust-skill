@@ -96,6 +96,18 @@ The format is based on [Common Changelog](https://common-changelog.org).
 
 ### Changed
 
+- Rigour escalation rules ported from the `python-skill` catalogue.
+  `rust-router` gains a testing hierarchy (named test, `rstest` table,
+  lightweight `proptest`, structured or stateful `proptest`, Kani,
+  Verus, with `cargo-mutants` beside and Miri below), a selection rubric,
+  the "no selector ceremony for a clear invariant" pairing rule, and
+  three escalation triggers. `rust-verification` gains "Before
+  escalating", the question each tool answers, "What none of them
+  establish", combination and cadence guidance, further red flags, and a
+  `references/selection-matrix.md`. `proptest` gains "Start light" (the
+  `#[case]` table that is a property in disguise), everyday property
+  shapes, and an escalation ladder. `rust-unit-testing`, the routing
+  matrix, and the users' guide point at the same hierarchy.
 - `proptest/SKILL.md`: added the "Is a property test expected?" decision
   rule with the three accepted answers (land, defer with an issue, or
   write a scope statement), a strategy audit step before assertions,

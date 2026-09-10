@@ -54,8 +54,79 @@ follow-on skill.
 - CLIs, workers, daemons, or long-running jobs: `domain-cli-and-daemons`
 - `no_std`, firmware, devices, or edge nodes: `domain-embedded-and-iot`
 
+
+## Testing hierarchy
+
+This is a decision hierarchy, not a prestige ranking. Pick the first rung
+whose evidence matches the question, and stop there.
+
+1. **Named unit test**: choose `rust-unit-testing` when one scenario,
+   boundary, regression, rendered output, or error contract matters. The
+   test name should explain why that example belongs in the specification.
+2. **Parameterized `rstest` table**: choose `rust-unit-testing` when the
+   cases form a finite truth table or standards corpus and each row has
+   distinct semantic meaning. A table removes duplicated bodies; it should
+   not impersonate coverage of an open-ended domain.
+3. **Lightweight property test**: choose `proptest` when the same
+   invariant, round trip, oracle, or metamorphic relation should hold for
+   many cheap, repeatable inputs. A growing list of representative
+   `#[case]` rows is the usual signal, and reviewers flag it as "only N
+   hardcoded test cases". Start with ranges, regex literals, and
+   `any::<T>()`.
+4. **Structured or stateful property test**: stay with `proptest` when
+   valid values have dependent fields, recursive structure, or bugs depend
+   on a sequence of operations. `prop_compose!`, derive crates, and
+   `proptest-state-machine` are justified here, not before.
+5. **Bounded exhaustive exploration**: choose `kani` when a small pure
+   function, dispatch selector, or `unsafe` block carries an invariant and
+   every reachable path within a stated bound matters more than sampled
+   confidence.
+6. **Unbounded proof**: choose `verus` when the property must hold for
+   any length or ordering and a small, stable pure kernel exists to prove
+   it over.
+
+`cargo-mutants` sits beside the hierarchy rather than above it. Choose it
+when the behaviour is already specified and the question is whether the
+suite would notice a plausible defect. Miri sits below it: run it on the
+tests that already exist whenever they touch `unsafe`.
+
+Leave this hierarchy when the failure depends primarily on a schedule,
+a real service, load, memory use, or a foreign boundary. Use `loom`,
+`shuttle`, or `turmoil`, integration tests, benchmarks and profilers, or
+sanitizers instead.
+
+
+## Testing selection rubric
+
+Ask these questions in order:
+
+- Is this one meaningful scenario or a finite set of normative cases? Use
+  a named test or an `rstest` table.
+- Should one semantic relation hold over a broad, cheap input space? Use a
+  lightweight `proptest` property.
+- Does generating valid input require a domain model, or does operation
+  history matter? Escalate within `proptest`.
+- Must every reachable path through a small bounded function satisfy an
+  invariant? Use `kani`.
+- Must the property hold without a bound? Extract the pure kernel and use
+  `verus`.
+- Do the tests pass, but their ability to detect wrong code remains
+  unclear? Use `cargo-mutants`.
+- Does the failure depend on scheduling, external state, or performance?
+  Leave the property and proof tools for a specialist test.
+
+Examples remain valuable at every rung. Keep exact protocol examples and
+named regressions beside a property; do not delete readable specification
+merely because a generator can rediscover it.
+
 ## Pairing rules
 
+- A clear lightweight invariant goes straight to `proptest`; no selector
+  ceremony is required.
+- Load `rust-verification` when the testing rung or escalation path is
+  unclear, then choose one primary adversary. `cargo-mutants` may pair
+  with any rung because it audits the suite rather than generating
+  production inputs.
 - Polonius migrations usually pair `nll-to-polonius` with
   `rust-types-and-apis` only when public API compatibility constrains the
   migration.
@@ -73,7 +144,13 @@ follow-on skill.
 - a public API needs `dyn Any`, erased errors, or unstable generic sprawl,
 - async code requires shared mutable state and cancellation semantics at once,
 - performance claims appear before measurements,
-- unsafe code exists without a crisp invariant list.
+- unsafe code exists without a crisp invariant list,
+- a lightweight property needs heavy rejection, recursive generation, or
+  an operation model to reach valid cases,
+- a critical pure function needs exhaustive path scrutiny rather than
+  sampled confidence,
+- a passing suite gives no evidence that its assertions detect wrong
+  behaviour.
 
 Read [routing-matrix.md](references/routing-matrix.md) only when the route is
 still unclear.
