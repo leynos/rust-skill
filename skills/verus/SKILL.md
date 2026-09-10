@@ -1,6 +1,6 @@
 ---
 name: verus
-description: Write and maintain Verus deductive proofs for Rust code. Use for formal verification of pure functions, ordering invariants, mapping logic, and properties that require unbounded reasoning beyond bounded model checking.
+description: Write and maintain Verus deductive proofs for Rust code. Use for formal verification of pure functions, ordering invariants, mapping logic, and properties that require unbounded reasoning beyond bounded model checking, and for wiring Verus into a repository through rust-prover-tools.
 ---
 
 # Verus deductive verification for Rust
@@ -26,7 +26,10 @@ Apply when:
 Do not apply when bounded symbolic execution (Kani) would suffice, the
 code is dominated by I/O or concurrency, a property test would give
 enough confidence, or the code uses features Verus does not support
-(`async`, most `unsafe`, raw concurrency).
+(`async`, most `unsafe`, raw concurrency). Verus arrives last in a
+repository's verification stack: "only after there is something small
+and stable enough to prove". Proofs that depend on collection internals
+or bit-level mixing become expensive quickly; pick semantic seams.
 
 ## Installation and runs
 
@@ -37,10 +40,10 @@ through a single CLI:
 
 ```bash
 # Install the pinned Verus release for this target.
-prover-tools verus install
+prover-tools verus install --repo-root .
 
 # Run Verus against a proof file (preserves Verus's exit code).
-prover-tools verus run --proof-file verus/my_proofs.rs
+prover-tools verus run --repo-root . --proof-file verus/my_proofs.rs
 ```
 
 `install` reads the pinned version and checksum from in-tree files
@@ -48,10 +51,13 @@ prover-tools verus run --proof-file verus/my_proofs.rs
 with `--version-file` and `--checksum-file`). `run` resolves the binary
 (from `--verus-bin`, the install directory, or `PATH`), ensures the
 required Rust toolchain is installed via `rustup`, and executes the
-proof. Repeatable `--extra-arg` is appended after the proof file. See
-[`references/installation-note.md`](references/installation-note.md) for
-the rationale; the previous `install-verus.sh` and `run-verus.sh`
-helpers have been retired.
+proof. Repeatable `--extra-arg` is appended after the proof file. Do not
+reintroduce shell wrappers; every retired script drew review findings
+(missing checksums, swallowed exit codes, flag passthrough breakage).
+See [`references/installation-note.md`](references/installation-note.md)
+for the rationale and
+[`references/project-on-ramp.md`](references/project-on-ramp.md) for the
+pin files, Makefile targets, layout, and contract tests reviewers expect.
 
 ## Core concepts
 
@@ -112,7 +118,10 @@ proof fn lemma_edge_leq_total_ordering()
 ```
 
 Each property has its own small lemma. The top-level lemma composes them
-after `reveal`ing the opaque `total_ordering` definition.
+after `reveal`ing the opaque `total_ordering` definition. A lemma that
+ensures a compound property by asserting that same property in one bare
+`assert` will not verify and reads as an admitted claim; reviewers ask
+for exactly this decomposition.
 
 ### Inductive proofs over sequences
 
@@ -146,6 +155,13 @@ the inductive extraction skeleton), see
 - **`assume` left in a proof** is a soundness hole. A stray
   `assume(false)` proves anything. Use `assume` only as a temporary
   placeholder; eliminate it before declaring the proof complete.
+- **A lemma that restates its definition.** `spec_p(x) <==>
+  definition_of(spec_p)` proves nothing; assert something beyond the
+  spec function's own body.
+- **Axioms that stop at the leaf.** A trust-boundary axiom used by a
+  helper lemma must appear in the `requires` of every wrapper lemma.
+- **Speculative generics.** Specialize scaffolding to the concrete type
+  actually verified.
 
 ## Triggers
 
@@ -195,7 +211,8 @@ forall|i: int, j: int|
 
 Workflow: start with `#![auto]`, review the auto-trigger note Verus
 prints, check the concrete assertions against the trigger, and add
-explicit `#[trigger]` annotations when the match fails or loops.
+explicit `#[trigger]` annotations when the match fails or loops. Do not
+ignore trigger warnings; treat each one as a review item.
 
 ## `assert(F) by { ... }`
 
@@ -226,7 +243,7 @@ constant) is off by default. Three options:
 A common pattern: prove identities with `integer_ring`, then close the
 inequality with `nonlinear_arith` over the identity.
 
-## Project layout
+## Project layout and the production bridge
 
 Keep Verus proof files in a dedicated directory at the repository root,
 separate from the Cargo workspace:
@@ -250,8 +267,37 @@ share spec types and definitions. Run via `prover-tools verus run
 --proof-file verus/my_proofs.rs`.
 
 Verus is not a Cargo dependency: it compiles its own files. Production
-crate modules cannot be `use`d directly. Mirror production structs as
-`spec` structs and keep them in sync by code review.
+crate modules cannot be `use`d directly. Two bridges exist and both
+decay unless maintained:
+
+- **Spec mirror.** Mirror production structs as `spec` structs and keep
+  them in sync by code review. Document, on each spec item, which
+  runtime type and function it models; spec items are public API.
+- **`#[path]` import.** Pull the production type in directly, and add a
+  CI check that the path and the referenced type still exist, because
+  Verus will not notice a rename until the proof is next run.
+
+A proof over an idealized structure (`Seq<nat>`) says nothing about a
+differently shaped runtime structure (`BTreeMap`) until an explicit
+refinement lemma connects them. Reviewers look for that bridge; "the
+lemmas here do not justify the shipped implementation" is the finding
+when it is absent.
+
+## Project integration
+
+- Keep `make verus` out of `make test`, `make lint`, `make all`, and
+  the pull-request gate until the proofs have been stable; run it on a
+  schedule or on demand. Until real proofs exist, ship the target as an
+  explicit `FORMAL-SKIP` stub rather than a silently green one.
+- `#[allow]` is forbidden in `verus/` exactly as in production; use
+  `#[expect(dead_code, reason = "...")]` on the specific spec-only item.
+  Every file starts with `//!`; every `pub(super) proof fn` carries
+  `///`.
+- Record in the developers' guide which properties each proof file
+  covers and which it does not, and keep ExecPlan `Status:` and ADR
+  text in agreement with the proofs.
+- The full pre-submission checklist is in
+  [`references/review-failure-modes.md`](references/review-failure-modes.md).
 
 ## Hard-won lessons
 
@@ -272,6 +318,9 @@ crate modules cannot be `use`d directly. Mirror production structs as
   matching. Bind an auxiliary variable and assert its bounds first.
 - **`reveal(name)`** is required before reasoning about opaque `vstd`
   definitions such as `total_ordering`.
+- **The mirror is part of the proof.** A spec struct or `#[path]` import
+  that has drifted from production makes every lemma downstream a
+  statement about nothing.
 
 ## References
 
@@ -280,9 +329,16 @@ crate modules cannot be `use`d directly. Mirror production structs as
   [releases](https://github.com/verus-lang/verus/releases),
   [vstd docs](https://verus-lang.github.io/verus/verusdoc/vstd/),
   [playground](https://play.verus-lang.org/).
+- [`references/project-on-ramp.md`](references/project-on-ramp.md) for
+  pins, Makefile targets, layout, the production bridge, and contract
+  tests.
+- [`references/review-failure-modes.md`](references/review-failure-modes.md)
+  for the pre-submission checklist drawn from estate review history.
 - [`references/proof-examples.md`](references/proof-examples.md) for a
   canonicalisation proof, an inductive concat lemma, and a total-ordering
   composition.
 - [`references/verus-proof-example.rs`](references/verus-proof-example.rs)
   for a self-contained Rust source illustrating the project layout, spec
   structs, and lemma composition.
+- The survey behind this guidance:
+  `docs/verification-review-failure-modes.md` in the catalogue repository.

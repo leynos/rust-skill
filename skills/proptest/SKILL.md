@@ -1,6 +1,6 @@
 ---
 name: proptest
-description: Write and maintain proptest property tests for Rust, including custom strategies, shrinking discipline, regression files, and state-machine tests. Use when checking that a property holds across a generated input domain and when a unit test or example does not exercise enough of the input space.
+description: Write and maintain proptest property tests for Rust, including custom strategies, shrinking discipline, regression files, and state-machine tests. Use when checking that a property holds across a generated input domain, when a unit test or example does not exercise enough of the input space, and when a reviewer or pre-merge check asks whether a change needs a property test.
 ---
 
 # Proptest property-based testing for Rust
@@ -10,6 +10,27 @@ any failing case to a minimal counter-example. It is the cheapest
 verification adversary for pure functions whose input domain is too
 large to enumerate. Load the `rust-verification` skill first for the
 selection rules; load this skill once proptest is the chosen tool.
+
+## Is a property test expected?
+
+Reviewers and pre-merge checks apply one rule: a property test (or a
+bounded model checker) is expected whenever a change introduces an
+invariant over a range of inputs, states, orderings, or transitions.
+Parsers, canonicalizers, normalizers, merge and precedence rules,
+bounded queues, and validators over a range all qualify; two to four
+example cases do not discharge them. The check fires as a warning,
+repeats every round until satisfied, and treats a PR body that claims
+coverage which does not exist as a defect.
+
+The rule cuts both ways. A small, finite space that is enumerated and
+run in full on every build (four literals, six permutations) wants
+`rstest` cases, not a generator, and an unsolicited property test where
+the design decided against one is also flagged. Decide which side the
+change falls on and say so: either land the property, defer it to a
+tracked issue, or write a one-paragraph scope statement where the
+reviewer will look. Silence is the only answer that fails. A template
+for the statement is in
+[`references/sibling-module-template.md`](references/sibling-module-template.md).
 
 ## When to apply
 
@@ -32,8 +53,11 @@ undefined behaviour in `unsafe` code (use Miri first).
 Proptest is a regular crate; no separate tool is needed.
 
 ```toml
+[workspace.dependencies]
+proptest = "1.11"          # explicit version where the repo pins exactly
+
 [dev-dependencies]
-proptest = "1"
+proptest = { workspace = true }
 # Optional: derive Arbitrary on user types.
 proptest-derive = "0.5"
 # Optional: alternative derive with higher-order strategies.
@@ -71,12 +95,15 @@ Key pieces:
 - A **strategy** is anything implementing `Strategy<Value = T>`.
   Ranges (`0u32..10_000`), regex literals (`"[a-z]+"`), and
   `any::<T>()` are the everyday starting points.
+- Each function inside `proptest!` needs its own `#[test]`; without it
+  the block compiles, generates nothing, and passes.
 - `prop_assert!`, `prop_assert_eq!`, and `prop_assert_ne!` report
   failure to the runner instead of panicking; this preserves
   shrinking.
 - `prop_assume!(cond)` rejects the current case as not interesting.
-  Use it only for cheap rare-edge filtering; for anything common,
-  construct valid inputs by composition.
+  Use it only for cheap rare-edge filtering, only as a precondition
+  before the call under test, and never on the output; for anything
+  common, construct valid inputs by composition.
 - `prop_compose!` builds reusable strategies returning structured
   values: first list is public parameters, second draws from inner
   strategies, body returns the value.
@@ -90,6 +117,24 @@ sketch with `proptest-state-machine`, and the field-dependent
 [`references/strategy-examples.md`](references/strategy-examples.md).
 A self-contained Rust source is in
 [`references/proptest-example.rs`](references/proptest-example.rs).
+
+## Audit the strategy before the assertion
+
+The most frequent quality finding is a generator that cannot reach the
+shape the property claims to test. Before writing assertions, list the
+documented input variants and state transitions and check that the
+strategy produces each one:
+
+- every generated binding must influence an assertion;
+- bounds must be able to hit the limits under test (a queue-limit
+  property needs inputs that exceed the limit);
+- one generator per documented variant (quoted and unquoted forms,
+  escapes, indentation levels, each enum arm derived from the canonical
+  `ALL` constant, the full grammar rather than its common subset);
+- the strategy must not emit impossible input: transform the generator
+  (exclude the delimiter, prefix the segment) rather than filtering;
+- ranges must match the documented bounds exactly;
+- both branches of any conditional assertion must be constrained.
 
 ## The filtering trap
 
@@ -106,8 +151,9 @@ The fix is to construct only valid values from the seed. Replace a
 the range and doubles it; replace a `prop_assume!` that demands
 `a < b` with a strategy that draws `b` then draws `a` from `0..b`.
 `prop_assume!` is acceptable only when the rejected case is genuinely
-rare; it is wrong when the rejection is structural. Before-and-after
-worked examples live in
+rare; it is wrong when the rejection is structural, when it excludes a
+case the code must handle, or when it gates on the environment (check
+that once, outside the block). Before-and-after worked examples live in
 [`references/strategy-examples.md`](references/strategy-examples.md).
 
 ## Anti-patterns
@@ -115,7 +161,10 @@ worked examples live in
 - **`panic!`, `assert!`, or `unwrap` inside the body.** Use
   `prop_assert*` so the runner can shrink. A `.unwrap()` on a
   generated value should be replaced by a strategy that excludes the
-  `None`/`Err` case at the source.
+  `None`/`Err` case at the source. Whether `.expect("context")` is
+  preferred or denied inside test bodies is a per-repository lint
+  policy; read the workspace `[lints]` table first, and route fallible
+  setup helpers through `TestCaseError`.
 - **Asserting "doesn't panic".** This catches only the most obvious
   bugs and tells you nothing about correctness. Pair it with a real
   property (round-trip, oracle comparison, invariant).
@@ -123,13 +172,21 @@ worked examples live in
   "the result equals `f_again(input)`" where `f_again` is the same
   algorithm, the test proves only that the developer can copy code.
   Use a structurally different oracle (reference implementation,
-  slow brute force, prior version).
+  slow brute force, prior version), and keep the oracle's construction
+  identical to production down to edge-case clamping.
+- **Tautologies.** An assertion the fixture guarantees by construction,
+  or one that does not depend on the generated value, is not a
+  property. A property derived from current behaviour rather than the
+  intended invariant certifies the bug.
+- **Disjunctive assertions.** `prop_assert!(a || b)` accepting two
+  observed behaviours usually masks a defect.
 - **Hiding regressions.** A `proptest-regressions/` file with a
   failing seed must be promoted to a named unit test with the shrunk
   input pinned and a comment recording the bug.
 - **Tuning `cases` to make a flake go away.** If the property fails
   on case 500 but not on case 256, the test has found a bug.
-  Investigate; do not lower the case count.
+  Investigate; do not lower the case count. `cases: 1` is a signal of
+  unresettable global state, not a configuration.
 
 ## What proptest detects and what it does not
 
@@ -146,13 +203,32 @@ evidence, not a proof.
 
 ## Project integration
 
+- **Start in a sibling module.** Most repositories cap files at 400
+  lines and require a `//!` comment on every module; a `prop_tests.rs`
+  plus `prop_strategies.rs` pair next to the module avoids a mid-review
+  extraction. Follow the repository's convention where it keeps blocks
+  inline. The template is in
+  [`references/sibling-module-template.md`](references/sibling-module-template.md).
 - **Check `proptest-regressions/` into version control** so CI replays
-  failing seeds before generating new cases.
+  failing seeds before generating new cases. Persistence is keyed to the
+  declaring source file: rename the regression file when the source
+  moves, and never `#[path]`-include a property file that Cargo also
+  discovers as its own target. Disable persistence during mutation
+  runs so injected-defect seeds are neither committed nor ignored.
 - **Promote shrunk failures to named unit tests** — the regression
   file is a backstop, not the system of record.
 - **Tier the runs.** Keep the default `cases = 256` for `cargo test`,
   then run a nightly job with `PROPTEST_CASES=10000` to widen the
-  search without slowing the inner loop.
+  search without slowing the inner loop. Read the budget from the
+  environment through one shared profile helper; `fork` and `cases`
+  multiply, and a downstream loader that re-reads `PROPTEST_CASES` can
+  silently override a cap.
+- **Keep the property deterministic.** `HashMap`'s `RandomState` is
+  outside proptest's seed, so shrinking and saved seeds stop
+  reproducing; use ordered or seeded maps for anything the property
+  observes. Do not describe `ProptestConfig::default()` as
+  deterministic. Take the environment lock inside the strategy helper,
+  not across an iteration. No wall-clock assertions inside a property.
 - **Validate every property with a deliberate mutation.** Break the
   production code, confirm the property fails with a useful shrunk
   input, then restore. `cargo-mutants` automates this across the
@@ -171,9 +247,12 @@ The everyday knobs on `ProptestConfig` worth knowing inline:
   kill a case after _N_ milliseconds.
 - `failure_persistence` — defaults to
   `FileFailurePersistence::SourceParallel("proptest-regressions")`.
+- `rng_seed` — set only when standardizing determinism, and keep
+  `PROPTEST_RNG_SEED` overridable.
 
 Configure inside the macro with
 `#![proptest_config(ProptestConfig { cases: 1024, .. ProptestConfig::default() })]`.
+A documented budget that the block does not set is a review finding.
 
 ## State-machine tests
 
@@ -183,7 +262,9 @@ of transitions and shrinks failing sequences. Implement
 for the system under test; the runner drives both, checks invariants
 after each step, and shrinks to the smallest failing trace. The
 pattern shines on collections, caches, allocators, and protocol
-clients where the bug needs a particular history to surface. See
+clients where the bug needs a particular history to surface. Make sure
+every operation class is actually driven; a stubbed transition that
+returns `Ok(false)` silently removes it from the model. See
 the counter-and-system worked example in
 [`references/strategy-examples.md`](references/strategy-examples.md).
 
@@ -203,6 +284,8 @@ the counter-and-system worked example in
   for the inputs the strategy reaches; mutation testing shows the
   property would notice if the production code were wrong. Both are
   needed.
+- **Say what you did not test.** A scope statement costs a paragraph;
+  a missing-property warning costs a review round.
 
 ## References
 
@@ -216,6 +299,10 @@ the counter-and-system worked example in
   [State-machine testing](https://proptest-rs.github.io/proptest/proptest/state-machine.html).
 - [`proptest-derive`](https://docs.rs/proptest-derive) and
   [`test-strategy`](https://docs.rs/test-strategy).
+- [`references/review-failure-modes.md`](references/review-failure-modes.md)
+  for the pre-submission checklist drawn from estate review history.
+- [`references/sibling-module-template.md`](references/sibling-module-template.md)
+  for the file layout, a strategies module, and the scope statement.
 - [`references/strategy-examples.md`](references/strategy-examples.md)
   for worked strategy patterns, the filtering-trap fix, and the
   state-machine sketch.
@@ -223,3 +310,5 @@ the counter-and-system worked example in
   for a self-contained Rust source.
 - Selection between proptest and other verification tools lives in
   [`../rust-verification/SKILL.md`](../rust-verification/SKILL.md).
+- The survey behind this guidance:
+  `docs/verification-review-failure-modes.md` in the catalogue repository.

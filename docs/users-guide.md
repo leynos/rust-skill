@@ -170,7 +170,10 @@ enumerate, or when a parser or codec must round-trip across all
 valid inputs. The skill covers strategy design with `prop_compose!`,
 the filtering trap and its fix, regression-file discipline,
 state-machine tests via `proptest-state-machine`, and the
-`proptest-derive` vs `test-strategy` choice.
+`proptest-derive` vs `test-strategy` choice. It also answers the
+question reviewers ask first, whether a change needs a property test at
+all, and ships a review checklist and a sibling-module template drawn
+from the estate's review history.
 
 ### `rust-unit-testing` — unit-test shape and assertions
 
@@ -189,6 +192,10 @@ property: an arithmetic invariant, a parser corner case, or a state
 machine with a small alphabet. Kani is unwind-bounded by default;
 the skill describes how to set `#[kani::unwind(n)]`, when to use
 `kani::any` and `kani::assume`, and when to escalate to Verus instead.
+Its references carry the project on-ramp (pins, Makefile targets that
+delegate to `prover-tools`, smoke and nightly CI, contract tests) and
+the review checklist for vacuous harnesses, model drift, solver
+cliffs, and the `cfg(kani)` build.
 
 ### `verus` — deductive verification
 
@@ -197,7 +204,12 @@ the bounded loop in Kani times out, or when the proof composes
 several lemmas. The skill covers `spec`/`proof`/`exec` mode
 discipline, trigger heuristics for the underlying Z3 solver, the
 `broadcast use` pattern for sequence axioms, and the layout of a
-proof project that mirrors a production module.
+proof project that mirrors a production module, including the
+refinement lemma that binds an idealized spec to the runtime structure.
+Its references carry the on-ramp and review checklist.
+
+The survey these checklists come from is
+[`docs/verification-review-failure-modes.md`](verification-review-failure-modes.md).
 
 ### `arch-supply-chain` — dependency hygiene and audits
 

@@ -37,4 +37,7 @@ skills:
 rest because they are procedural deep dives. `proptest` installs as
 a regular Cargo dev-dependency; `kani` and `verus` install and run
 via [`rust-prover-tools`](https://github.com/leynos/rust-prover-tools)
-so the catalogue does not carry forked install scripts.
+so the catalogue does not carry forked install scripts. Each of the three
+carries a `references/review-failure-modes.md` checklist derived from
+[`docs/verification-review-failure-modes.md`](verification-review-failure-modes.md),
+and `kani` and `verus` carry a `references/project-on-ramp.md`.

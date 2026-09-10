@@ -57,6 +57,32 @@ RNG, thread IDs, env reads) breaks reproduction. See
 [`references/deterministic-chaos.md`](references/deterministic-chaos.md)
 for the fences chaos tools require.
 
+## When reviewers expect verification
+
+Across the estate, code review applies one trigger: a property test or
+a bounded model checker is expected when a change introduces an
+invariant over a range of inputs, states, orderings, or transitions.
+Parsers, canonicalizers, merge and precedence rules, bounded queues,
+validators, and any `unsafe` block with a caller-upheld invariant
+qualify. CodeRabbit's pre-merge "Testing (Property / Proof)" check
+fires as a warning, repeats every round until satisfied, and treats a
+PR body that claims coverage it does not have as a defect. The survey
+behind this rule found that the single most common review event on
+verification work is a missing property test, not a wrong one.
+
+Answer the trigger explicitly, in one of three ways:
+
+1. land the property test, harness, or proof in the same PR;
+2. defer it to a tracked issue and say so in the PR;
+3. write a short scope statement explaining why the domain is small,
+   finite, and enumerated in full on every build, so a generator adds
+   nothing.
+
+Silence, and unsolicited verification where the design chose not to
+have it, both draw findings. Kani is rejected as disproportionate for
+invariants the type system enforces, FFI boundaries, and async I/O;
+Verus is expected only once a small, stable pure kernel exists.
+
 ## Red flags
 
 - "We already test this" and a one-line mutation does not break the test.
