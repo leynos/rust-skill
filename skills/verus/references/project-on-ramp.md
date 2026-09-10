@@ -53,8 +53,11 @@ toolchain install`, and Bash 3.2 incompatibilities on macOS.
 <!-- markdownlint-disable MD010 -->
 ```makefile
 PROVER_TOOLS_REF_FILE ?= tools/rust-prover-tools/REF
-PROVER_TOOLS_REF ?= $(shell awk '/^ref:/ { print $$2 }' $(PROVER_TOOLS_REF_FILE))
-PROVER_TOOLS_SOURCE ?= git+https://github.com/leynos/rust-prover-tools.git@$(PROVER_TOOLS_REF)
+override PROVER_TOOLS_REF := $(shell awk '/^ref:/ { print $$2 }' $(PROVER_TOOLS_REF_FILE))
+ifeq ($(shell printf '%s' '$(PROVER_TOOLS_REF)' | grep -Ec '^[0-9a-f]{40}$$'),0)
+$(error PROVER_TOOLS_REF missing or malformed; expected "ref: <40-hex>" in $(PROVER_TOOLS_REF_FILE))
+endif
+override PROVER_TOOLS_SOURCE := git+https://github.com/leynos/rust-prover-tools.git@$(PROVER_TOOLS_REF)
 PROVER_TOOLS ?= uv tool run --from "$(PROVER_TOOLS_SOURCE)" prover-tools
 VERUS_PROOF_FILE ?= verus/my_proofs.rs
 VERUS_FLAGS ?=
@@ -66,6 +69,13 @@ verus: ## Run the Verus proof entry point
 	$(PROVER_TOOLS) verus run --repo-root . --proof-file "$(VERUS_PROOF_FILE)" $(VERUS_FLAGS)
 ```
 <!-- markdownlint-enable MD010 -->
+
+`tools/rust-prover-tools/REF` carries one `ref: <40-hex commit>` line
+(see the Kani on-ramp for the full file); the guard rejects a missing
+or malformed ref before `PROVER_TOOLS_SOURCE` can be left unpinned,
+and the `override` assignments stop an inherited environment value
+from repointing the pin. `PROVER_TOOLS` stays `?=` as the seam
+contract tests use to substitute a recording fake.
 
 Keep `verus` out of `make test`, `make lint`, `make all`, and the
 pull-request formal gate until the proofs have been stable for a while;

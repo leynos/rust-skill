@@ -21,8 +21,13 @@ tools/
 repository: https://github.com/leynos/rust-prover-tools.git
 branch: main
 ref: <40-char commit sha>
-verify: git ls-remote https://github.com/leynos/rust-prover-tools.git <sha>
+verify: git fetch --depth 1 https://github.com/leynos/rust-prover-tools.git \
+  <sha> && git rev-parse FETCH_HEAD
 ```
+
+The `verify` command fetches the pinned commit itself and prints the SHA
+of what was fetched; compare it to `ref`. Matching a branch such as
+`refs/heads/main` proves nothing about the pin.
 
 A pin is only a pin if something checks it. `prover-tools kani
 check-version` compares the running `cargo kani --version` against
@@ -59,8 +64,11 @@ recipe. Contract tests in the estate fail on any of those strings.
 <!-- markdownlint-disable MD010 -->
 ```makefile
 PROVER_TOOLS_REF_FILE ?= tools/rust-prover-tools/REF
-PROVER_TOOLS_REF ?= $(shell awk '/^ref:/ { print $$2 }' $(PROVER_TOOLS_REF_FILE))
-PROVER_TOOLS_SOURCE ?= git+https://github.com/leynos/rust-prover-tools.git@$(PROVER_TOOLS_REF)
+override PROVER_TOOLS_REF := $(shell awk '/^ref:/ { print $$2 }' $(PROVER_TOOLS_REF_FILE))
+ifeq ($(shell printf '%s' '$(PROVER_TOOLS_REF)' | grep -Ec '^[0-9a-f]{40}$$'),0)
+$(error PROVER_TOOLS_REF missing or malformed; expected "ref: <40-hex>" in $(PROVER_TOOLS_REF_FILE))
+endif
+override PROVER_TOOLS_SOURCE := git+https://github.com/leynos/rust-prover-tools.git@$(PROVER_TOOLS_REF)
 PROVER_TOOLS ?= uv tool run --from "$(PROVER_TOOLS_SOURCE)" prover-tools
 KANI ?= cargo kani
 KANI_FLAGS ?=
@@ -71,14 +79,14 @@ install-kani: ## Install the pinned Kani verifier
 kani-check: ## Fail if the installed Kani does not match tools/kani/VERSION
 	$(PROVER_TOOLS) kani check-version --repo-root . --kani-command "$(KANI)"
 
-kani: ## Fast smoke tier: named harnesses with tight bounds
+kani: kani-check ## Fast smoke tier: named harnesses with tight bounds
 	$(KANI) --harness verify_smoke_2_nodes --harness verify_dispatch $(KANI_FLAGS)
 
-kani-full: ## Every harness; nightly only
+kani-full: kani-check ## Every harness; nightly only
 	$(KANI) $(KANI_FLAGS)
 
-formal-pr: kani-check kani ## Pull-request formal gate
-formal-nightly: kani-check kani-full ## Scheduled formal gate
+formal-pr: kani ## Pull-request formal gate
+formal-nightly: kani-full ## Scheduled formal gate
 ```
 <!-- markdownlint-enable MD010 -->
 
@@ -88,7 +96,15 @@ come only from a pin file, use `override :=` so an inherited environment
 value cannot repoint it. Redact user-supplied `KANI_*_FLAGS` before
 echoing a command. Keep `kani` and `kani-full` out of `make test`,
 `make lint`, and `make all` unless the repository has decided on a
-fail-closed formal gate and documented it.
+fail-closed formal gate and documented it. `PROVER_TOOLS` stays `?=` on
+purpose: it is the seam contract tests use to substitute a recording
+fake, while the pin-derived values above cannot be repointed from the
+environment. The guard rejects a missing or malformed `ref:` line
+before `PROVER_TOOLS_SOURCE` can be left unpinned.
+
+`kani-check` is a prerequisite of each proof target, not only of the
+gate, so `make -j` cannot start a proof before the version check
+completes.
 
 Until a repository has real harnesses, ship the targets as explicit
 stubs that print `FORMAL-SKIP: <target> not yet implemented` and exit
@@ -118,8 +134,10 @@ exists, its predicate must be version-aware and its composite action
 must declare the variables it renders the key from.
 
 Kani-conditional steps on heterogeneous runners must probe for
-`cargo-kani` and print a visible skip with infallible `eprintln!`, never
-`writeln!(stderr)?`.
+`cargo-kani` and print a visible skip diagnostic. Do not let a failed
+stderr write turn a skip into a test failure through `?`: use
+`eprintln!`, which panics only if stderr is closed, or ignore the write
+error explicitly, rather than `writeln!(stderr)?`.
 
 ## 5. Contract tests
 

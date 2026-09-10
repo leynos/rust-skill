@@ -25,8 +25,9 @@ method and counts). Use this as a pre-submission checklist.
   harness, present and future. State preconditions at each harness's
   call site through typed symbolic inputs.
 - **Pointer-identity selection.** Choosing an assertion by comparing
-  `&'static str` addresses is undefined and, with an assume-false
-  fallback, vacuous.
+  `&'static str` addresses relies on unspecified string-literal
+  interning, so it may select the wrong assertion or none at all; with
+  an `assume(false)` fallback the harness becomes vacuous.
 - **Missing `kani::cover!`.** Every branch the harness claims to reach
   needs a `cover!`; a harness that never reaches the interesting branch
   is green and worthless. `theoremc` enforces a non-empty witness list at
@@ -64,7 +65,8 @@ method and counts). Use this as a pre-submission checklist.
 - Collections and strings dominate the proof budget: real `HashMap`,
   serde, hashing, `Utf8PathBuf`, and `BTreeMap` internals are lowered
   before your invariant is reached. Prefer fixed-size arrays, an explicit
-  degree cap, or an O(n²) scan over a `HashSet`.
+  degree cap, or a bounded array with an O(n²) linear scan in place of a
+  `HashSet`.
 - Extract a generic kernel and prove it over a minimal symbolic type
   (`u8`) with a thin adapter harness for the production wrapper; this
   turned a proof that exhausted 8 GiB at N=3 into 7.6 s.

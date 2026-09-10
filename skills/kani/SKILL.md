@@ -136,8 +136,11 @@ each before opening the PR. The full list with examples is in
   types over Kani-only twins.
 - **Preconditions and bounds live at the call site**, typed, and
   documented as concrete numbers (N, alphabet, unwind), not "bounded".
-- **Setup does not panic.** No `.expect()`/`.unwrap()` in harness setup;
-  validate indices defensively.
+- **Symbolic setup does not panic.** Deterministic setup on known-good
+  inputs may use `.expect()`; setup that consumes symbolic or
+  data-dependent values must not, because a panicking setup path defeats
+  the harness instead of failing the obligation. Validate indices
+  defensively.
 - **Narrow the API instead of proving misuse harmless.**
 
 ## `cfg(kani)` is a different build
@@ -170,8 +173,9 @@ unexpected_cfgs = { level = "warn", check-cfg = ["cfg(kani)"] }
 - Heap collections and strings dominate the proof budget: real
   `HashMap`, serde, hashing, and path types are lowered before the
   invariant is reached. Use fixed-size arrays, an explicit degree cap, or
-  an O(n²) scan over a `HashSet`; keep a `cfg(kani)`-only compatibility
-  collection private behind a `not(kani)` type alias.
+  a bounded array with an O(n²) linear scan in place of a `HashSet`; keep
+  a `cfg(kani)`-only compatibility collection private behind a `not(kani)`
+  type alias.
 - Extract a generic kernel and prove it over `u8` with a thin adapter
   harness; this turned an 8 GiB blow-up at N=3 into a 7.6 s proof.
 - Nested loops need N² unwind. Recompute bounds after any refactor that

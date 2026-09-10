@@ -52,6 +52,7 @@ fn verify_reverse_edge_reconciliation_2_nodes() {
         let added = ensure_reverse_edge(&mut graph, 0, 1);
         kani::assert(added, "expected reverse edge to be inserted");
     }
+    kani::cover!(should_link, "linked path is reachable");
 
     kani::assert(is_bidirectional(&graph), "invariant violated");
 }

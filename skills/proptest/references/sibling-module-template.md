@@ -109,10 +109,10 @@ Only when the default 256 cases is wrong for a documented reason:
 ```rust
 proptest! {
     #![proptest_config(ProptestConfig {
-        cases: std::env::var("PROPTEST_CASES")
-            .ok()
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(256),
+        cases: match std::env::var("PROPTEST_CASES") {
+            Ok(v) => v.parse().expect("PROPTEST_CASES must be a positive integer"),
+            Err(_) => 256,
+        },
         .. ProptestConfig::default()
     })]
     // ...
@@ -121,7 +121,9 @@ proptest! {
 
 Prefer the repository's shared profile helper if one exists (for
 example a `ProptestRunProfile` that reads `PROPTEST_CASES` and a fork
-flag once) over local environment parsing.
+flag once) over local environment parsing. A malformed value fails
+loudly at configuration time, outside any property body, rather than
+silently running 256 cases.
 
 ## Scope statement when no property is warranted
 

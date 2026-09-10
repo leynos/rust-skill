@@ -152,7 +152,7 @@ Proptest is a regular crate; no separate tool is needed.
 
 ```toml
 [workspace.dependencies]
-proptest = "1.11"          # explicit version where the repo pins exactly
+proptest = "1.11" # minimum compatible minor; use "=x.y.z" for an exact pin
 
 [dev-dependencies]
 proptest = { workspace = true }
@@ -160,6 +160,8 @@ proptest = { workspace = true }
 proptest-derive = "0.5"
 # Optional: alternative derive with higher-order strategies.
 test-strategy = "0.4"
+# Optional: stateful tests built on top of proptest.
+proptest-state-machine = "0.4"
 ```
 
 Tests run under the normal `cargo test` driver. The environment
@@ -258,8 +260,11 @@ that once, outside the block). Before-and-after worked examples live in
 
 - **`panic!`, `assert!`, or `unwrap` inside the body.** Use
   `prop_assert*` so the runner can shrink. A `.unwrap()` on a
-  generated value should be replaced by a strategy that excludes the
-  `None`/`Err` case at the source. Whether `.expect("context")` is
+  generated value should become either a strategy that excludes the
+  `None`/`Err` case, when the property's precondition genuinely
+  requires success, or a `prop_assert!(matches!(..))` on the expected
+  variant; documented `None` and `Err` inputs are part of the domain
+  and must stay reachable. Whether `.expect("context")` is
   preferred or denied inside test bodies is a per-repository lint
   policy; read the workspace `[lints]` table first, and route fallible
   setup helpers through `TestCaseError`.

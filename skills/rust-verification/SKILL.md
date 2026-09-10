@@ -141,7 +141,12 @@ Answer the trigger explicitly, in one of three ways:
 Silence, and unsolicited verification where the design chose not to
 have it, both draw findings. Kani is rejected as disproportionate for
 invariants the type system enforces, FFI boundaries, and async I/O;
-Verus is expected only once a small, stable pure kernel exists.
+Verus is expected only once a small, stable pure kernel exists. The
+trigger covers what `proptest` and `kani` can reach: an invariant the
+type system already enforces needs no test, and a concurrency
+invariant already exercised by `loom`, `shuttle`, or `turmoil`
+satisfies the trigger without a property test or harness for the same
+invariant.
 
 ## Red flags
 

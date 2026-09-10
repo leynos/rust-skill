@@ -15,8 +15,8 @@ findings became which skill changes.
 
 Survey date: 2026-09-10. The canonical tool route assumed throughout is
 [`rust-prover-tools`](https://github.com/leynos/rust-prover-tools)
-(`prover-tools kani install|check-version`, `prover-tools verus
-install|run`).
+(`prover-tools kani install`, `prover-tools kani check-version`,
+`prover-tools verus install`, `prover-tools verus run`).
 
 ## Method and corpus
 
@@ -58,9 +58,10 @@ footprint.
 | Findings tagged prover-tools                 | 21    |
 | Findings tagged cross-cutting                | 91    |
 
-Reviewer mix, from the two sets where it was tallied (544 findings):
-CodeRabbit inline comments 251, CodeRabbit pre-merge check rows 207,
-Sourcery 36, `chatgpt-codex-connector` 14, humans 14. About 30% of
+Reviewer mix, from the 523 findings in the two triage sets whose raiser
+was tallied (the third set did not tally raisers): CodeRabbit inline
+comments 251, CodeRabbit pre-merge check rows 207, Sourcery 36,
+`chatgpt-codex-connector` 14, humans 14, `kody-ai` 1. About 30% of
 findings carry an unknown resolution because the digest excerpt ends
 before the author's reply; those counts are lower bounds.
 
@@ -135,7 +136,9 @@ weekly, forked). Nobody in the estate uses `proptest-derive` or
 
 ## Failure modes: proptest
 
-Frequency across the three triage sets (550 findings):
+Frequency across the three triage sets (550 findings). Categories are
+per-finding tags assigned independently in each set; only the most
+frequent are listed, so the rows do not sum to the tool total.
 
 | Category                              | Count |
 | ------------------------------------- | ----- |
@@ -375,7 +378,9 @@ interesting shape:
 
 ## Failure modes: Kani
 
-Frequency across the three sets (159 findings):
+Frequency across the three sets (159 findings). Categories are
+per-finding tags assigned independently in each set; only the most
+frequent are listed, so the rows do not sum to the tool total.
 
 | Category                              | Count |
 | ------------------------------------- | ----- |
@@ -656,6 +661,8 @@ of proptest needs a written justification in the developers' guide
 Verus is thinly represented (28 findings from four repositories) because
 only `chutoro` and `whitaker` have shipped proofs. Almost half the
 findings concern install scripts that `prover-tools` has since replaced.
+Categories are per-finding tags assigned independently in each set; only
+the most frequent are listed, so the rows do not sum to the tool total.
 
 | Category                         | Count |
 | -------------------------------- | ----- |
@@ -700,8 +707,9 @@ findings concern install scripts that `prover-tools` has since replaced.
 
 ### V3. Toolchain, install, and gating
 
-All of these are now the job of `prover-tools verus install|run`, and
-are recorded here as the reasons the route is mandatory:
+All of these are now the job of `prover-tools verus install` and
+`prover-tools verus run`, and are recorded here as the reasons the route
+is mandatory:
 
 - Downloading a release without checksum verification (`chutoro` #82).
 - A runner capturing `$?` from a negated `!` compound, always 0, which
@@ -799,8 +807,9 @@ and prose recommendations do not count.
 | Refuted                                      | 103 |
 | Inconclusive                                 | 2   |
 
-Refutation reasons: never merged at the time of the check (39),
-conventional test added instead (30), a non-Rust substitute such as
+Refutation reasons (a case can carry more than one reason, so these sum
+above 103): never merged at the time of the check (39), conventional
+test added instead (30), a non-Rust substitute such as
 Hypothesis (10), the artefact never added before merge (9), deferred to
 a tracked issue (9), docs-only PR (6), declined with a recorded reason
 (1, vendored third-party code). Confirmed cases by tool: proptest 118,
@@ -812,15 +821,16 @@ reviewer that raised it: the pre-merge "Testing (Property / Proof)" row
 
 Two further observations from the confirmed set:
 
-- **Latency.** Where the interval could be timed (82 of 123 cases), the
-  artefact landed within hours in 17, the same day in 31, and after a
-  day or more but inside the PR in 9, with 22 more inside the PR
-  lifecycle without a pinned time. Nothing in the dataset shows a
-  request surviving to a later PR and returning; retrofits land in the
-  same PR or become a refuted case, and the deferred-then-paid pairs
-  (`cuprum` #62 and #93, `netsuke` #315 and #325, `rstest-bdd` #691 and
-  its issue) are scored as one refuted and one confirmed case, which
-  understates how often the request is honoured.
+- **Latency.** Of the 123 cases, the artefact landed within hours in 17,
+  the same day in 31, and after a day or more but inside the PR in 9;
+  22 more landed inside the PR lifecycle without a pinned time, and the
+  rest could not be timed from the captured evidence. Nothing in the
+  dataset shows a request surviving to a later PR and returning;
+  retrofits land in the same PR or become a refuted case, and the
+  deferred-then-paid pairs (`cuprum` #62 and #93, `netsuke` #315 and
+  #325, `rstest-bdd` #691 and its issue) are scored as one refuted and
+  one confirmed case, which understates how often the request is
+  honoured.
 - **The check flips.** In 89 of 123 cases the pre-merge row or the
   reviewer's follow-up explicitly moved to Passed or Resolved;
   "Partially resolved" is the mechanism by which the reviewer forces a
@@ -967,7 +977,9 @@ rows).
 ## Appendix B: confirmed omission cases
 
 Confirmed cases by repository, with the number of candidates the
-confirmation pass checked for that repository:
+confirmation pass checked for that repository, omitting repositories
+where no candidate was confirmed (24 of the 228 candidates), so the
+checked column sums to 204:
 
 | Repository            | Confirmed | Checked |
 | --------------------- | --------- | ------- |
