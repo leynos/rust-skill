@@ -1,4 +1,4 @@
-.PHONY: markdownlint nixie lint skill-frontmatter-lint skill-manifest-validate skill-manifest-check test
+.PHONY: markdownlint nixie lint skill-frontmatter-lint skill-metadata-lint skill-manifest-validate skill-manifest-check test
 
 # The skill manifest contract. SKILL_DIRS defaults to every shipped skill and
 # can be overridden to check one skill or a test fixture, for example
@@ -6,6 +6,7 @@
 SKILL_DIRS ?= $(sort $(dir $(wildcard skills/*/SKILL.md)))
 SKILLS_REF := uv run --group dev skills-ref
 YAMLLINT := uv run --group dev yamllint
+METADATA_CHECK := uv run --group dev python tools/check_metadata.py
 SKILL_YAMLLINT_CONFIG := {extends: default, rules: {line-length: disable}}
 
 markdownlint:
@@ -26,13 +27,21 @@ skill-frontmatter-lint:
 		  | $(YAMLLINT) -d '$(SKILL_YAMLLINT_CONFIG)' -; \
 	done
 
+# `skills-ref` rewrites metadata entries with `str(v)` rather than rejecting the
+# shapes the Agent Skills schema forbids, so a list or mapping value would pass
+# validation and reach consumers as a Python repr. Check the shape first.
+skill-metadata-lint:
+	@set -eu; for skill_dir in $(SKILL_DIRS); do \
+		$(METADATA_CHECK) "$${skill_dir%/}"; \
+	done
+
 skill-manifest-validate:
 	@set -eu; for skill_dir in $(SKILL_DIRS); do \
 		echo "skills-ref validate $$skill_dir"; \
 		$(SKILLS_REF) validate "$$skill_dir"; \
 	done
 
-skill-manifest-check: skill-frontmatter-lint skill-manifest-validate
+skill-manifest-check: skill-frontmatter-lint skill-metadata-lint skill-manifest-validate
 
 test:
 	uv run --group dev pytest

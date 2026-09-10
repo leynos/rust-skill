@@ -23,6 +23,24 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SHIPPED_MANIFESTS = sorted((REPO_ROOT / "skills").glob("*/SKILL.md"))
 
+# The pattern hints the eleven relocated manifests must keep. The migration moved
+# a legacy top-level `globs` sequence into `metadata.globs` as one comma-separated
+# string, so the exact string is the data contract that proves no pattern was
+# dropped, reordered, or truncated.
+EXPECTED_GLOBS = {
+    "arch-crate-design": ("**/Cargo.toml", "**/*.rs"),
+    "domain-cli-and-daemons": ("**/Cargo.toml", "**/*.rs"),
+    "domain-embedded-and-iot": ("**/Cargo.toml", "**/*.rs", "**/.cargo/config.toml"),
+    "domain-web-services": ("**/Cargo.toml", "**/*.rs"),
+    "rust-async-and-concurrency": ("**/Cargo.toml", "**/*.rs"),
+    "rust-errors": ("**/Cargo.toml", "**/*.rs"),
+    "rust-memory-and-state": ("**/Cargo.toml", "**/*.rs"),
+    "rust-performance-and-layout": ("**/Cargo.toml", "**/*.rs"),
+    "rust-router": ("**/Cargo.toml", "**/*.rs"),
+    "rust-types-and-apis": ("**/Cargo.toml", "**/*.rs"),
+    "rust-unsafe-and-ffi": ("**/Cargo.toml", "**/*.rs"),
+}
+
 
 def _run_make(target: str, *skill_dirs: Path) -> subprocess.CompletedProcess[str]:
     """Run a Makefile manifest target over shipped skills or given fixtures."""
@@ -88,6 +106,26 @@ def test_manifest_check_rejects_an_unusable_name(tmp_path: Path, case: str, fron
     assert result.returncode != 0, result.stdout + result.stderr
 
 
+def test_manifest_check_rejects_a_name_that_disagrees_with_its_directory(tmp_path: Path) -> None:
+    """A discovery name that differs from the directory name fails the gate.
+
+    `skills-ref` resolves a skill by directory and then checks the manifest
+    `name` against it, so a non-empty name that disagrees is as unusable as a
+    missing one: the directory a caller copies is not the name it resolves.
+    """
+    skill_dir = _write_manifest(
+        tmp_path / "directory-name",
+        "---\nname: manifest-name\n"
+        "description: A fixture whose discovery name disagrees with its directory.\n"
+        "---\n\n# Fixture\n",
+    )
+
+    result = _run_manifest_check(skill_dir)
+
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert "must match skill name" in result.stdout + result.stderr, result.stdout + result.stderr
+
+
 @pytest.mark.parametrize("manifest", SHIPPED_MANIFESTS, ids=lambda path: path.parent.name)
 def test_shipped_metadata_values_are_strings(manifest: Path) -> None:
     """Metadata carries only string values, which `skills-ref` silently coerces.
@@ -102,6 +140,82 @@ def test_shipped_metadata_values_are_strings(manifest: Path) -> None:
     assert isinstance(metadata, dict), f"metadata must be a mapping, got {type(metadata).__name__}"
     non_strings = {key: value for key, value in metadata.items() if not isinstance(value, str)}
     assert not non_strings, f"metadata values must be strings: {non_strings}"
+
+
+@pytest.mark.parametrize("skill", sorted(EXPECTED_GLOBS), ids=str)
+def test_relocated_manifests_keep_every_globs_pattern(skill: str) -> None:
+    """The migration preserved every legacy `globs` pattern, in order.
+
+    `metadata.globs` is a single comma-separated string, so a dropped,
+    reordered, or truncated pattern shows up as a changed string. Type-checking
+    the value is not enough, because an empty string is still a string.
+    """
+    metadata = _frontmatter(REPO_ROOT / "skills" / skill / "SKILL.md")["metadata"]
+
+    assert isinstance(metadata, dict), f"{skill} must carry a metadata mapping"
+    assert metadata["globs"] == ", ".join(EXPECTED_GLOBS[skill])
+
+
+@pytest.mark.parametrize(
+    ("case", "metadata"),
+    [
+        ("sequence-value", "metadata:\n  globs: [Cargo.toml, Cargo.lock]\n"),
+        ("block-sequence-value", "metadata:\n  globs:\n    - Cargo.toml\n    - Cargo.lock\n"),
+        ("mapping-value", "metadata:\n  globs:\n    nested: mapping\n"),
+        ("scalar-value", "metadata:\n  globs: 7\n"),
+        ("non-string-key", "metadata:\n  7: Cargo.toml\n"),
+    ],
+)
+def test_metadata_lint_rejects_non_string_entries(tmp_path: Path, case: str, metadata: str) -> None:
+    """A metadata key or value that is not a string fails the metadata target.
+
+    `skills_ref.parser` rewrites both with `str()` rather than rejecting them,
+    and the schema validator never inspects the nested field, so without this
+    target a manifest could ship a Python repr where consumers expect text.
+    """
+    skill_dir = _write_manifest(
+        tmp_path / f"{case}-fixture",
+        "---\n"
+        f"name: {case}-fixture\n"
+        "description: A fixture whose metadata breaks the string contract.\n"
+        f"{metadata}"
+        "---\n\n# Fixture\n",
+    )
+
+    result = _run_make("skill-metadata-lint", skill_dir)
+
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert "metadata" in result.stdout + result.stderr, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("case", "metadata"),
+    [
+        ("untyped-sequence", "metadata:\n  globs: [Cargo.toml, Cargo.lock]\n"),
+        ("untyped-mapping", "metadata:\n  globs:\n    nested: mapping\n"),
+    ],
+)
+def test_lint_rejects_an_untyped_metadata_shape(tmp_path: Path, case: str, metadata: str) -> None:
+    """`make lint` fails on a list or mapping metadata value, not just on YAML.
+
+    `skills-ref` coerces such a value with `str(v)`, so schema validation alone
+    would pass it; only the metadata target wired into `skill-manifest-check`
+    makes `make lint` fail. The fixture is named in the failure output, so a
+    failure raised by the Markdown or Mermaid gates cannot pass this test.
+    """
+    skill_dir = _write_manifest(
+        tmp_path / f"{case}-fixture",
+        "---\n"
+        f"name: {case}-fixture\n"
+        "description: A fixture whose metadata value is not a string.\n"
+        f"{metadata}"
+        "---\n\n# Fixture\n",
+    )
+
+    result = _run_make("lint", skill_dir)
+
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert case in result.stdout + result.stderr, result.stdout + result.stderr
 
 
 def test_frontmatter_lint_reports_an_early_failure(tmp_path: Path) -> None:

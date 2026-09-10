@@ -61,6 +61,15 @@ The format is based on [Common Changelog](https://common-changelog.org).
   each skill directory, and `tests/test_skill_manifests.py` asserts the
   contract holds for every shipped skill and that `make lint` still
   enforces it.
+- `skill-metadata-lint` and `tools/check_metadata.py`: the manifest gate
+  now rejects a `metadata` key or value that is not a string, including
+  YAML sequences and mappings. `skills-ref` coerces those shapes with
+  `str(v)` instead of rejecting them, so without this target a manifest
+  would reach consumers as a Python repr. `skill-manifest-check` runs
+  the check ahead of schema validation, and
+  `tests/test_skill_manifests.py` gains fixtures for each rejected
+  shape, a manifest whose `name` disagrees with its directory, and a
+  data contract over the relocated `metadata.globs` patterns.
 
 ### Changed
 
@@ -100,6 +109,12 @@ The format is based on [Common Changelog](https://common-changelog.org).
   installation, router invocation, and when to reach for the new
   verification, supply-chain, and decision-record skills. Linked from
   the README. Also explains that a manifest `name` is the discovery name,
-  and that `make lint` validates every shipped manifest.
+  that the install copy performs no validation of its own, and that
+  `make lint` is the contributor gate which validates every shipped
+  manifest before it is published.
 - `AGENTS.md`: commit-gate guidance for agents, covering the manifest
-  contract and what to do when changing anything under `skills/`.
+  contract and what to do when changing anything under `skills/`. Points
+  tooling and dependency changes at the developers' guide.
+- `docs/developers-guide.md`: prerequisites, the pinned `uv` dependency
+  group, every `Makefile` target, the `SKILL_DIRS` override, the manifest
+  contract, and what the test suite covers. Linked from the README.

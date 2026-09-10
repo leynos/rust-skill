@@ -56,6 +56,7 @@ make skill-manifest-check SKILL_DIRS=skills/kani/
 
 Changes that alter skill discovery, installation, or naming belong in
 [the users' guide](docs/users-guide.md). Changes to validation tooling,
-Makefile targets, or development dependencies belong in this file, alongside
-the manifest contract they serve. Record notable changes in
+Makefile targets, or development dependencies belong in
+[the developers' guide](docs/developers-guide.md), alongside the manifest
+contract they serve. Record notable changes in
 [the changelog](CHANGELOG.md), which follows the Common Changelog format.

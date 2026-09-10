@@ -48,8 +48,10 @@ overwriting is safe.
 Each skill directory is named after the `name` in its `SKILL.md` manifest, and
 that `name` is the discovery name a strict loader uses. The two must agree: a
 manifest without a `name`, or one that disagrees with its directory, is not
-discoverable. `make lint` validates every shipped manifest, so a malformed or
-non-conformant manifest cannot be installed.
+discoverable. The copy itself performs no validation; `make lint` is the
+contributor gate that validates every shipped manifest before it is published,
+so a malformed or non-conformant manifest fails there rather than reaching a
+reader's skills directory.
 
 The `proptest` deep dive is a regular Cargo dev-dependency; the
 relevant lines for `Cargo.toml` and the recommended optional crates
