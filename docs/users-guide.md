@@ -45,6 +45,12 @@ cp -a skills/* ~/.codex/skills/
 Re-run the copy when the catalogue is updated; skills are plain text and
 overwriting is safe.
 
+Each skill directory is named after the `name` in its `SKILL.md` manifest, and
+that `name` is the discovery name a strict loader uses. The two must agree: a
+manifest without a `name`, or one that disagrees with its directory, is not
+discoverable. `make lint` validates every shipped manifest, so a malformed or
+non-conformant manifest cannot be installed.
+
 The `proptest` deep dive is a regular Cargo dev-dependency; the
 relevant lines for `Cargo.toml` and the recommended optional crates
 (`proptest-derive`, `test-strategy`, `proptest-state-machine`) live

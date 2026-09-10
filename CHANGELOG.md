@@ -54,6 +54,13 @@ The format is based on [Common Changelog](https://common-changelog.org).
 - `rust-performance-and-layout/references/rigorous-benchmarking.md`:
   Tango paired benchmarking, iai-callgrind, open- versus closed-loop
   load models, tail-latency CDFs, and goodput.
+- Skill manifest verification, imported from `agent-helper-scripts`:
+  `make lint` now fails on a manifest a strict Agent Skills loader could
+  not use. `skill-frontmatter-lint` runs `yamllint` over each manifest's
+  frontmatter, `skill-manifest-validate` runs `skills-ref validate` over
+  each skill directory, and `tests/test_skill_manifests.py` asserts the
+  contract holds for every shipped skill and that `make lint` still
+  enforces it.
 
 ### Changed
 
@@ -77,6 +84,12 @@ The format is based on [Common Changelog](https://common-changelog.org).
 - `docs/skill-catalogue-status.md` and `docs/users-guide.md`: listed
   `proptest` under the verification tier and described when to reach
   for it.
+- Eleven `SKILL.md` manifests: the legacy top-level `globs` list moved
+  into `metadata.globs` as a single comma-separated string. The Agent
+  Skills schema admits only `name`, `description`, `license`,
+  `allowed-tools`, `metadata`, and `compatibility`, and `skills-ref`
+  rewrites sequence values with `str(v)`, so the pattern hints are
+  preserved but re-encoded rather than dropped.
 
 ### Documentation
 
@@ -86,4 +99,7 @@ The format is based on [Common Changelog](https://common-changelog.org).
 - `docs/users-guide.md`: operator-facing guide covering catalogue
   installation, router invocation, and when to reach for the new
   verification, supply-chain, and decision-record skills. Linked from
-  the README.
+  the README. Also explains that a manifest `name` is the discovery name,
+  and that `make lint` validates every shipped manifest.
+- `AGENTS.md`: commit-gate guidance for agents, covering the manifest
+  contract and what to do when changing anything under `skills/`.
