@@ -37,4 +37,16 @@ skills:
 rest because they are procedural deep dives. `proptest` installs as
 a regular Cargo dev-dependency; `kani` and `verus` install and run
 via [`rust-prover-tools`](https://github.com/leynos/rust-prover-tools)
-so the catalogue does not carry forked install scripts.
+so the catalogue does not carry forked install scripts. Each of the three
+carries a `references/review-failure-modes.md` checklist derived from
+[`docs/verification-review-failure-modes.md`](verification-review-failure-modes.md),
+and `kani` and `verus` carry a `references/project-on-ramp.md`.
+
+Size note (2026-09-10): after the review-failure-modes update the three
+deep dives sit at roughly 13–16 KB each and
+`proptest/references/review-failure-modes.md` at about 9 KB, above the
+8 KB reference envelope. The growth is deliberate: each added section
+maps to a cluster of recurring review findings in the compendium, and
+the review references are checklists meant to be read in full before a
+PR is opened rather than browsed for one edge case. Trim them only when
+the estate's review findings change.

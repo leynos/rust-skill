@@ -83,6 +83,9 @@ ______________________________________________________________________
   gates, and the skill manifest contract
 - [Skill catalogue status](docs/skill-catalogue-status.md) — what is active and
   what is legacy input
+- [Verification review failure modes](docs/verification-review-failure-modes.md)
+  — the estate-wide survey of `proptest`, Kani, and Verus review findings
+  that shaped the three verification deep dives
 - [Reduction execplan](docs/execplans/reduced-skill-footprint.md) — design,
   rationale, and validation history for the rewrite
 - [Rust router](skills/rust-router/SKILL.md) — the main entry point

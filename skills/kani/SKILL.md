@@ -1,6 +1,6 @@
 ---
 name: kani
-description: Write and maintain Kani bounded model checking harnesses for Rust. Use when verifying structural invariants, unsafe code, bounded state machines, or dispatch logic via exhaustive symbolic execution.
+description: Write and maintain Kani bounded model checking harnesses for Rust. Use when verifying structural invariants, unsafe code, bounded state machines, or dispatch logic via exhaustive symbolic execution, and when wiring Kani into a repository through rust-prover-tools.
 ---
 
 # Kani bounded model checking for Rust
@@ -16,7 +16,10 @@ Apply when:
 
 - structural invariants (bidirectional links, uniqueness, ordering,
   reachability) must hold,
-- `unsafe` code needs exhaustive coverage of undefined behaviour,
+- `unsafe` code needs exhaustive coverage of undefined behaviour
+  (`from_utf8_unchecked`, lifetime-extending `transmute`, `Send + Sync`
+  claims, index or drain arithmetic whose safety rests on an external
+  invariant),
 - bounded state machines, dispatch selectors, or parser-like logic need
   verification,
 - a property test should be complemented with exhaustive bounded
@@ -24,23 +27,35 @@ Apply when:
 
 Do not apply when the property requires unbounded induction (use Verus),
 the code is concurrency-heavy (Kani sequentialises atomics and
-thread-locals), the code is dominated by I/O, or a unit or property test
-would suffice.
+thread-locals), the code crosses FFI into an embedded interpreter or real
+syscalls (refactor to a pure state machine over an event enum first), the
+type system already enforces the invariant, or a unit or property test
+would suffice. Reviewers reject Kani in those cases as disproportionate.
 
-## Installation
+A reviewer request for a harness must be answered one of three ways:
+land it, defer it to a tracked issue with the reason, or decline it with a
+written justification in the developers' guide. A bundled request
+("proptest and Kani") is two items; track both.
+
+## Installation and project wiring
 
 Use [`rust-prover-tools`](https://github.com/leynos/rust-prover-tools) as
 the canonical installer and version pin:
 
 ```bash
-prover-tools kani install
-prover-tools kani check-version
+prover-tools kani install --repo-root .
+prover-tools kani check-version --repo-root .
 ```
 
-`install` runs `cargo install --locked kani-verifier` against the pinned
-version, then `cargo kani setup`. `check-version` confirms the running
-Kani matches the pin. For one-off use without a pin, the upstream route
-remains `cargo install --locked kani-verifier && cargo kani setup`. See
+`install` runs `cargo install --locked kani-verifier --version <pin>`
+against `tools/kani/VERSION`, then `cargo kani setup`. `check-version`
+fails if the running Kani differs from the pin; run it before any proof.
+`--locked` alone does not pin the verifier release.
+
+The repository shape reviewers expect (pin files, `check-cfg`, Makefile
+targets that delegate to `prover-tools`, a smoke and a nightly CI job,
+contract tests, a harness inventory) is laid out step by step in
+[`references/project-on-ramp.md`](references/project-on-ramp.md). See
 [`references/installation-note.md`](references/installation-note.md) for
 the rationale and the version-file convention.
 
@@ -52,12 +67,17 @@ under symbolic inputs:
 - `kani::any::<T>()` produces a symbolic value covering every bit pattern
   for `T`. Derive `kani::Arbitrary` for custom types.
 - `kani::assume(cond)` constrains the search to states the production
-  code can actually reach. Only use it to mirror real preconditions.
+  code can actually reach. Only use it to mirror real preconditions, and
+  only at the harness's call site, never inside production code.
 - `kani::assert(cond, msg)` is the property under verification. Any input
   satisfying the assumptions that violates the assertion is reported as a
   counter-example.
+- `kani::cover!(cond)` records that a branch is reachable. Every branch
+  the harness claims to exercise needs one; a harness that never reaches
+  the interesting path is green and worthless.
 - `#[kani::unwind(n)]` bounds loop iterations. The bound must be **one
-  greater** than the maximum number of iterations.
+  greater** than the maximum number of iterations. Prefer it on the
+  harness over `--default-unwind` so the bound is visible and reviewed.
 
 Each harness follows four phases: deterministic setup, nondeterministic
 population, precondition enforcement, invariant assertion.
@@ -82,6 +102,7 @@ fn verify_reverse_edge_reconciliation_2_nodes() {
         let added = ensure_reverse_edge(&mut graph, 0, 1);
         kani::assert(added, "expected reverse edge to be inserted");
     }
+    kani::cover!(should_link, "linked path is reachable");
 
     kani::assert(is_bidirectional(&graph), "invariant violated");
 }
@@ -89,21 +110,93 @@ fn verify_reverse_edge_reconciliation_2_nodes() {
 
 The harness drives the production function rather than a re-implementation;
 the unwind bound is tight; assertions check an externally meaningful
-invariant. See
+invariant through the same helper production uses. See
 [`references/harness-examples.md`](references/harness-examples.md) for two
 worked harnesses (smoke and eviction-cascade) plus their helpers.
 
-## Anti-patterns
+## The review bar
 
-- **The harness re-implements the invariant.** Manually inserting the
-  reverse edge before asserting bidirectionality proves the harness, not
-  the production code. A mutation test on the production code will pass.
-- **Over-constrained assumptions.** `kani::assume(x == 42)` collapses the
-  search to a single input. Use `cargo kani --coverage -Z source-coverage`
-  to detect coverage gaps inside the assumed region.
-- **Excessive unwind.** Unwind bounds far above the true loop count waste
-  solver time. Start tight; grow only when an `unwinding assertion`
-  failure forces it.
+These are the findings reviewers raise most often on harnesses; check
+each before opening the PR. The full list with examples is in
+[`references/review-failure-modes.md`](references/review-failure-modes.md).
+
+- **The harness must drive production code.** No placeholder
+  `kani::assert(true)`, no hand-written mirror, no constructing the
+  expected value directly. If a Kani-only model is unavoidable, add an
+  equivalence proof or exhaustive equivalence tests and record why.
+- **No swallowed paths.** `if let Ok(x) = f()` and `unwrap_or(false)`
+  before a negative assertion pass vacuously. Assert `Ok`/`Some` first;
+  on an unexpected arm, `kani::assert(false, "reason")`.
+- **Prove both directions.** "Every output traces to an input" is not
+  "no output lacks an input".
+- **Symbolic inputs match the claim.** A harness documented as covering
+  all levels with `level` hardcoded to `0` overstates coverage.
+- **Share the driver.** Put the routine that both proptest and Kani call
+  under `#[cfg(any(test, kani))]` as `pub(crate)`; prefer production
+  types over Kani-only twins.
+- **Preconditions and bounds live at the call site**, typed, and
+  documented as concrete numbers (N, alphabet, unwind), not "bounded".
+- **Symbolic setup does not panic.** Deterministic setup on known-good
+  inputs may use `.expect()`; setup that consumes symbolic or
+  data-dependent values must not, because a panicking setup path defeats
+  the harness instead of failing the obligation. Validate indices
+  defensively.
+- **Narrow the API instead of proving misuse harmless.**
+
+## `cfg(kani)` is a different build
+
+The normal gates do not compile harness code, so the following surface
+only at review or in the nightly job unless you check them locally:
+
+- unused imports and dead code under `cfg(kani)` survive `-D warnings`;
+- Clippy's allow-`expect`-in-tests exemption does not apply;
+- complexity, function-length, and argument-count thresholds apply to
+  harness helpers;
+- a call into a `cfg(test)`-only helper from shared code breaks every
+  harness;
+- `#[allow(dead_code)]` as a gating workaround is rejected; use scoped
+  `#[expect(lint, reason = "...")]` or delete the wrapper;
+- `cargo-mutants` ignores the cfg, so harness modules need an exclusion;
+- Kani bundles its own nightly: `const fn` stability and borrow-check
+  behaviour can differ from the workspace toolchain, and
+  `RUSTUP_TOOLCHAIN` does not upgrade Kani.
+
+Gate all harness code behind `#[cfg(kani)]` and declare the cfg:
+
+```toml
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(kani)"] }
+```
+
+## Solver cliffs and the "measured intractable" protocol
+
+- Heap collections and strings dominate the proof budget: real
+  `HashMap`, serde, hashing, and path types are lowered before the
+  invariant is reached. Use fixed-size arrays, an explicit degree cap, or
+  a bounded array with an O(n²) linear scan in place of a `HashSet`.
+  Define a private type alias that resolves to the bounded collection
+  under `cfg(kani)` and to the real `HashSet` or `HashMap` otherwise, so
+  production code compiles unchanged in both configurations; the alias
+  must expose the methods production calls.
+
+  ```rust
+  #[cfg(kani)]
+  type NodeSet = BoundedNodeSet;
+  #[cfg(not(kani))]
+  type NodeSet = std::collections::HashSet<NodeId>;
+  ```
+
+- Extract a generic kernel and prove it over `u8` with a thin adapter
+  harness; this turned an 8 GiB blow-up at N=3 into a 7.6 s proof.
+- Nested loops need N² unwind. Recompute bounds after any refactor that
+  changes traversal shape; bind bound literals to production constants
+  with `const` assertions where the attribute allows it.
+- Bounded inputs can exclude branches (overflow handling) that only fire
+  outside the bound; add a smoke harness or document the gap.
+- When a requested harness is intractable: measure it (timeout, aborted
+  paths, memory), substitute an equivalence or unit-test proxy, open a
+  tracked issue, and say so. Reviewers accept a measurement, not "too
+  hard".
 
 ## What Kani detects and what it does not
 
@@ -113,26 +206,24 @@ failures, undefined behaviour in `unsafe` blocks, bit-shift overflow.
 
 Does not model: concurrency (atomics and thread-locals are treated as
 sequential — do not use Kani for data-race detection), I/O, unbounded heap
-collections (manual bounds required), async, and floating-point precision
-(use stubs for trig and `sqrt`).
+collections (manual bounds required), async, FFI into an embedded
+interpreter, and floating-point precision (use stubs for trig and `sqrt`).
 
 ## Project integration
 
-- Gate all harness code behind `#[cfg(kani)]` and declare the cfg in
-  `Cargo.toml`:
-
-  ```toml
-  [lints.rust]
-  unexpected_cfgs = { level = "warn", check-cfg = ["cfg(kani)"] }
-  ```
-
-- Split harness runs into two tiers: a fast `make kani` for the local
-  loop and a slow `make kani-full` for nightly CI. Keep Kani out of
-  `make test`.
+- Split harness runs into two tiers: a fast `make kani` of named
+  harnesses for pull requests and a slow `make kani-full` for nightly CI.
+  Keep Kani out of `make test` unless the repository has chosen a
+  fail-closed formal gate and documented it.
+- Keep a harness inventory table in the developers' guide (name, module,
+  bounds, what is proved and what is not) and update it in the same PR as
+  any harness change; reviewers treat partial documentation as a failing
+  check. Keep ExecPlan status fields and quoted bounds in agreement with
+  the code.
 - Validate every harness with a one-off mutation: break the production
   code, confirm the harness fails with a meaningful message, then restore.
-  A harness that still passes after a deliberate mutation is not testing
-  what it claims to test.
+  Repositories with mutation-evidence tests require a committed patch per
+  harness.
 
 ## Function contracts (experimental)
 
@@ -157,10 +248,13 @@ with their contracts and cut solver load.
 - Unwind bounds are off-by-one (a 10-iteration loop needs `unwind(11)`).
 - Heap collections do not scale: even 2-element `Vec`s can take minutes;
   3-element ones often time out. There is a sharp combinatorial cliff
-  between 2-node and 3-node harnesses for graph problems.
+  between 2-node and 3-node harnesses for graph problems; `chutoro`
+  retired its 3-node harness after it found a real ordering bug by hand
+  tracing but never finished under CBMC.
 - Compilation is slow: 30–60 seconds before verification even starts.
 - Solver choice matters: `#[kani::solver(kissat)]` or `cadical` can turn
-  a timeout into a sub-minute proof.
+  a timeout into a sub-minute proof; a code-health refactor can also push
+  a formula past the solver's variable-index limit.
 - Stubs let Kani run against code with FFI, inline assembly, or RNG calls:
 
   ```rust
@@ -172,7 +266,8 @@ with their contracts and cut solver load.
   fn verify_with_random() { let _: u32 = rand::random(); }
   ```
 
-  Run with `cargo kani -Z stubbing`.
+  Run with `cargo kani -Z stubbing`. Leave a FIXME with the upstream link
+  when a stub works around a tool bug.
 
 ## References
 
@@ -183,7 +278,13 @@ with their contracts and cut solver load.
   [Stubbing](https://model-checking.github.io/kani/reference/experimental/stubbing.html),
   [Function Contracts](https://model-checking.github.io/kani/reference/experimental/contracts.html),
   [Rust Feature Support](https://model-checking.github.io/kani/rust-feature-support.html).
+- [`references/project-on-ramp.md`](references/project-on-ramp.md) for
+  pins, Makefile targets, CI jobs, contract tests, and documentation.
+- [`references/review-failure-modes.md`](references/review-failure-modes.md)
+  for the pre-submission checklist drawn from estate review history.
 - [`references/harness-examples.md`](references/harness-examples.md) for
   worked harnesses with helpers.
 - [`references/kani-harness-example.rs`](references/kani-harness-example.rs)
   for a self-contained Rust source illustrating the four-phase shape.
+- The survey behind this guidance:
+  `docs/verification-review-failure-modes.md` in the catalogue repository.

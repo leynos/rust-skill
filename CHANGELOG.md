@@ -8,6 +8,29 @@ The format is based on [Common Changelog](https://common-changelog.org).
 
 ### Added
 
+- `docs/verification-review-failure-modes.md`: a compendium of recurring
+  review findings on `proptest`, Kani, and Verus work across the
+  `leynos` estate (57 repositories, 9,171 pull requests, 851 triaged
+  findings), the standard `rust-prover-tools` integration shape, the
+  123 confirmed cases where verification was omitted, requested by a
+  reviewer, and landed before merge, and the barriers to entry each
+  skill now addresses.
+- `proptest/references/review-failure-modes.md` and
+  `proptest/references/sibling-module-template.md`: the pre-submission
+  checklist drawn from estate review history, and the sibling
+  `prop_tests.rs` plus `prop_strategies.rs` layout with a scope-statement
+  template for changes that need no property test.
+- `kani/references/project-on-ramp.md` and
+  `kani/references/review-failure-modes.md`: pin files, `check-cfg`,
+  Makefile targets that delegate to `prover-tools`, smoke and nightly CI
+  jobs, contract tests, mutation evidence, and the harness inventory; plus
+  the vacuous-harness, model-drift, solver-cliff, and `cfg(kani)`
+  checklist.
+- `verus/references/project-on-ramp.md` and
+  `verus/references/review-failure-modes.md`: when Verus is due, pins and
+  `prover-tools` targets, layout, the two production bridges (spec mirror
+  and `#[path]` import) with their maintenance duties, lint policy, and
+  the lemma-structure and refinement findings.
 - `rust-unit-testing` skill: covers Rust unit-test helper shape with
   `rstest` fixtures and parameterized cases, `serial_test` isolation,
   fallible setup, rich assertions through `googletest` and
@@ -73,6 +96,40 @@ The format is based on [Common Changelog](https://common-changelog.org).
 
 ### Changed
 
+- Rigour escalation rules ported from the `python-skill` catalogue.
+  `rust-router` gains a testing hierarchy (named test, `rstest` table,
+  lightweight `proptest`, structured or stateful `proptest`, Kani,
+  Verus, with `cargo-mutants` beside and Miri below), a selection rubric,
+  the "no selector ceremony for a clear invariant" pairing rule, and
+  three escalation triggers. `rust-verification` gains "Before
+  escalating", the question each tool answers, "What none of them
+  establish", combination and cadence guidance, further red flags, and a
+  `references/selection-matrix.md`. `proptest` gains "Start light" (the
+  `#[case]` table that is a property in disguise), everyday property
+  shapes, and an escalation ladder. `rust-unit-testing`, the routing
+  matrix, and the users' guide point at the same hierarchy.
+- `proptest/SKILL.md`: added the "Is a property test expected?" decision
+  rule with the three accepted answers (land, defer with an issue, or
+  write a scope statement), a strategy audit step before assertions,
+  tautology and disjunction anti-patterns, the per-repository
+  `.expect`/`prop_assert` lint policy note, `#[test]` inside `proptest!`,
+  regression-file keying, `RandomState` determinism, and the sibling
+  module layout.
+- `kani/SKILL.md`: added the review bar (drive production code, no
+  swallowed paths, prove both directions, shared driver, typed
+  preconditions at the call site), the "`cfg(kani)` is a different build"
+  checklist, the solver-cliff kernel-extraction pattern, the
+  "measured intractable" protocol, the harness inventory duty, and the
+  `prover-tools` project wiring pointer. `kani::cover!` joins the core
+  concepts and the worked harness.
+- `verus/SKILL.md`: added lemma decomposition as a review expectation,
+  the restated-definition and unpropagated-axiom anti-patterns, the two
+  production bridges and the refinement-lemma requirement, gating advice
+  (Verus last, outside `make all`), lint policy in `verus/`, and the
+  on-ramp pointer.
+- `rust-verification/SKILL.md`: added "When reviewers expect
+  verification": the estate trigger rule, the pre-merge check behaviour,
+  and the three accepted responses.
 - `rust-unsafe-and-ffi/SKILL.md`: added the missing-`UnsafeCell` red
   flag, a reference to the new interior-mutability material, and a
   cross-link to the `rust-verification` skill.

@@ -140,6 +140,35 @@ The router's pairing rules and escalation triggers live in its
 [routing matrix](../skills/rust-router/references/routing-matrix.md)
 covers the residual ambiguous cases.
 
+## Testing hierarchy
+
+Pick the first level whose evidence matches the question:
+
+1. **Named unit test**: one scenario, regression, exact output, or
+   error contract matters.
+2. **Parameterized `rstest` table**: a finite truth table, standards
+   corpus, or set of cases whose rows each carry semantic meaning.
+3. **Lightweight `proptest`**: one round trip, invariant, oracle, or
+   metamorphic relation should hold across many cheap, repeatable
+   inputs. A growing set of representative `#[case]` rows is the usual
+   signal, and the estate's reviewers flag it as such.
+4. **Structured or stateful `proptest`**: valid data has dependent or
+   recursive structure, or failures depend on operation history.
+5. **Kani**: a small bounded function needs exhaustive exploration of
+   every reachable path within a stated bound.
+6. **Verus**: the property must hold with no bound, over a small stable
+   pure kernel.
+
+`cargo-mutants` sits beside the hierarchy. Use it when the question is
+whether the current suite would notice a plausible defect. Miri sits
+below it, on the tests that already touch `unsafe`.
+
+Leave the hierarchy for scheduling, integration, load, performance, or
+foreign-code failures. Those need `loom`, `shuttle`, or `turmoil`, real
+or simulated boundaries, benchmarks and profilers, or sanitizers.
+`rust-verification` is the escalation selector when the rung is
+unclear; a clear lightweight invariant goes straight to `proptest`.
+
 ## When to reach for the new skills
 
 The recent catalogue extensions cover verification, supply chain, decision
@@ -170,7 +199,10 @@ enumerate, or when a parser or codec must round-trip across all
 valid inputs. The skill covers strategy design with `prop_compose!`,
 the filtering trap and its fix, regression-file discipline,
 state-machine tests via `proptest-state-machine`, and the
-`proptest-derive` vs `test-strategy` choice.
+`proptest-derive` vs `test-strategy` choice. It also answers the
+question reviewers ask first, whether a change needs a property test at
+all, and ships a review checklist and a sibling-module template drawn
+from the estate's review history.
 
 ### `rust-unit-testing` — unit-test shape and assertions
 
@@ -189,6 +221,10 @@ property: an arithmetic invariant, a parser corner case, or a state
 machine with a small alphabet. Kani is unwind-bounded by default;
 the skill describes how to set `#[kani::unwind(n)]`, when to use
 `kani::any` and `kani::assume`, and when to escalate to Verus instead.
+Its references carry the project on-ramp (pins, Makefile targets that
+delegate to `prover-tools`, smoke and nightly CI, contract tests) and
+the review checklist for vacuous harnesses, model drift, solver
+cliffs, and the `cfg(kani)` build.
 
 ### `verus` — deductive verification
 
@@ -197,7 +233,12 @@ the bounded loop in Kani times out, or when the proof composes
 several lemmas. The skill covers `spec`/`proof`/`exec` mode
 discipline, trigger heuristics for the underlying Z3 solver, the
 `broadcast use` pattern for sequence axioms, and the layout of a
-proof project that mirrors a production module.
+proof project that mirrors a production module, including the
+refinement lemma that binds an idealized spec to the runtime structure.
+Its references carry the on-ramp and review checklist.
+
+The survey these checklists come from is
+[`docs/verification-review-failure-modes.md`](verification-review-failure-modes.md).
 
 ### `arch-supply-chain` — dependency hygiene and audits
 
