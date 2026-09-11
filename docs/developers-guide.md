@@ -100,3 +100,13 @@ with its directory, and `metadata` entries that are sequences, mappings,
 scalars, or non-string keys. One test also pins the relocated
 `metadata.globs` strings, so a dropped, reordered, or truncated pattern
 fails the suite.
+
+The suite also guards the specialist invocation policy. Every skill but
+the router ships an `agents/openai.yaml` setting
+`policy.allow_implicit_invocation: false`, which keeps routing with
+`rust-router`; one test asserts that over every other shipped skill,
+failing on a missing file as well as on a `true` value, and a second
+asserts the router has not opted out itself, which would leave the
+catalogue reachable only by an explicit invocation. That file is not part
+of the Agent Skills manifest, so `skills-ref` does not see it and the
+`make lint` targets cannot cover it.

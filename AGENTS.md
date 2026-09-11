@@ -42,6 +42,9 @@ anything under `skills/`, the following are required:
   value passes validation but reaches consumers as a Python repr. Encode
   multi-valued entries — such as the `globs` pattern hints — as a single
   comma-separated string.
+- Ship `agents/openai.yaml` with `policy.allow_implicit_invocation: false` for
+  every skill but `rust-router`, so the router keeps the routing decision.
+  `skills-ref` does not read the file, so only `make test` enforces it.
 
 Do not weaken these checks to make a manifest pass. Fix the manifest instead of
 excluding it from `SKILL_DIRS` or relaxing the `yamllint` configuration.
