@@ -84,6 +84,14 @@ def _write_manifest(skill_dir: Path, body: str) -> Path:
     return skill_dir
 
 
+def _write_openai_config(skill_dir: Path, config: str) -> Path:
+    """Create a skill directory containing the given `agents/openai.yaml` text."""
+    agents = skill_dir / "agents"
+    agents.mkdir(parents=True)
+    (agents / "openai.yaml").write_text(config, encoding="utf-8")
+    return skill_dir
+
+
 def _openai_policy(skill_dir: Path) -> dict[str, object] | None:
     """Read the `policy` mapping from a skill's `agents/openai.yaml`.
 
@@ -211,6 +219,55 @@ def test_router_keeps_its_own_invocation_policy() -> None:
     assert policy is None or policy.get(IMPLICIT_INVOCATION) is not False, (
         f"{ROUTER_SKILL} must not disable implicit invocation, got {policy!r}"
     )
+
+
+def test_openai_policy_reads_an_absent_file_as_no_policy(tmp_path: Path) -> None:
+    """A skill that ships no `agents/openai.yaml` has no policy to report.
+
+    An absent file is a valid state rather than an error, because the router is
+    exempt from the opt-out. Returning `None` for it is what distinguishes the
+    two tests above: a specialist whose configuration is missing must fail the
+    contract, while an absent policy on the router must not.
+    """
+    assert _openai_policy(tmp_path / "absent") is None
+
+
+# The malformed case's wording is PyYAML's own, pinned by the committed
+# `uv.lock`; the other rows pin the assertion each mis-shaped document reaches,
+# so an input that stops being rejected as intended fails here.
+@pytest.mark.parametrize(
+    ("case", "config", "error", "message"),
+    [
+        ("malformed-yaml", "policy: [unclosed\n", yaml.YAMLError, "expected ',' or ']'"),
+        ("empty-document", "", AssertionError, "is not a YAML mapping"),
+        ("scalar-document", "false\n", AssertionError, "is not a YAML mapping"),
+        ("sequence-document", "- policy\n", AssertionError, "is not a YAML mapping"),
+        ("scalar-policy", "policy: false\n", AssertionError, "carries no policy mapping"),
+        (
+            "sequence-policy",
+            "policy:\n  - allow_implicit_invocation\n",
+            AssertionError,
+            "carries no policy mapping",
+        ),
+    ],
+)
+def test_openai_policy_rejects_a_present_but_unusable_config(
+    tmp_path: Path, case: str, config: str, error: type[Exception], message: str
+) -> None:
+    """A configuration that is present but unusable fails rather than reading as absent.
+
+    Only a missing file means "no policy". A malformed or mis-shaped one that
+    took the same route would let a specialist satisfy the contract above while
+    its configuration is never checked, so each shape must fail, and fail
+    distinctly: an unparseable document is a YAML error, whereas one that parses
+    to the wrong shape reaches the assertion that describes it.
+    """
+    skill = _write_openai_config(tmp_path / case, config)
+
+    with pytest.raises(error) as raised:
+        _openai_policy(skill)
+
+    assert message in str(raised.value), str(raised.value)
 
 
 @pytest.mark.parametrize("skill", sorted(EXPECTED_GLOBS), ids=str)

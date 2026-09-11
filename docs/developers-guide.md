@@ -107,6 +107,9 @@ the router ships an `agents/openai.yaml` setting
 `rust-router`; one test asserts that over every other shipped skill,
 failing on a missing file as well as on a `true` value, and a second
 asserts the router has not opted out itself, which would leave the
-catalogue reachable only by an explicit invocation. That file is not part
-of the Agent Skills manifest, so `skills-ref` does not see it and the
-`make lint` targets cannot cover it.
+catalogue reachable only by an explicit invocation. Fixtures pin the
+policy reader's failure modes: an absent file reads as no policy,
+whereas a malformed document, a non-mapping document, and a non-mapping
+`policy` value each fail distinctly rather than reading as absent. That
+file is not part of the Agent Skills manifest, so `skills-ref` does not
+see it and the `make lint` targets cannot cover it.
