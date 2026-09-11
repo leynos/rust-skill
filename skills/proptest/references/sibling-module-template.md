@@ -8,6 +8,10 @@ Adapt the names; keep the structure.
 
 ```text
 src/
+├── lib.rs                         # declares `#[cfg(test)] mod test_support;`
+├── test_support/
+│   ├── mod.rs                     # `pub(crate) mod reference;`
+│   └── reference.rs               # slow, obviously different oracles
 └── canonical/
     ├── mod.rs                     # production code
     ├── tests.rs                   # rstest examples (existing)
@@ -25,6 +29,10 @@ mod prop_tests;
 #[cfg(test)]
 mod tests;
 ```
+
+The oracle module is declared once at the crate root under
+`#[cfg(test)]` so every sibling `prop_tests.rs` imports it as
+`crate::test_support::reference`.
 
 ## `prop_strategies.rs`
 
@@ -61,7 +69,8 @@ pub(super) fn mode() -> impl Strategy<Value = super::Mode> {
 //! Property tests for canonicalization.
 //!
 //! Oracle: the `reference::canonicalize_slow` brute-force implementation
-//! in `tests/support`. Case counts come from `PROPTEST_CASES`.
+//! in the crate's `#[cfg(test)] mod test_support`. Case counts come from
+//! `PROPTEST_CASES`.
 
 use proptest::prelude::*;
 

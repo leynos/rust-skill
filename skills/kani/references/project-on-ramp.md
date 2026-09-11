@@ -69,11 +69,12 @@ ifeq ($(shell printf '%s' '$(PROVER_TOOLS_REF)' | grep -Ec '^[0-9a-f]{40}$$'),0)
 $(error PROVER_TOOLS_REF missing or malformed; expected "ref: <40-hex>" in $(PROVER_TOOLS_REF_FILE))
 endif
 override PROVER_TOOLS_SOURCE := git+https://github.com/leynos/rust-prover-tools.git@$(PROVER_TOOLS_REF)
-PROVER_TOOLS_CONTRACT_TEST ?=
-ifeq ($(PROVER_TOOLS_CONTRACT_TEST),)
-override PROVER_TOOLS := uv tool run --from "$(PROVER_TOOLS_SOURCE)" prover-tools
+# Contract tests substitute a recording fake only when both variables are
+# supplied on the make command line; environment values never unlock it.
+PROVER_TOOLS_ORIGINS := $(origin PROVER_TOOLS_CONTRACT_TEST),$(origin PROVER_TOOLS)
+ifeq ($(PROVER_TOOLS_ORIGINS),command line,command line)
 else
-PROVER_TOOLS ?= uv tool run --from "$(PROVER_TOOLS_SOURCE)" prover-tools
+override PROVER_TOOLS := uv tool run --from "$(PROVER_TOOLS_SOURCE)" prover-tools
 endif
 KANI ?= cargo kani
 KANI_FLAGS ?=
@@ -107,9 +108,10 @@ Make expands variables before the shell runs, so quoting cannot make
 an environment-supplied path safe. The guard rejects a missing or
 malformed `ref:` line before `PROVER_TOOLS_SOURCE` can be left
 unpinned. `PROVER_TOOLS` is locked to the pin-derived source unless
-`PROVER_TOOLS_CONTRACT_TEST` is set, which is the seam contract tests
-use to substitute a recording fake; production runs cannot repoint it
-from the environment.
+both `PROVER_TOOLS_CONTRACT_TEST` and `PROVER_TOOLS` are supplied on
+the `make` command line, which is the seam contract tests use to
+substitute a recording fake; production runs cannot repoint it from
+the environment.
 
 `kani-check` is a prerequisite of each proof target, not only of the
 gate, so `make -j` cannot start a proof before the version check
@@ -156,8 +158,9 @@ The estate gates the shape above with tests rather than convention:
   fake `prover-tools` (a script that logs its arguments; not `echo`, which
   cannot observe recipe-local environment) and assert the exact
   invocation, flag forwarding, redaction, and non-zero exit propagation.
-  They set `PROVER_TOOLS_CONTRACT_TEST=1 PROVER_TOOLS=<fake>` on the
-  `make` command line; without the flag the pinned source is locked.
+  They pass `PROVER_TOOLS_CONTRACT_TEST=1 PROVER_TOOLS=<fake>` as
+  `make` command-line arguments; exported environment values do not
+  unlock the seam, and without both the pinned source is locked.
 - Workflow-contract tests asserting the smoke job's step order by
   position, the cache key inputs, the path filter's manifest list, and
   that both `*.yml` and `*.yaml` are enumerated.
