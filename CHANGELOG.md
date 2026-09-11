@@ -93,6 +93,20 @@ The format is based on [Common Changelog](https://common-changelog.org).
   `tests/test_skill_manifests.py` gains fixtures for each rejected
   shape, a manifest whose `name` disagrees with its directory, and a
   data contract over the relocated `metadata.globs` patterns.
+- `tests/test_skill_manifests.py`: a contract test over the specialist
+  invocation policy, which the manifest gate cannot see because
+  `agents/openai.yaml` is not part of the Agent Skills manifest. Every
+  skill but `rust-router` must ship the file with
+  `policy.allow_implicit_invocation: false`, so no implicitly invocable
+  specialist competes with the routing decision; a companion test fails
+  if the router itself opts out, which would leave the catalogue
+  reachable only by an explicit invocation. Fixtures also pin the policy
+  reader's failure modes: an absent file reads as no policy, whereas a
+  malformed document, a non-mapping document, and a non-mapping
+  `policy` value each fail distinctly rather than reading as absent.
+  The developers' guide records the policy alongside what the suite
+  covers, and `AGENTS.md` lists the file among the requirements for a
+  change under `skills/`.
 
 ### Changed
 
