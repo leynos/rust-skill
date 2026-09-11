@@ -54,7 +54,6 @@ follow-on skill.
 - CLIs, workers, daemons, or long-running jobs: `domain-cli-and-daemons`
 - `no_std`, firmware, devices, or edge nodes: `domain-embedded-and-iot`
 
-
 ## Testing hierarchy
 
 This is a decision hierarchy, not a prestige ranking. Pick the first rung
@@ -94,7 +93,6 @@ Leave this hierarchy when the failure depends primarily on a schedule,
 a real service, load, memory use, or a foreign boundary. Use `loom`,
 `shuttle`, or `turmoil`, integration tests, benchmarks and profilers, or
 sanitizers instead.
-
 
 ## Testing selection rubric
 

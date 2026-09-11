@@ -140,7 +140,6 @@ The router's pairing rules and escalation triggers live in its
 [routing matrix](../skills/rust-router/references/routing-matrix.md)
 covers the residual ambiguous cases.
 
-
 ## Testing hierarchy
 
 Pick the first level whose evidence matches the question:
