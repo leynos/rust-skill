@@ -1,7 +1,8 @@
 ---
 name: domain-web-services
 description: Use for Rust HTTP services, request handlers, middleware, shared state, backpressure, and shutdown behaviour in web-facing systems.
-globs: ["**/Cargo.toml", "**/*.rs"]
+metadata:
+  globs: "**/Cargo.toml, **/*.rs"
 ---
 
 # Rust Web Services

@@ -1,7 +1,8 @@
 ---
 name: rust-memory-and-state
 description: Use for ownership, borrowing, lifetimes, aliasing, smart pointers, interior mutability, resource acquisition is initialisation (RAII), and resource handoff in Rust.
-globs: ["**/Cargo.toml", "**/*.rs"]
+metadata:
+  globs: "**/Cargo.toml, **/*.rs"
 ---
 
 # Rust Memory and State

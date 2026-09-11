@@ -1,7 +1,8 @@
 ---
 name: rust-async-and-concurrency
 description: Use for async Rust, task ownership, `Send` and `Sync`, shared state, channels, cancellation, blocking boundaries, runtimes, and shutdown behaviour.
-globs: ["**/Cargo.toml", "**/*.rs"]
+metadata:
+  globs: "**/Cargo.toml, **/*.rs"
 ---
 
 # Rust Async and Concurrency

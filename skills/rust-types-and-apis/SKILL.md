@@ -1,7 +1,8 @@
 ---
 name: rust-types-and-apis
 description: Use for trait bounds, generics, trait objects, newtypes, typestate, conversion boundaries, public API design, and crate-facing Rust interfaces.
-globs: ["**/Cargo.toml", "**/*.rs"]
+metadata:
+  globs: "**/Cargo.toml, **/*.rs"
 ---
 
 # Rust Types and APIs

@@ -1,7 +1,8 @@
 ---
 name: rust-errors
 description: Use for Rust error design, `Result` shape, panic boundaries, context propagation, library vs binary handling, retryability, and failure classification.
-globs: ["**/Cargo.toml", "**/*.rs"]
+metadata:
+  globs: "**/Cargo.toml, **/*.rs"
 ---
 
 # Rust Errors
