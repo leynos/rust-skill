@@ -113,3 +113,25 @@ whereas a malformed document, a non-mapping document, and a non-mapping
 `policy` value each fail distinctly rather than reading as absent. That
 file is not part of the Agent Skills manifest, so `skills-ref` does not
 see it and the `make lint` targets cannot cover it.
+
+## Polonius comparison command tests
+
+`tests/test_polonius_protocol.py` extracts the marked Bash examples directly
+from `skills/nll-to-polonius/references/verification.md`. Fake `rustc` and
+`cargo` executables record arguments and encoded flags and return controlled
+statuses. The tests cover explicit checker/solver selection, all matrix cells,
+contaminated inherited flags, arguments containing spaces, separate output
+directories, complete diagnostics, unexpected failures, and aborting when
+compiler identity cannot be obtained. They skip when Bash is unavailable.
+
+These are command-level regression tests, not evidence of Rust acceptance,
+real Cargo configuration precedence, or stable/MSRV support. Run the documented
+fixtures with an actual pinned compiler for those claims. The tests need no
+Rust installation or new Python dependencies and run as part of `make test`.
+A focused development run is:
+
+```bash
+uv run --group dev pytest tests/test_polonius_protocol.py
+```
+
+The focused run does not replace `make lint` and the full `make test` gate.

@@ -125,6 +125,19 @@ The format is based on [Common Changelog](https://common-changelog.org).
   list and explain the new focused state-machine skill. The guide carries a
   device lifecycle state diagram and a transition-ownership flowchart, each
   introduced by a sentence for screen readers and captioned as a figure.
+- `nll-to-polonius`: require explicit `off`/`next` comparisons on one
+  pinned nightly, audit effective Cargo flags, and isolate trait-solver
+  effects. Separate API evolution from compiler adoption and preserve the
+  strongest NLL-compatible alternatives. Correct the blanket async,
+  aliasing, clone-count, and migration-cost claims across the references.
+- `nll-to-polonius/references/verification.md`: add complete controls,
+  diagnostic-preserving command examples, and evidence classification.
+  Incorporate the immutable compiler archive from `peregrine-web` PR #6
+  without presenting historical results as fresh execution.
+- `tests/test_polonius_protocol.py`: exercise the documented commands with
+  fake tools, including flag contamination, matrix coverage, failure
+  retention, and isolated outputs. The developers' guide distinguishes
+  these command tests from real compiler probes and full repository gates.
 - Rigour escalation rules ported from the `python-skill` catalogue.
   `rust-router` gains a testing hierarchy (named test, `rstest` table,
   lightweight `proptest`, structured or stateful `proptest`, Kani,
