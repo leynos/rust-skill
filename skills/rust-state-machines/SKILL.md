@@ -1,7 +1,8 @@
 ---
 name: rust-state-machines
 description: Use for Rust parsers, codecs, protocols, actors, device lifecycles, correlated state fields, transition design, and choosing between runtime algebraic data types (ADTs) and typestate.
-globs: ["**/Cargo.toml", "**/*.rs"]
+metadata:
+  globs: "**/Cargo.toml, **/*.rs"
 ---
 
 # Rust State Machines
@@ -23,12 +24,12 @@ transition, and which invalid combinations the representation should exclude.
 
 | Pressure | Default move |
 | --- | --- |
-| caller chooses a small, finite operation sequence | typestate or consuming concrete state types |
-| parser input, frame, socket, channel, interrupt, or scheduler chooses | runtime enum with state-specific payloads |
-| nesting or history is unbounded | runtime ADT plus an explicit stack, queue, or map |
-| values live in a homogeneous collection or behind `dyn Trait` | stable owner type with an internal runtime ADT |
-| several fields describe one mutually exclusive phase | collapse them into one enum |
-| one scalar carries a validated domain invariant | newtype, constructed at the boundary |
+| caller picks a small, finite operation sequence | typestate or state types |
+| parser input, frame, socket, or event | runtime enum with state payloads |
+| nesting or history is unbounded | runtime ADT plus explicit stack |
+| values in a collection or behind `dyn Trait` | stable owner, internal ADT |
+| several fields encode one exclusive phase | collapse into one enum |
+| one scalar carries a validated invariant | newtype at the boundary |
 | conditions are independent and may coexist | ordinary fields or booleans |
 
 ## Representation audit
