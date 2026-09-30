@@ -121,6 +121,47 @@ questions to `rust-memory-and-state`, async boundaries to
 `rust-performance-and-layout`. The migration skill is loaded only when
 adoption, NLL-residue auditing, or API evolution is itself the task.
 
+**Figure 1. How the router establishes borrow-checker posture and selects a
+skill.** The posture is determined once as ambient context. Borrow-sensitive
+ownership, async, and performance questions then go to the ordinary language
+skills, which consume that posture; only adoption, audit, and migration work
+reaches the migration skill.
+
+```mermaid
+flowchart TD
+  start([User invokes rust-router])
+  posture["Determine borrow-checker posture via polonius-alpha reference
+  (nll, polonius-alpha, polonius-legacy, unknown)"]
+  question["Identify concrete problem:
+  ownership/async/performance vs migration/adoption/audit"]
+
+  start --> posture --> question
+
+  subgraph ordinary_skills[Ordinary language skills]
+    mem[rust-memory-and-state]
+    async[rust-async-and-concurrency]
+    perf[rust-performance-and-layout]
+  end
+
+  subgraph migration_skill[Migration skill]
+    polonius[nll-to-polonius]
+  end
+
+  question -->|"Borrow-sensitive ownership / async / performance"| mem
+  question -->|"Borrow-sensitive ownership / async / performance"| async
+  question -->|"Borrow-sensitive ownership / async / performance"| perf
+
+  question -->|"Polonius adoption, NLL workaround audits,
+  borrow-centric API migration"| polonius
+
+  posture --> mem
+  posture --> async
+  posture --> perf
+
+  style posture fill:#e3f2fd,stroke:#1565c0
+  style polonius fill:#fce4ec,stroke:#ad1457
+```
+
 A short version of the decision table:
 
 - ownership, borrowing, aliasing, or interior mutability →

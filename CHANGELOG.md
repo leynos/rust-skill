@@ -232,7 +232,10 @@ The format is based on [Common Changelog](https://common-changelog.org).
   Linked from the README. Also explains that a manifest `name` is the
   discovery name, that the install copy performs no validation of its own,
   and that `make lint` is the contributor gate which validates every
-  shipped manifest before it is published.
+  shipped manifest before it is published. The router section carries a
+  Mermaid diagram of the posture-then-route decision, in which the posture
+  node feeds the ordinary language skills while adoption and audit work
+  reaches `nll-to-polonius`.
 - `AGENTS.md`: commit-gate guidance for agents, covering the manifest
   contract and what to do when changing anything under `skills/`. Points
   tooling and dependency changes at the developers' guide.
