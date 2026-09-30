@@ -187,6 +187,54 @@ right representation. Its references cover parser, protocol, asynchronous, and
 device patterns plus transition-table, `trybuild`, property, Kani, and
 concurrency testing.
 
+A device lifecycle shows both layers in one machine: configuration is
+caller-driven, while the transfer phases inside `Enabled` are driven by
+device events.
+
+For screen readers: The following state diagram shows a device lifecycle that
+is configured by its caller, then driven by transfer and fault events once
+enabled.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Unconfigured
+    Unconfigured --> Configured : configure()
+    Configured --> Enabled : enable()
+    Enabled --> Disabled : disable()
+    state Enabled {
+      [*] --> Idle
+      Idle --> Receiving : transfer event
+      Receiving --> Complete : DMA completion
+      Receiving --> Fault : device fault
+      Complete --> Idle : next transfer
+    }
+```
+
+_Figure 1: Device lifecycle — caller-driven configuration wrapping an
+event-driven transfer state machine._
+
+The decisive question is who chooses the next transition. A caller-selected
+finite sequence can be enforced by typestate; input, frames, socket readiness,
+or interrupts cannot, and belong in a runtime ADT behind one stable owner.
+
+For screen readers: The following flowchart shows how to choose between
+typestate and a runtime algebraic data type (ADT) based on who selects the
+next transition.
+
+```mermaid
+flowchart TD
+    Start["Identify the state machine"] --> Driver{"Who chooses the next transition?"}
+    Driver -->|Caller| Finite{"Small finite operation sequence?"}
+    Finite -->|Yes| Typestate["Use typestate or consuming state types"]
+    Finite -->|No| Runtime["Use runtime ADT"]
+    Driver -->|Input or event| Runtime
+    Runtime --> Stable["Keep one stable owner with state-specific payloads"]
+    Typestate --> Verify["Verify legal and invalid transitions"]
+    Stable --> Verify
+```
+
+_Figure 2: Selecting a state representation by transition ownership._
+
 ### `nll-to-polonius` — migrate beyond NLL constraints
 
 Use this skill when adopting `-Zpolonius=next`, auditing code for confirmed

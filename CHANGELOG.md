@@ -122,7 +122,9 @@ The format is based on [Common Changelog](https://common-changelog.org).
   existing typestate guidance for API-facing call-order constraints and
   cross-link the state-machine specialist.
 - `README.md`, `docs/skill-catalogue-status.md`, and `docs/users-guide.md`:
-  list and explain the new focused state-machine skill.
+  list and explain the new focused state-machine skill. The guide carries a
+  device lifecycle state diagram and a transition-ownership flowchart, each
+  introduced by a sentence for screen readers and captioned as a figure.
 - Rigour escalation rules ported from the `python-skill` catalogue.
   `rust-router` gains a testing hierarchy (named test, `rstest` table,
   lightweight `proptest`, structured or stateful `proptest`, Kani,
