@@ -1,16 +1,16 @@
 # Proptest strategy examples
 
-Five worked patterns that come up in almost every property suite:
-the round-trip over a composed struct, the filtering-trap fix, the
-oracle comparison, a field-dependent strategy via `test-strategy`,
-and a `ReferenceStateMachine` sketch. The names are deliberately
-generic — adapt them to the production module being tested.
+Five worked patterns that come up in almost every property suite: the
+round-trip over a composed struct, the filtering-trap fix, the oracle
+comparison, a field-dependent strategy via `test-strategy`, and a
+`ReferenceStateMachine` sketch. The names are deliberately generic — adapt them
+to the production module being tested.
 
 ## Round-trip over a composed struct
 
-The default starting shape for a codec or parser test. The strategy
-is total (every drawn value is a valid `Order`) and the property is
-named for the invariant it checks.
+The default starting shape for a codec or parser test. The strategy is total
+(every drawn value is a valid `Order`) and the property is named for the
+invariant it checks.
 
 ```rust
 use proptest::prelude::*;
@@ -50,12 +50,11 @@ The same shape generalizes to:
 
 ## The filtering trap: before and after
 
-Filtering invalid inputs out hurts both runtime (rejection budget)
-and shrinking (the runner cannot tell rejection from success).
-Construct only valid values from the seed instead.
+Filtering invalid inputs out hurts both runtime (rejection budget) and
+shrinking (the runner cannot tell rejection from success). Construct only valid
+values from the seed instead.
 
-Before — `prop_filter` throws away half the cases and confuses the
-shrinker:
+Before — `prop_filter` throws away half the cases and confuses the shrinker:
 
 ```rust
 proptest! {
@@ -99,14 +98,13 @@ prop_compose! {
 }
 ```
 
-Note the second `Just(b)` — `prop_compose!` rebinds `b` in the
-second clause from the strategy expression, so it has to be passed
-through explicitly.
+Note the second `Just(b)` — `prop_compose!` rebinds `b` in the second clause
+from the strategy expression, so it has to be passed through explicitly.
 
 ## Oracle comparison against a reference implementation
 
-When a slow, obviously-correct reference implementation exists, the
-property is "the production function agrees with the reference".
+When a slow, obviously-correct reference implementation exists, the property is
+"the production function agrees with the reference".
 
 ```rust
 fn slow_sum(xs: &[u64]) -> u128 {
@@ -123,15 +121,15 @@ proptest! {
 }
 ```
 
-The reference must be structurally different from the production
-code. A reference that quietly calls the production function
-proves only that copy-paste works.
+The reference must be structurally different from the production code. A
+reference that quietly calls the production function proves only that
+copy-paste works.
 
 ## Field-dependent strategies with `test-strategy`
 
-`prop_compose!` cannot express "field `b` depends on field `a`"
-without a manual `prop_flat_map`. `test-strategy` adds a `#[strategy(...)]`
-attribute that can reference earlier fields with `#name`:
+`prop_compose!` cannot express "field `b` depends on field `a`" without a manual
+`prop_flat_map`. `test-strategy` adds a `#[strategy(...)]` attribute that can
+reference earlier fields with `#name`:
 
 ```rust
 use test_strategy::Arbitrary;
@@ -148,8 +146,8 @@ struct WindowedRange {
 }
 ```
 
-The `#[proptest]` attribute on a test function pairs naturally with
-this derive and preserves normal `rustfmt` formatting:
+The `#[proptest]` attribute on a test function pairs naturally with this derive
+and preserves normal `rustfmt` formatting:
 
 ```rust
 use test_strategy::proptest;
@@ -162,11 +160,10 @@ fn window_never_overflows(input: WindowedRange) {
 
 ## State-machine sketch
 
-`proptest-state-machine` generates sequences of transitions and
-shrinks failing sequences to the shortest reproducer. The pattern is
-two trait impls: `ReferenceStateMachine` models the abstract
-expected behaviour; `StateMachineTest` drives the real system and
-checks invariants after each step.
+`proptest-state-machine` generates sequences of transitions and shrinks failing
+sequences to the shortest reproducer. The pattern is two trait impls:
+`ReferenceStateMachine` models the abstract expected behaviour;
+`StateMachineTest` drives the real system and checks invariants after each step.
 
 ```rust
 use proptest::prelude::*;
@@ -222,11 +219,10 @@ prop_state_machine! {
 }
 ```
 
-The `prop_state_machine!` macro generates a property that draws a
-sequence of length 1..100, applies it to both the reference state
-and the system under test, and shrinks any divergence to the
-smallest failing trace. State-machine tests pay back the
-investment on collections, caches, allocators, and protocol
+The `prop_state_machine!` macro generates a property that draws a sequence of
+length 1..100, applies it to both the reference state and the system under
+test, and shrinks any divergence to the smallest failing trace. State-machine
+tests pay back the investment on collections, caches, allocators, and protocol
 clients where the bug needs a particular history to surface.
 
 ## Cross-references

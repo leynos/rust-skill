@@ -1,4 +1,13 @@
-.PHONY: check-fmt typecheck markdownlint nixie lint skill-frontmatter-lint skill-metadata-lint skill-manifest-validate skill-manifest-check test test-polonius
+# `make fmt` and `make check-fmt` call mdtablefix directly. `--git` selects the
+# Markdown files Git tracks and `--include-untracked` adds the untracked files
+# Git does not ignore, so a new document is formatted before it is staged.
+# Both modes need mdtablefix 0.6.1 or later.
+MDLINT ?= markdownlint-cli2
+MDTABLEFIX ?= mdtablefix
+MDTABLEFIX_SELECT = --git --include-untracked
+MDTABLEFIX_RULES = --wrap --renumber --breaks --ellipsis --fences
+
+.PHONY: fmt check-fmt typecheck markdownlint nixie lint skill-frontmatter-lint skill-metadata-lint skill-manifest-validate skill-manifest-check test test-polonius
 
 # The skill manifest contract. SKILL_DIRS defaults to every shipped skill and
 # can be overridden to check one skill or a test fixture, for example
@@ -10,8 +19,14 @@ METADATA_CHECK := uv run --group dev python tools/check_metadata.py
 SKILL_YAMLLINT_CONFIG := {extends: default, rules: {line-length: disable}}
 UV_DEV := uv run --group dev
 
-check-fmt:
+fmt: ## Format Python and Markdown sources
+	$(UV_DEV) ruff format tests tools
+	$(MDTABLEFIX) --in-place $(MDTABLEFIX_SELECT) $(MDTABLEFIX_RULES)
+	$(MDLINT) --fix "**/*.md"
+
+check-fmt: ## Verify formatting
 	$(UV_DEV) ruff format --check tests tools
+	$(MDTABLEFIX) --check $(MDTABLEFIX_SELECT) $(MDTABLEFIX_RULES)
 
 typecheck:
 	$(UV_DEV) mypy --strict tests/test_polonius_protocol.py tests/polonius_compile_matrix.py

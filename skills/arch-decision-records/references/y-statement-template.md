@@ -142,8 +142,8 @@ loads are emulated.
   the decision is probably not worth an ADR.
 - Cross-reference related ADRs by number; keep the title short.
 - When superseding, both files keep their original "Date" and
-  "Deciders" lines; the new file's status mentions the superseded
-  number and the old file's status flips to "Superseded by ADR-NNNN".
+  "Deciders" lines; the new file's status mentions the superseded number and
+  the old file's status flips to "Superseded by ADR-NNNN".
 
 ## Reading list
 
@@ -151,5 +151,5 @@ loads are emulated.
   ["Sustainable architectural design decisions"](https://www.ifs.hsr.ch/fileadmin/user_upload/customers/ifs/Dokumente/projekte/Sustainable_Architectural_Design_Decisions.pdf).
 - Michael Nygard's
   [original ADR essay](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions)
-  introduces the broader practice; the Y-Statement is one of several
-  templates that fit inside it.
+  introduces the broader practice; the Y-Statement is one of several templates
+  that fit inside it.

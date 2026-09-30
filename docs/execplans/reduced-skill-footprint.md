@@ -1,9 +1,8 @@
 # Overhaul the Rust Skill Catalogue into a Smaller, Sharper `skills/` Tree
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: COMPLETE
 
@@ -106,8 +105,8 @@ advice better.
 ## Tolerances (exception triggers)
 
 - Scope: if the proposed replacement tree grows beyond one router, seven
-  language skills, and five domain or architecture skills, stop and trim
-  before continuing.
+  language skills, and five domain or architecture skills, stop and trim before
+  continuing.
 - Size: if any new `SKILL.md` exceeds roughly 3 KB without a strong,
   documented reason, stop and move material into `references/`.
 - Migration churn: if preserving a current skill requires more than a simple
@@ -123,32 +122,24 @@ advice better.
 ## Risks
 
 - Risk: Over-pruning removes small but real prompts that help the model
-  remember uncommon Rust edges.
-  Severity: medium
-  Likelihood: medium
-  Mitigation: classify every current skill as drop, merge, keep as reference,
-  or keep as first-class skill, with a sentence of rationale.
+  remember uncommon Rust edges. Severity: medium Likelihood: medium Mitigation:
+  classify every current skill as drop, merge, keep as reference, or keep as
+  first-class skill, with a sentence of rationale.
 
 - Risk: The new skills become concise but bland, losing the mindset value the
-  user asked to preserve.
-  Severity: medium
-  Likelihood: medium
-  Mitigation: give every first-class skill a short "working stance" block with
-  four to six concrete behavioural prompts, not motivational prose.
+  user asked to preserve. Severity: medium Likelihood: medium Mitigation: give
+  every first-class skill a short "working stance" block with four to six
+  concrete behavioural prompts, not motivational prose.
 
 - Risk: Tool-wrapper skills survive because they are easy to port even though
-  they do not belong in a Rust language set.
-  Severity: medium
-  Likelihood: high
+  they do not belong in a Rust language set. Severity: medium Likelihood: high
   Mitigation: explicitly separate Rust reasoning skills from tool-use guidance
   and default to general tool skills for navigation/refactoring.
 
 - Risk: Domain coverage becomes too narrow if the catalogue keeps only the
-  most common domains.
-  Severity: low
-  Likelihood: medium
-  Mitigation: keep rare or specialised material as dormant references or
-  future follow-up work instead of forcing it into the first pass.
+  most common domains. Severity: low Likelihood: medium Mitigation: keep rare
+  or specialised material as dormant references or future follow-up work
+  instead of forcing it into the first pass.
 
 ## Design principles for the new catalogue
 
@@ -258,8 +249,8 @@ survive as separate top-level skills:
 
 2. A small router or framing skill
 
-   The router is useful, but only if it stops trying to be a theory of mind.
-   It should route by question type, name the right skill quickly, and load a
+   The router is useful, but only if it stops trying to be a theory of mind. It
+   should route by question type, name the right skill quickly, and load a
    short working stance that improves the next Rust decision.
 
 ## Proposed first-class skills in `skills/`
@@ -320,9 +311,8 @@ skills/
 
 This tree deliberately drops first-class skills for fintech, cloud-native, and
 machine learning (ML) in the first pass. They are too specialised for the
-default Rust catalogue.
-If later evidence shows repeated need, they can return as slim add-on skills or
-domain-specific references.
+default Rust catalogue. If later evidence shows repeated need, they can return
+as slim add-on skills or domain-specific references.
 
 ## What each new skill should contain
 
@@ -330,8 +320,8 @@ Every first-class skill should use the same compact shape:
 
 1. Trigger and scope in one short paragraph.
 
-   State when to load it, when not to load it, and what question it is meant
-   to answer.
+   State when to load it, when not to load it, and what question it is meant to
+   answer.
 
 2. Working stance in four to six bullets.
 
@@ -525,8 +515,7 @@ Acceptance criteria:
    skill. The worthwhile parts are local warnings attached to the relevant
    design pressure: clone-to-escape in ownership work, stringly APIs in type
    design, silent error swallowing in error handling, lock-across-await in
-   async work, and premature collection or formatting churn in performance
-   work.
+   async work, and premature collection or formatting churn in performance work.
 
 ## Outcomes & Retrospective
 
@@ -538,8 +527,8 @@ expanding the rest while holding the line on size and repetition.
 
 Implementation reached the planned end state on 2026-03-09. The branch now has
 one router, six language skills, four domain or architecture skills, compact
-references for the language set, and an explicit note that `current-skills/`
-is legacy source material rather than committed output.
+references for the language set, and an explicit note that `current-skills/` is
+legacy source material rather than committed output.
 
 Validation passed with `markdownlint-cli2 docs/**/*.md 'skills/**/*.md'` and
 `git diff --check`. The final first-class `SKILL.md` footprint is 18,279 bytes,

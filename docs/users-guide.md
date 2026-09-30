@@ -26,21 +26,21 @@ The tiers are:
 - one **verification router** — `rust-verification` — and three deep dives,
   `proptest`, `kani`, and `verus`,
 - three **focused** skills — `rust-state-machines` for logical state and
-  transition design, `rust-unit-testing` for unit-test shape and assertions,
-  and `rust-unused-code` for `dead_code` and `unused_imports` decisions,
+  transition design, `rust-unit-testing` for unit-test shape and assertions, and
+  `rust-unused-code` for `dead_code` and `unused_imports` decisions,
 - one **migration** skill — `nll-to-polonius` for adopting Polonius Alpha,
   retiring designs imposed by non-lexical lifetime (NLL) limitations, and
   evolving internal APIs towards borrow-centric forms.
 
 For borrow-sensitive work, the router also establishes an ambient
 borrow-checker posture: `nll`, `polonius-alpha`, `polonius-legacy`, or
-`unknown`. That posture modifies the assumptions used by the ordinary
-language skills without loading a separate Polonius edition of each skill.
+`unknown`. That posture modifies the assumptions used by the ordinary language
+skills without loading a separate Polonius edition of each skill.
 
 ## Installing the catalogue
 
-The catalogue ships as a directory of skill folders. Copy them into the
-Codex skills location:
+The catalogue ships as a directory of skill folders. Copy them into the Codex
+skills location:
 
 ```bash
 mkdir -p ~/.codex/skills
@@ -58,24 +58,23 @@ contributor gate that validates every shipped manifest before it is published,
 so a malformed or non-conformant manifest fails there rather than reaching a
 reader's skills directory.
 
-The `proptest` deep dive is a regular Cargo dev-dependency; the
-relevant lines for `Cargo.toml` and the recommended optional crates
-(`proptest-derive`, `test-strategy`, `proptest-state-machine`) live
-in its skill.
+The `proptest` deep dive is a regular Cargo dev-dependency; the relevant lines
+for `Cargo.toml` and the recommended optional crates (`proptest-derive`,
+`test-strategy`, `proptest-state-machine`) live in its skill.
 
 The `kani` and `verus` deep dives delegate tool installation to
-[`rust-prover-tools`](https://github.com/leynos/rust-prover-tools),
-which exposes a single CLI for both:
+[`rust-prover-tools`](https://github.com/leynos/rust-prover-tools), which
+exposes a single CLI for both:
 
 ```bash
 prover-tools kani install
 prover-tools verus install
 ```
 
-Use `prover-tools kani check-version` and `prover-tools verus run
---proof-file path/to/file.rs` for the everyday loops. The catalogue does
-not carry forked install scripts; the deep dives reference the tool by
-name only.
+Use `prover-tools kani check-version` and
+`prover-tools verus run --proof-file path/to/file.rs` for the everyday loops.
+The catalogue does not carry forked install scripts; the deep dives reference
+the tool by name only.
 
 ## Invoking skills
 
@@ -99,9 +98,9 @@ Use $rust-errors to review this error enum for a publishable library
 crate.
 ```
 
-The router is cheap to load. When a task spans more than one area —
-say, an async handler that also needs error-type advice — load the
-router first and let it pick the pairing.
+The router is cheap to load. When a task spans more than one area — say, an
+async handler that also needs error-type advice — load the router first and let
+it pick the pairing.
 
 ## How the router decides
 
@@ -109,23 +108,23 @@ router first and let it pick the pairing.
 edited.
 
 For borrow-sensitive ownership, API, async, or performance work, it first
-inspects `rust-toolchain.toml`, Cargo configuration, CI commands, and
-Polonius flags. Current nightly enables Polonius Alpha by default unless the
-project uses `-Zpolonius=off`; explicit `next`, `off`, or `legacy` selection
-wins. For dated nightlies, wrappers, or future stable compilers, the router
-uses a small compile canary rather than guessing from a channel name.
+inspects `rust-toolchain.toml`, Cargo configuration, CI commands, and Polonius
+flags. Current nightly enables Polonius Alpha by default unless the project uses
+`-Zpolonius=off`; explicit `next`, `off`, or `legacy` selection wins. For
+dated nightlies, wrappers, or future stable compilers, the router uses a small
+compile canary rather than guessing from a channel name.
 
 This is ambient context. A project using Alpha still routes ordinary ownership
 questions to `rust-memory-and-state`, async boundaries to
-`rust-async-and-concurrency`, and hot paths to
-`rust-performance-and-layout`. The migration skill is loaded only when
-adoption, NLL-residue auditing, or API evolution is itself the task.
+`rust-async-and-concurrency`, and hot paths to `rust-performance-and-layout`.
+The migration skill is loaded only when adoption, NLL-residue auditing, or API
+evolution is itself the task.
 
 For screen readers: The following flowchart shows the router establishing
 borrow-checker posture once as ambient context, then selecting a skill.
-Borrow-sensitive ownership, async, and performance questions go to the
-ordinary language skills, which consume that posture; only adoption, audit,
-and migration work reaches the migration skill.
+Borrow-sensitive ownership, async, and performance questions go to the ordinary
+language skills, which consume that posture; only adoption, audit, and
+migration work reaches the migration skill.
 
 ```mermaid
 flowchart TD
@@ -202,13 +201,12 @@ A short version of the decision table:
 - `no_std`, firmware, devices, or edge nodes →
   `domain-embedded-and-iot`.
 
-The router's pairing rules and escalation triggers live in its `SKILL.md`.
-The
+The router's pairing rules and escalation triggers live in its `SKILL.md`. The
 [Polonius Alpha project-posture reference](../skills/rust-router/references/polonius-alpha.md)
 defines checker detection and the semantic boundary consumed by ordinary
 skills. The
-[routing matrix](../skills/rust-router/references/routing-matrix.md)
-covers the residual ambiguous cases.
+[routing matrix](../skills/rust-router/references/routing-matrix.md) covers the
+residual ambiguous cases.
 
 ## Testing hierarchy
 
@@ -219,9 +217,9 @@ Pick the first level whose evidence matches the question:
 2. **Parameterized `rstest` table**: a finite truth table, standards
    corpus, or set of cases whose rows each carry semantic meaning.
 3. **Lightweight `proptest`**: one round trip, invariant, oracle, or
-   metamorphic relation should hold across many cheap, repeatable
-   inputs. A growing set of representative `#[case]` rows is the usual
-   signal, and the estate's reviewers flag it as such.
+   metamorphic relation should hold across many cheap, repeatable inputs. A
+   growing set of representative `#[case]` rows is the usual signal, and the
+   estate's reviewers flag it as such.
 4. **Structured or stateful `proptest`**: valid data has dependent or
    recursive structure, or failures depend on operation history.
 5. **Kani**: a small bounded function needs exhaustive exploration of
@@ -229,15 +227,15 @@ Pick the first level whose evidence matches the question:
 6. **Verus**: the property must hold with no bound, over a small stable
    pure kernel.
 
-`cargo-mutants` sits beside the hierarchy. Use it when the question is
-whether the current suite would notice a plausible defect. Miri sits
-below it, on the tests that already touch `unsafe`.
+`cargo-mutants` sits beside the hierarchy. Use it when the question is whether
+the current suite would notice a plausible defect. Miri sits below it, on the
+tests that already touch `unsafe`.
 
 Leave the hierarchy for scheduling, integration, load, performance, or
-foreign-code failures. Those need `loom`, `shuttle`, or `turmoil`, real
-or simulated boundaries, benchmarks and profilers, or sanitizers.
-`rust-verification` is the escalation selector when the rung is
-unclear; a clear lightweight invariant goes straight to `proptest`.
+foreign-code failures. Those need `loom`, `shuttle`, or `turmoil`, real or
+simulated boundaries, benchmarks and profilers, or sanitizers.
+`rust-verification` is the escalation selector when the rung is unclear; a
+clear lightweight invariant goes straight to `proptest`.
 
 ## When to reach for the new skills
 
@@ -247,18 +245,18 @@ follow.
 
 ### `rust-state-machines` — model transitions and invalid states
 
-Use this skill for parsers, codecs, protocols, actors, device lifecycles, or any
-state carrier built from correlated booleans, `Option` fields, sentinel values,
-or fields that must change together. It distinguishes caller-driven finite
-operation sequences, where typestate may prevent real misuse, from input- or
-event-driven machines, where a stable owner with a runtime ADT is normally the
-right representation. Its references cover parser, protocol, asynchronous, and
-device patterns plus transition-table, `trybuild`, property, Kani, and
-concurrency testing.
+Use this skill for parsers, codecs, protocols, actors, device lifecycles, or
+any state carrier built from correlated booleans, `Option` fields, sentinel
+values, or fields that must change together. It distinguishes caller-driven
+finite operation sequences, where typestate may prevent real misuse, from
+input- or event-driven machines, where a stable owner with a runtime ADT is
+normally the right representation. Its references cover parser, protocol,
+asynchronous, and device patterns plus transition-table, `trybuild`, property,
+Kani, and concurrency testing.
 
 A device lifecycle shows both layers in one machine: configuration is
-caller-driven, while the transfer phases inside `Enabled` are driven by
-device events.
+caller-driven, while the transfer phases inside `Enabled` are driven by device
+events.
 
 For screen readers: The following state diagram shows a device lifecycle that
 is configured by its caller, then driven by transfer and fault events once
@@ -287,8 +285,8 @@ finite sequence can be enforced by typestate; input, frames, socket readiness,
 or interrupts cannot, and belong in a runtime ADT behind one stable owner.
 
 For screen readers: The following flowchart shows how to choose between
-typestate and a runtime algebraic data type (ADT) based on who selects the
-next transition.
+typestate and a runtime algebraic data type (ADT) based on who selects the next
+transition.
 
 ```mermaid
 flowchart TD
@@ -306,12 +304,12 @@ _Figure 3: Selecting a state representation by transition ownership._
 
 ### `nll-to-polonius` — migrate beyond NLL constraints
 
-Use this skill to assess Polonius adoption, audit suspected NLL workarounds,
-or improve ownership and borrow-centric APIs. Treat ownership/API
-improvements as independent of compiler adoption: establish checker-dependent
-gains by comparing the proposed replacement with explicit
-`-Zpolonius=off` and `-Zpolonius=next` on one pinned compiler, and decide
-compiler-support policy separately. See the
+Use this skill to assess Polonius adoption, audit suspected NLL workarounds, or
+improve ownership and borrow-centric APIs. Treat ownership/API improvements as
+independent of compiler adoption: establish checker-dependent gains by
+comparing the proposed replacement with explicit `-Zpolonius=off` and
+`-Zpolonius=next` on one pinned compiler, and decide compiler-support policy
+separately. See the
 [verification protocol](../skills/nll-to-polonius/references/verification.md)
 for reproducible controls and attribution rules. It distinguishes borrow
 limitations Polonius may remove from aliasing, async, and thread-boundary
@@ -320,57 +318,53 @@ route to `rust-memory-and-state`.
 
 ### `rust-verification` — pick the right adversarial tool
 
-Use this skill when you need to prove or disprove a property and are
-unsure whether to reach for Miri, sanitizers, property tests,
-`cargo-mutants`, `loom`, `shuttle`, `turmoil`, Kani, or Verus. The
-skill's selection table maps failure modes to tools. From there it
-routes into the `proptest`, `kani`, and `verus` deep dives.
+Use this skill when you need to prove or disprove a property and are unsure
+whether to reach for Miri, sanitizers, property tests, `cargo-mutants`, `loom`,
+`shuttle`, `turmoil`, Kani, or Verus. The skill's selection table maps failure
+modes to tools. From there it routes into the `proptest`, `kani`, and `verus`
+deep dives.
 
 ### `proptest` — property-based testing
 
-Use this skill when a pure function has a property (round-trip,
-idempotence, ordering, conservation) that is easier to state than to
-enumerate, or when a parser or codec must round-trip across all
-valid inputs. The skill covers strategy design with `prop_compose!`,
-the filtering trap and its fix, regression-file discipline,
-state-machine tests via `proptest-state-machine`, and the
-`proptest-derive` vs `test-strategy` choice. It also answers the
-question reviewers ask first, whether a change needs a property test at
-all, and ships a review checklist and a sibling-module template drawn
-from the estate's review history.
+Use this skill when a pure function has a property (round-trip, idempotence,
+ordering, conservation) that is easier to state than to enumerate, or when a
+parser or codec must round-trip across all valid inputs. The skill covers
+strategy design with `prop_compose!`, the filtering trap and its fix,
+regression-file discipline, state-machine tests via `proptest-state-machine`,
+and the `proptest-derive` vs `test-strategy` choice. It also answers the
+question reviewers ask first, whether a change needs a property test at all,
+and ships a review checklist and a sibling-module template drawn from the
+estate's review history.
 
 ### `rust-unit-testing` — unit-test shape and assertions
 
-Use this skill when ordinary Rust unit tests need clearer structure:
-`rstest` fixtures and parameterized cases, fallible setup helpers,
-`serial_test` for genuine global-state isolation, rich matcher assertions
-with `googletest`, diff-friendly equality with `pretty_assertions`, and
-snapshot tests with `insta`. It also carries a worked example for splitting
-one mixed assertion helper into extraction, pure comparison, and a thin
-assertion wrapper.
+Use this skill when ordinary Rust unit tests need clearer structure: `rstest`
+fixtures and parameterized cases, fallible setup helpers, `serial_test` for
+genuine global-state isolation, rich matcher assertions with `googletest`,
+diff-friendly equality with `pretty_assertions`, and snapshot tests with
+`insta`. It also carries a worked example for splitting one mixed assertion
+helper into extraction, pure comparison, and a thin assertion wrapper.
 
 ### `kani` — bounded model checking
 
-Use this skill when writing a harness for a small, well-bounded
-property: an arithmetic invariant, a parser corner case, or a state
-machine with a small alphabet. Kani is unwind-bounded by default;
-the skill describes how to set `#[kani::unwind(n)]`, when to use
-`kani::any` and `kani::assume`, and when to escalate to Verus instead.
-Its references carry the project on-ramp (pins, Makefile targets that
-delegate to `prover-tools`, smoke and nightly CI, contract tests) and
-the review checklist for vacuous harnesses, model drift, solver
-cliffs, and the `cfg(kani)` build.
+Use this skill when writing a harness for a small, well-bounded property: an
+arithmetic invariant, a parser corner case, or a state machine with a small
+alphabet. Kani is unwind-bounded by default; the skill describes how to set
+`#[kani::unwind(n)]`, when to use `kani::any` and `kani::assume`, and when to
+escalate to Verus instead. Its references carry the project on-ramp (pins,
+Makefile targets that delegate to `prover-tools`, smoke and nightly CI,
+contract tests) and the review checklist for vacuous harnesses, model drift,
+solver cliffs, and the `cfg(kani)` build.
 
 ### `verus` — deductive verification
 
-Use this skill when the property must hold for unbounded inputs, when
-the bounded loop in Kani times out, or when the proof composes
-several lemmas. The skill covers `spec`/`proof`/`exec` mode
-discipline, trigger heuristics for the underlying Z3 solver, the
-`broadcast use` pattern for sequence axioms, and the layout of a
-proof project that mirrors a production module, including the
-refinement lemma that binds an idealized spec to the runtime structure.
-Its references carry the on-ramp and review checklist.
+Use this skill when the property must hold for unbounded inputs, when the
+bounded loop in Kani times out, or when the proof composes several lemmas. The
+skill covers `spec`/`proof`/`exec` mode discipline, trigger heuristics for the
+underlying Z3 solver, the `broadcast use` pattern for sequence axioms, and the
+layout of a proof project that mirrors a production module, including the
+refinement lemma that binds an idealized spec to the runtime structure. Its
+references carry the on-ramp and review checklist.
 
 The survey these checklists come from is
 [`docs/verification-review-failure-modes.md`](verification-review-failure-modes.md).
@@ -379,17 +373,16 @@ The survey these checklists come from is
 
 Use this skill when adding a dependency, tightening a lockfile policy,
 configuring `cargo-vet` or `cargo-deny`, or wiring SemVer guardrails
-(`cargo-semver-checks`, `cargo-public-api`) into release. The
-references describe a decentralized audit setup with imports from
-the Bytecode Alliance and Mozilla, plus a `deny.toml` policy template.
+(`cargo-semver-checks`, `cargo-public-api`) into release. The references
+describe a decentralized audit setup with imports from the Bytecode Alliance
+and Mozilla, plus a `deny.toml` policy template.
 
 ### `arch-decision-records` — Y-Statement ADRs
 
-Use this skill when capturing a decision that is hard to reverse —
-a typestate, an `unsafe` invariant, a verification-tool choice, a
-public API shape. The skill gives the six-clause Y-Statement template
-and three worked Rust examples, and explains how to supersede an
-earlier ADR cleanly.
+Use this skill when capturing a decision that is hard to reverse — a typestate,
+an `unsafe` invariant, a verification-tool choice, a public API shape. The
+skill gives the six-clause Y-Statement template and three worked Rust examples,
+and explains how to supersede an earlier ADR cleanly.
 
 ## Working stance for the catalogue
 
@@ -398,8 +391,8 @@ A few habits make the catalogue earn its keep:
 - **Route before you load.** A short prompt to `rust-router` costs
   little and avoids loading skills you will not use.
 - **Establish checker posture before preserving a workaround.** Under
-  Polonius Alpha, try the direct borrowing form and compile it before
-  accepting NLL-era clones or indirection.
+  Polonius Alpha, try the direct borrowing form and compile it before accepting
+  NLL-era clones or indirection.
 - **Prefer one language skill plus at most one domain or architecture
   skill** for any single task.
 - **Stop when the answer is turning into a tutorial.** Cut back to the
@@ -417,8 +410,7 @@ A few habits make the catalogue earn its keep:
 - [Reduction execplan](execplans/reduced-skill-footprint.md) — the
   original rewrite plan and validation history.
 - [Advanced encapsulation and verification execplan](execplans/advanced-encapsulation-and-verification.md)
-  — the plan for the verification, supply-chain, and decision-record
-  extension.
+  — the plan for the verification, supply-chain, and decision-record extension.
 - [`rust-router` SKILL.md](../skills/rust-router/SKILL.md) — the
   authoritative routing rules.
 - [Polonius Alpha project posture](../skills/rust-router/references/polonius-alpha.md)

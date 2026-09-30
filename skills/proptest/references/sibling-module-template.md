@@ -1,8 +1,8 @@
 # Sibling property-test module template
 
-The shape that passes review first time in repositories with a per-file
-line cap, mandatory module docs, and a Clippy policy applied to tests.
-Adapt the names; keep the structure.
+The shape that passes review first time in repositories with a per-file line
+cap, mandatory module docs, and a Clippy policy applied to tests. Adapt the
+names; keep the structure.
 
 ## Files
 
@@ -30,9 +30,8 @@ mod prop_tests;
 mod tests;
 ```
 
-The oracle module is declared once at the crate root under
-`#[cfg(test)]` so every sibling `prop_tests.rs` imports it as
-`crate::test_support::reference`.
+The oracle module is declared once at the crate root under `#[cfg(test)]` so
+every sibling `prop_tests.rs` imports it as `crate::test_support::reference`.
 
 ## `prop_strategies.rs`
 
@@ -105,8 +104,8 @@ Points that reviewers check against this shape:
 - every generated binding reaches an assertion;
 - the oracle is structurally different from the code under test;
 - no `.unwrap()`/`.expect()` unless the workspace lint policy allows it;
-  fallible setup returns `TestCaseError` through `?` on `Result<_, TestCaseError>`
-  helpers;
+  fallible setup returns `TestCaseError` through `?` on
+  `Result<_, TestCaseError>` helpers;
 - no `prop_assume!` on outputs; preconditions, if any, precede the call;
 - no branching in the body beyond a single `match` on a generated enum;
 - the module doc names the oracle and the tiering variable.
@@ -133,16 +132,15 @@ proptest! {
 }
 ```
 
-Prefer the repository's shared profile helper if one exists (for
-example a `ProptestRunProfile` that reads `PROPTEST_CASES` and a fork
-flag once) over local environment parsing. A malformed value fails
-loudly at configuration time, outside any property body, rather than
-silently running 256 cases.
+Prefer the repository's shared profile helper if one exists (for example a
+`ProptestRunProfile` that reads `PROPTEST_CASES` and a fork flag once) over
+local environment parsing. A malformed value fails loudly at configuration
+time, outside any property body, rather than silently running 256 cases.
 
 ## Scope statement when no property is warranted
 
-When a change introduces no invariant over a range, say so where the
-reviewer will look, in one or two sentences:
+When a change introduces no invariant over a range, say so where the reviewer
+will look, in one or two sentences:
 
 > Property tests: not added. The new `Mode` parser accepts exactly four
 > literals and rejects everything else; the four success cases and three

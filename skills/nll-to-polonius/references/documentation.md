@@ -10,8 +10,8 @@ behavioural change, and a measured performance result. Read
 For an adopted Alpha-dependent design, describe the exact pinned compiler,
 effective configuration, affected sites, and consumer build requirements.
 Explain that Alpha-default nightlies do not need `next` merely to enable it,
-while explicit `off`/`next` selection remains necessary for attribution.
-Do not imply that an unflagged nightly selects NLL.
+while explicit `off`/`next` selection remains necessary for attribution. Do not
+imply that an unflagged nightly selects NLL.
 
 For a compatible cleanup, do not invent a nightly requirement. For an
 unexecuted experiment, state that support remains unchanged and identify the
@@ -19,16 +19,16 @@ missing evidence. Nightly with `off` does not prove stable/MSRV support.
 
 A dependency's Cargo configuration does not automatically configure its
 consumers. Test an external consumer, packaging, docs/doctests, CI, and editor
-builds before declaring support. Stable builds may reject unstable flags
-before reaching borrow checking; report the actual failure rather than
-promising a particular diagnostic.
+builds before declaring support. Stable builds may reject unstable flags before
+reaching borrow checking; report the actual failure rather than promising a
+particular diagnostic.
 
 ## 2. Evidence-backed site tags
 
 Use `POLONIUS(...)` only for a replacement with an observed, relevant NLL
 borrow error and Alpha acceptance under controlled inputs. Link it to the
-archived command, source, compiler identity, and diagnostic. For example,
-adapt this template with real evidence before using it:
+archived command, source, compiler identity, and diagnostic. For example, adapt
+this template with real evidence before using it:
 
 ```rust
 // POLONIUS(case-3): borrowed hit avoids owning the miss-path key.
@@ -69,9 +69,9 @@ Link full logs rather than replacing them with the last few lines. Record
 solver effects independently; use all four cells when claiming a new-solver
 benefit. Describe historical results as historical, with immutable links.
 
-Update the support decision separately from the inventory. A compiler
-upgrade can invalidate an old rejection or introduce a regression. Rerun the
-controls; do not preserve obsolete requirements because a comment says so.
+Update the support decision separately from the inventory. A compiler upgrade
+can invalidate an old rejection or introduce a regression. Rerun the controls;
+do not preserve obsolete requirements because a comment says so.
 
 ## 4. Agent guidance for an adopted repository
 
@@ -117,9 +117,9 @@ needs an explicit explanation rather than an automatic exemption.
 
 ## 6. Editor, documentation, and CI consistency
 
-Align local development, CI, release, consumer, and editor invocations with
-the chosen compiler policy. Inspect rustdoc flags independently from rustc
-flags. Use verbose compiler commands to check the effective selection where
-wrappers or layered configuration create ambiguity. Do not replace required
-linker or `cfg` flags with a checker flag and call the resulting build a valid
-control. Keep full logs without publishing secrets from the environment.
+Align local development, CI, release, consumer, and editor invocations with the
+chosen compiler policy. Inspect rustdoc flags independently from rustc flags.
+Use verbose compiler commands to check the effective selection where wrappers
+or layered configuration create ambiguity. Do not replace required linker or
+`cfg` flags with a checker flag and call the resulting build a valid control.
+Keep full logs without publishing secrets from the environment.
