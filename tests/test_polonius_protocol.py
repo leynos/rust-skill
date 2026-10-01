@@ -2,7 +2,9 @@
 
 The fake tools record exactly what the examples invoke. The checked-in Rust
 fixtures are compiled separately by `tests/polonius_compile_matrix.py`; these
-tests cover command construction and Cargo flag precedence.
+tests cover command construction and Cargo flag precedence. Fake-tool tests
+verify command handling only; they do not establish real Rust compiler
+acceptance or actual Cargo configuration integration.
 """
 
 from __future__ import annotations
@@ -222,6 +224,7 @@ def evidence_directory(result: subprocess.CompletedProcess[str]) -> Path:
 
 @pytest.mark.parametrize("marker", MARKERS)
 def test_documented_commands_have_valid_bash_syntax(marker: str) -> None:
+    """Check that each documented command parses in Bash syntax-only mode."""
     assert BASH is not None, "Bash is required to check the documented command syntax"
     result = subprocess.run(
         [BASH, "-n"],
@@ -240,6 +243,11 @@ def test_rustc_matrix_keeps_all_cells_and_diagnostics(
     tmp_path: Path,
     tool_environment: dict[str, str],
 ) -> None:
+    """Verify the fake rustc command records all matrix cells and evidence.
+
+    This checks command handling and retained diagnostics, not real Rust
+    compiler acceptance.
+    """
     result = execute(command(MARKERS[0]), tool_environment, tmp_path)
     out = evidence_directory(result)
     calls = invocations(tool_environment)
@@ -312,6 +320,10 @@ def test_matrix_retains_unexpected_failure_without_stopping(
     tmp_path: Path,
     tool_environment: dict[str, str],
 ) -> None:
+    """Check that a fake rustc failure is recorded while later cells run.
+
+    This verifies command failure handling, not real Rust compiler acceptance.
+    """
     tool_environment["INFRA_FAILURE"] = "1"
     out = evidence_directory(execute(command(MARKERS[0]), tool_environment, tmp_path))
     rows = (out / "results.tsv").read_text().splitlines()
@@ -332,6 +344,11 @@ def test_cargo_comparison_replaces_encoded_flags_and_isolates_outputs(
     tool_environment: dict[str, str],
     common: tuple[str, ...],
 ) -> None:
+    """Verify the fake Cargo command replaces flags and separates build output.
+
+    The fake tool checks command handling and evidence retention, not actual
+    Cargo configuration integration or Rust compiler acceptance.
+    """
     script = command(MARKERS[1])
     if common:
         script = script.replace(
@@ -391,6 +408,10 @@ def test_missing_compiler_identity_aborts_before_comparison(
     tool_environment: dict[str, str],
     marker: str,
 ) -> None:
+    """Check that failed fake compiler identity prevents comparison commands.
+
+    This verifies command failure handling, not real Rust compiler acceptance.
+    """
     tool_environment["VERSION_EXIT"] = "23"
     result = execute(command(marker), tool_environment, tmp_path)
     assert result.returncode == 23, "compiler identity failure was not propagated"
