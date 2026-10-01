@@ -1,14 +1,17 @@
 # Developers' guide
 
 This guide covers working on this repository: the Markdown skill
-catalogue itself, its manifest gates, and the Python test suite. It does
-not cover using the skills; see [Users' guide](users-guide.md) for that.
+catalogue, its manifest gates, the Python test suite, and the Polonius
+compiler controls. It does not cover using the skills; see
+[Users' guide](users-guide.md) for that.
 
 ## Prerequisites
 
 - `uv`, for resolving and running the pinned `dev` dependency group.
 - `markdownlint-cli2` and `nixie` on `PATH`. These are external tools, not
   Python dependencies, and the lint gates call them directly.
+- `rustup` with `rustc` on `PATH` and `nightly-2026-08-27` installed. The
+  `make test` target compiles Polonius controls with that pinned toolchain.
 
 `pyproject.toml` sets `requires-python = ">=3.12"` and
 `[tool.uv] package = false`: the repository is not an installable package,
@@ -18,7 +21,7 @@ only a source of validation tooling for the catalogue.
 
 `uv.lock` is committed, so `uv run --group dev <tool>` resolves the pinned
 versions of every `dev` dependency with no separate installation step. The
-`dev` group supplies four packages:
+`dev` group supplies these packages:
 
 - `pytest` — the test runner.
 - `pyyaml` — parses `SKILL.md` frontmatter in the manifest tests, so the
@@ -27,16 +30,27 @@ versions of every `dev` dependency with no separate installation step. The
   schema. It is pinned to a commit of the `agentskills` repository rather
   than to a release.
 - `yamllint` — lints the YAML frontmatter of each `SKILL.md`.
+- `ruff` — checks formatting for `tests` and `tools`.
+- `mypy` — checks the two Polonius protocol modules with strict typing.
 
 ## The gates
 
-The `Makefile` sets no `.DEFAULT_GOAL` and has no combined `check` target,
-so run `make lint` and then `make test` before committing. Run the gates
-sequentially rather than in parallel: the manifest targets resolve their
-tools through `uv`, and a sequential run benefits from the shared cache.
+The `Makefile` sets no `.DEFAULT_GOAL` and has no combined `check` target.
+Run all four commit gates in order, sequentially rather than in parallel:
+the `uv`-managed tools share a cache, and `make test` runs the compiler
+controls before pytest.
+
+```bash
+make check-fmt
+make lint
+make typecheck
+make test
+```
 
 | Target | What it does |
 | --- | --- |
+| `make check-fmt` | Run `ruff format --check tests tools` through `uv` |
+| `make typecheck` | Run strict mypy on both Polonius Python modules via `uv` |
 | `make markdownlint` | Lint every Markdown file |
 | `make nixie` | Validate every Mermaid diagram |
 | `make lint` | Run markdownlint, nixie, and manifests |
@@ -44,7 +58,14 @@ tools through `uv`, and a sequential run benefits from the shared cache.
 | `make skill-metadata-lint` | Reject non-string metadata keys and values |
 | `make skill-manifest-validate` | Run `skills-ref validate` per skill |
 | `make skill-manifest-check` | Aggregate the three manifest targets |
-| `make test` | Run `pytest` via `uv` |
+| `make test-polonius` | Compile the fixture matrix with `nightly-2026-08-27` |
+| `make test` | Run `test-polonius`, then `pytest` via `uv` |
+
+`make check-fmt` and `make typecheck` use the `ruff` and `mypy` packages
+from the pinned `dev` dependency group. The mypy target covers
+`tests/test_polonius_protocol.py` and `tests/polonius_compile_matrix.py`.
+The Polonius target invokes `python3 tests/polonius_compile_matrix.py`, which
+requires the pinned nightly through the `rustup` `rustc` proxy on `PATH`.
 
 `make lint` is the whole lint gate: it runs `markdownlint`, `nixie`, and
 `skill-manifest-check`. `make skill-manifest-check` in turn aggregates
@@ -124,10 +145,14 @@ contaminated inherited flags, arguments containing spaces, separate output
 directories, complete diagnostics, unexpected failures, and aborting when
 compiler identity cannot be obtained. They skip when Bash is unavailable.
 
-These are command-level regression tests, not evidence of Rust acceptance,
-real Cargo configuration precedence, or stable/MSRV support. Run the documented
-fixtures with an actual pinned compiler for those claims. The tests need no
-Rust installation or new Python dependencies and run as part of `make test`.
+These are command-level regression tests; they do not test Rust acceptance,
+real Cargo configuration precedence, or stable/MSRV support. The separate
+`tests/polonius_compile_matrix.py` harness compiles the three checked-in
+fixtures under the pinned checker/solver matrix and is run by both
+`make test` and the Polonius compiler-controls workflow. That fixture result
+does not establish real Cargo configuration precedence, stable/MSRV support,
+runtime behaviour, or acceptance of a whole project. Both test layers run as
+part of `make test`.
 A focused development run is:
 
 ```bash

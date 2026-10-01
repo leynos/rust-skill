@@ -35,55 +35,23 @@ phase-view improvement. Evaluate architectural changes separately.
 
 ## 2. Complete dependency-free controls
 
-Save these three blocks as the named files in one directory. They are
-compile-only fixtures; they establish neither runtime behaviour nor future
-`Send` bounds. Read the archived Peregrine fixtures for fallible-cache
-failure/retry/hit assertions and stronger compatible alternatives.
+The checked-in fixtures are compile-only controls. They establish neither
+runtime behaviour nor future `Send` bounds. Read the archived Peregrine
+fixtures for fallible-cache failure/retry/hit assertions and stronger
+compatible alternatives:
 
-### `case3.rs`: conditional escaping borrow
-
-```rust
-pub fn cached(slot: &mut Option<String>) -> &str {
-    if let Some(value) = slot.as_deref() {
-        return value;
-    }
-    slot.insert(String::from("value")).as_str()
-}
-```
-
-### `compatible.rs`: standard API and disjoint borrows across await
-
-```rust
-pub fn cached(slot: &mut Option<String>) -> &str {
-    slot.get_or_insert_with(|| String::from("value")).as_str()
-}
-
-pub async fn append(label: &str, output: &mut String) {
-    async {}.await;
-    output.push_str(label);
-}
-
-pub async fn dispatch(fields: &mut (String, String)) {
-    append(&fields.0, &mut fields.1).await;
-}
-```
-
-### `alias.rs`: genuinely overlapping exclusive borrows
-
-```rust
-pub fn alias(value: &mut String) {
-    let first = &mut *value;
-    let second = &mut *value;
-    first.push('a');
-    second.push('b');
-}
-```
+- [`case3.rs`](fixtures/case3.rs): conditional escaping borrow.
+- [`compatible.rs`](fixtures/compatible.rs): standard API and disjoint borrows
+  across await.
+- [`alias.rs`](fixtures/alias.rs): genuinely overlapping exclusive borrows.
 
 ### Run and retain every cell
 
 Direct `rustc` does not consume Cargo's `RUSTFLAGS` or `.cargo/config.toml`.
 It isolates these small fixtures from Cargo flag precedence; it does not
-establish the effective checker used by a real Cargo build.
+establish the effective checker used by a real Cargo build. Run the example
+from this reference's directory, or set `POLONIUS_FIXTURES` to the checked-in
+fixture directory.
 
 <!-- polonius-rustc-matrix -->
 
@@ -91,6 +59,7 @@ establish the effective checker used by a real Cargo build.
 set -euo pipefail
 toolchain=nightly-2026-08-27
 out=$(mktemp -d)
+fixture_dir=${POLONIUS_FIXTURES:-fixtures}
 rustc "+$toolchain" -Vv >"$out/compiler.txt"
 printf 'fixture\tchecker\tsolver\texit\n' >"$out/results.tsv"
 for fixture in case3 compatible alias; do
@@ -99,7 +68,7 @@ for fixture in case3 compatible alias; do
       name="$fixture-$checker-$solver"
       args=("+$toolchain" --edition=2024 --crate-type=lib --emit=metadata
             "-Zpolonius=$checker" "-Znext-solver=$solver"
-            "$fixture.rs" -o "$out/$name.rmeta")
+            "$fixture_dir/$fixture.rs" -o "$out/$name.rmeta")
       printf '%q ' rustc "${args[@]}" >"$out/$name.command"
       printf '\n' >>"$out/$name.command"
       if rustc "${args[@]}" >"$out/$name.log" 2>&1; then

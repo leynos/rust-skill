@@ -1,4 +1,4 @@
-.PHONY: markdownlint nixie lint skill-frontmatter-lint skill-metadata-lint skill-manifest-validate skill-manifest-check test
+.PHONY: check-fmt typecheck markdownlint nixie lint skill-frontmatter-lint skill-metadata-lint skill-manifest-validate skill-manifest-check test test-polonius
 
 # The skill manifest contract. SKILL_DIRS defaults to every shipped skill and
 # can be overridden to check one skill or a test fixture, for example
@@ -8,6 +8,13 @@ SKILLS_REF := uv run --group dev skills-ref
 YAMLLINT := uv run --group dev yamllint
 METADATA_CHECK := uv run --group dev python tools/check_metadata.py
 SKILL_YAMLLINT_CONFIG := {extends: default, rules: {line-length: disable}}
+UV_DEV := uv run --group dev
+
+check-fmt:
+	$(UV_DEV) ruff format --check tests tools
+
+typecheck:
+	$(UV_DEV) mypy --strict tests/test_polonius_protocol.py tests/polonius_compile_matrix.py
 
 markdownlint:
 	markdownlint-cli2 'docs/**/*.md' 'skills/**/*.md' README.md CHANGELOG.md AGENTS.md
@@ -43,5 +50,8 @@ skill-manifest-validate:
 
 skill-manifest-check: skill-frontmatter-lint skill-metadata-lint skill-manifest-validate
 
-test:
-	uv run --group dev pytest
+test: test-polonius
+	$(UV_DEV) pytest
+
+test-polonius:
+	python3 tests/polonius_compile_matrix.py

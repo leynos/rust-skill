@@ -5,18 +5,26 @@ tracked files.
 
 ## Commit gates
 
-Prefer Makefile targets over running commands directly. Run the gates
-sequentially rather than in parallel; the manifest contract resolves its tools
-through `uv`, and a sequential run benefits from the shared cache.
+Prefer Makefile targets over running commands directly. Run all four commit
+gates sequentially rather than in parallel; the `uv`-managed tools share a
+cache, and `make test` runs the Polonius compiler controls before pytest.
 
-Run both gate targets before committing:
+Run these gates in order before committing:
 
 ```bash
+make check-fmt
 make lint
+make typecheck
 make test
 ```
 
 `make lint` runs `markdownlint`, `nixie`, and `skill-manifest-check`.
+`make check-fmt` checks Ruff formatting in `tests` and `tools`.
+`make typecheck` runs strict mypy on `tests/test_polonius_protocol.py` and
+`tests/polonius_compile_matrix.py`; both tools come from the pinned `dev`
+dependency group through `uv`.
+`make test` requires `rustup`'s `rustc` proxy on `PATH` and the installed
+`nightly-2026-08-27` toolchain for its Polonius fixture matrix.
 
 ## Changes under `skills/`
 
@@ -28,11 +36,12 @@ manifest omits it is not discoverable by a strict loader.
 already enforced by the gate sequence above. When adding, renaming, or editing
 anything under `skills/`, the following are required:
 
-- Run `make lint`. It runs `skill-frontmatter-lint` (`yamllint` over each
+- Run all four commit gates above. `make lint` runs
+  `skill-frontmatter-lint` (`yamllint` over each
   extracted frontmatter block) and `skill-manifest-validate` (`skills-ref
-  validate` over each skill directory). Both must pass before committing.
-- Run `make test`. `tests/test_skill_manifests.py` asserts that every shipped
-  manifest satisfies the contract, and that `make lint` still enforces it.
+  validate` over each skill directory). `make test` runs
+  `tests/test_skill_manifests.py`, which asserts that every shipped manifest
+  satisfies the contract and that `make lint` still enforces it.
 - Keep the directory name equal to the manifest `name`.
 - Keep the frontmatter to the keys the Agent Skills schema admits: `name`,
   `description`, `license`, `allowed-tools`, `metadata`, and `compatibility`.

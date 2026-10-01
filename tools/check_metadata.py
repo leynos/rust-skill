@@ -69,7 +69,9 @@ def _manifest_path(argument: str) -> Path:
 def main(arguments: list[str]) -> int:
     """Report every non-conformant manifest, failing if any is found."""
     if not arguments:
-        print("usage: check_metadata.py <skill directory or SKILL.md>...", file=sys.stderr)
+        print(
+            "usage: check_metadata.py <skill directory or SKILL.md>...", file=sys.stderr
+        )
         return 2
 
     failed = False

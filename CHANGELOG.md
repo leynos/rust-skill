@@ -138,6 +138,10 @@ The format is based on [Common Changelog](https://common-changelog.org).
   fake tools, including flag contamination, matrix coverage, failure
   retention, and isolated outputs. The developers' guide distinguishes
   these command tests from real compiler probes and full repository gates.
+- `tests/polonius_compile_matrix.py` and the Polonius compiler-controls
+  workflow: compile the checked-in fixtures across the pinned checker/solver
+  matrix. Add `check-fmt` and `typecheck` to the four serial commit gates;
+  `make test` now runs the compiler matrix before pytest.
 - Rigour escalation rules ported from the `python-skill` catalogue.
   `rust-router` gains a testing hierarchy (named test, `rstest` table,
   lightweight `proptest`, structured or stateful `proptest`, Kani,
