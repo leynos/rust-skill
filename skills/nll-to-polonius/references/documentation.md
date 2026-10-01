@@ -1,109 +1,125 @@
 # Documentation strategy
 
-A Polonius migration changes what "correct Rust" looks like inside one
-repository while the wider ecosystem's habits, lints, tutorials, and — most
-acutely — coding agents' training data still reflect NLL. Undocumented,
-the migration erodes: the next contributor or agent sees a §1.1 direct
-form, recognizes it as "the thing the borrow checker rejects", and
-helpfully regresses it to a double lookup. The documentation's job is to
-make the new forms legible as deliberate.
+Document the ownership decision and its evidence, not an assumed victory for
+one checker. Separate a source-review proposal, a compiler result, a tested
+behavioural change, and a measured performance result. Read
+[verification.md](verification.md) before writing acceptance claims.
 
-## 1. Toolchain requirement — README and CONTRIBUTING
+## 1. State the actual support contract
 
-State the requirement where build instructions live, with the reason:
+For an adopted Alpha-dependent design, describe the exact pinned compiler,
+effective configuration, affected sites, and consumer build requirements.
+Explain that Alpha-default nightlies do not need `next` merely to enable it,
+while explicit `off`/`next` selection remains necessary for attribution.
+Do not imply that an unflagged nightly selects NLL.
 
-> This crate requires the Polonius borrow-checking analysis
-> (`-Zpolonius=next`, nightly), configured in `.cargo/config.toml`. Several
-> functions use single-lookup get-or-insert and conditional borrow-return
-> forms that NLL rejects; see docs/polonius.md for the pattern inventory.
-> Plain `cargo check` on stable will report borrow errors in these
-> functions — they are expected and not bugs.
+For a compatible cleanup, do not invent a nightly requirement. For an
+unexecuted experiment, state that support remains unchanged and identify the
+missing evidence. Nightly with `off` does not prove stable/MSRV support.
 
-For prepare-only crates, invert it: document that POLONIUS-CANDIDATE tags
-exist, what they mean, and that the tagged workarounds must not be
-"simplified" until the toolchain policy changes.
+A dependency's Cargo configuration does not automatically configure its
+consumers. Test an external consumer, packaging, docs/doctests, CI, and editor
+builds before declaring support. Stable builds may reject unstable flags
+before reaching borrow checking; report the actual failure rather than
+promising a particular diagnostic.
 
-## 2. Site-level comment convention
+## 2. Evidence-backed site tags
 
-One greppable tag family, applied at every rewritten or annotated site:
-
-```rust
-// POLONIUS(case-3): direct get-or-insert; single lookup on hit, key
-// cloned only on miss. Rejected by NLL — do not restructure to entry()
-// or contains_key.
-```
+Use `POLONIUS(...)` only for a replacement with an observed, relevant NLL
+borrow error and Alpha acceptance under controlled inputs. Link it to the
+archived command, source, compiler identity, and diagnostic. For example,
+adapt this template with real evidence before using it:
 
 ```rust
-// POLONIUS-CANDIDATE(lending-iter): rewrite to conditional borrow-return
-// when -Zpolonius=next stabilizes. Tracked in docs/polonius.md.
+// POLONIUS(case-3): borrowed hit avoids owning the miss-path key.
+// Explicit off/next comparison and compiler identity: docs/polonius.md.
 ```
+
+A proposal without that evidence is a candidate, not a verified result:
 
 ```rust
-// POLONIUS-REFUSED(aliasing): this clone breaks a simultaneous borrow;
-// Polonius does not change this. Audited 2026-07.
+// POLONIUS-CANDIDATE(case-3): proposed early borrowed return.
+// Not compiled yet; preserve current support until the experiment resolves.
 ```
 
-The REFUSED tag matters as much as the others: it pre-empts the next audit
-re-litigating W1-style sites. Keep the taxonomy small — case-3,
-lending-iter, scan-mutate, aliasing, flow-sensitivity — matching the
-pattern catalogue's section names so the tags index into it.
+Retained ownership should name a concrete contract:
 
-## 3. Tracking document — docs/polonius.md
+```rust
+// POLONIUS-REFUSED(snapshot): queued work retains its enqueue-time handlers.
+// Borrowing the live registry would change that behaviour.
+```
 
-One page, four tables: rewritten sites (file, pattern, date, nightly
-version verified against), API evolution targets (owning API, target
-signature, playbook shape, status), candidates awaiting stabilization, and
-refusals with the constraint named (aliasing, suspension point,
-id-is-data, flow-sensitivity). Link each row to the pattern catalogue or
-playbook section rather than re-explaining. This is the artefact a future
-"stabilization day" or next evolution pass works through mechanically —
-refusal rows exist so that pass starts from conclusions rather than
-re-running the argument.
+Do not attach a Polonius-dependency tag to an accept/accept refactor. Do not
+copy a sample date or compiler version into a claim of verification. A failed
+rewrite alone does not prove all alternatives fail. Refusal tags record a
+reason to preserve a contract, not a ban on every future implementation.
 
-## 4. Agent guidance — CLAUDE.md / AGENTS.md
+## 3. Tracking document
 
-Coding agents are the population most likely to regress the migration,
-because their priors encode NLL's rejections as facts about Rust. Add an
-explicit block:
+Keep the inventory small and evidence-oriented. Separate:
+
+- confirmed checker-dependent sites and their best compatible alternatives;
+- checker-independent ownership improvements;
+- untested or inconclusive candidates;
+- retained ownership and its semantic reason.
+
+For each relevant row, record the file/API, source revision, compiler identity,
+flags, scope, result, diagnostic, behaviour checks, and any measured costs.
+Link full logs rather than replacing them with the last few lines. Record
+solver effects independently; use all four cells when claiming a new-solver
+benefit. Describe historical results as historical, with immutable links.
+
+Update the support decision separately from the inventory. A compiler
+upgrade can invalidate an old rejection or introduce a regression. Rerun the
+controls; do not preserve obsolete requirements because a comment says so.
+
+## 4. Agent guidance for an adopted repository
+
+Adapt this block to the repository's real commands and policy:
 
 ```markdown
 ## Borrow checking
 
-This repository compiles under Polonius (`-Zpolonius=next`). Consequences:
+Use the pinned project compiler and effective flags documented in
+`docs/polonius.md`. Do not change supported toolchains as an incidental cleanup.
 
-- Code tagged `POLONIUS(...)` uses forms that NLL rejects. They are
-  correct here. Never rewrite them into double lookups, `entry()` with
-  cloned keys, index-returning helpers, or precomputed error context.
-- When writing new code, prefer the direct forms in docs/polonius.md §1
-  over defensive workarounds. Do not add clones whose only purpose is to
-  end a borrow without first checking whether the direct form compiles.
-- When designing new internal APIs, default to borrow-centric signatures:
-  lookups and get-or-create accessors return references; ids are reserved
-  for persisted or cross-boundary identity; error context is built lazily
-  in the failure arm. See docs/polonius.md for the target shapes and the
-  constraints (aliasing, suspension points, struct-field lifetimes) where
-  owned values remain correct.
-- Polonius does not permit simultaneous borrows or loop-carried
-  conditional reborrows. Do not remove clones or restructures tagged
-  `POLONIUS-REFUSED`.
-- Verify borrow-sensitive changes with
-  `RUSTFLAGS="-Zpolonius=next" cargo +nightly check`, not stable
-  `cargo check`.
+- Preserve deliberate borrowed forms and legitimate owned/shared boundaries.
+  Neither an old workaround nor a new reference-returning API is automatically
+  the best design. Test an alternative before recommending a rewrite.
+- Classify a proposed checker-dependent change using explicit `-Zpolonius=off`
+  and `-Zpolonius=next` on one pinned nightly, with other inputs fixed.
+  Omitting `next` does not select NLL. Audit encoded flags and Cargo config.
+- Attribute only relevant borrow diagnostics. An unrelated existing Alpha-only
+  site, unsupported flag, or missing dependency cannot classify this edit.
+- Field splitting and scoped borrows across await can work under NLL.
+  Preserve owner lifetimes, guard scopes, snapshots, failure semantics, and
+  task/executor bounds. Polonius does not change those contracts.
+- Prefer the best interface for actual callers: borrowing, consuming an owned
+  value, moving fields, or retaining a shared handle as appropriate.
+- Keep stable/MSRV support checks, behavioural tests, and performance evidence
+  distinct from the checker comparison. Record unexecuted checks explicitly.
 ```
 
-## 5. Changelog and review checklist
+A retain-support repository should additionally state that Alpha-only source
+must remain a proposal until adoption is authorized. It may still accept
+ordinary ownership improvements that pass its existing support gates.
 
-- Changelog: one entry stating the new compiler requirement and linking
-  docs/polonius.md — downstream users pinning toolchains need this more
-  than they need the pattern details.
-- Code-review checklist (if the repository keeps one): add "borrowck
-  workarounds require a POLONIUS-REFUSED justification or a failed compile
-  under the flag" so new defensive patterns cannot land silently.
+## 5. Review and changelog
 
-## 6. Editor and CI configuration notes
+Record a compiler-support change only when one actually occurs. Otherwise,
+describe the API/ownership cleanup and its evidence without the toolchain
+claim. Do not turn experiment controls into maintained compatibility variants.
 
-Document, adjacent to the toolchain requirement, that rust-analyzer needs
-the flag (via `rust-analyzer.cargo.extraEnv` or the checked-in
-`.cargo/config.toml`) — otherwise contributors see red squiggles on
-correct code and "fix" them, which is the regression vector §4 guards
-against arriving through the editor instead of the agent.
+Review the strongest compatible design, representative callers, negative
+controls, behavioural tests, and performance claims. Identity, clone counters,
+drop timing, and callback order may belong to the contract; a changed test
+needs an explicit explanation rather than an automatic exemption.
+
+## 6. Editor, documentation, and CI consistency
+
+Align local development, CI, release, consumer, and editor invocations with
+the chosen compiler policy. Inspect rustdoc flags independently from rustc
+flags. Use verbose compiler commands to check the effective selection where
+wrappers or layered configuration create ambiguity. Do not replace required
+linker or `cfg` flags with a checker flag and call the resulting build a valid
+control. Keep full logs without publishing secrets from the environment.

@@ -1,98 +1,60 @@
-# Worked examples: audit and evolution transcripts
+# Worked examples: hypotheses and controlled evidence
 
-Transcripts from a July 2026 audit of five pre-0.1.0 application codebases
-(github.com/leynos: weaver, netsuke, ddlint, stilyagi, lille), all
-self-consumed — mode E applies throughout. Each site gets two verdicts:
-the **local** verdict (does this exact code fail NLL?) and the
-**evolution** verdict (what does the owning API become under the playbook
-in `references/api-evolution.md`?). The local verdicts are mostly
-negative, and tautologically so: code built under NLL compiles under NLL.
-The evolution verdicts carry the value.
+The original July 2026 notes discussed weaver, netsuke, ddlint, stilyagi,
+and lille. They did not include immutable source revisions and paired
+compiler logs for their proposed rewrites. Treat W1-W5 below as historical
+source-review examples, not verified migration results or current repository
+inventories. Reinspect the actual source and consumers before acting.
 
-A structural finding frames all of them: none of the five codebases
-contains a raw NLL problem-case-3 error site, because the house style
-avoids reference-returning APIs almost entirely — weaver alone carries
-roughly 400 `clone()` calls, and lookups hand back owned values or ids.
-That absence is the NLL accommodation. The audit's job in mode E is to
-find where the accommodation lives at the API layer, using the local
-suspects as entry points.
+A clone count or an absence of raw borrow errors does not establish that NLL
+caused an architecture. Classify the proposed replacement, compare the best
+compatible alternative, and preserve the caller's real semantics. W6 supplies
+the separately archived compiler evidence from Peregrine's design PR.
 
-## W1 — netsuke, `src/graph_view/mod.rs`: entry with cloned key
+## W1: netsuke graph view, an owned entry key
+
+The historical `src/graph_view/mod.rs` example was:
 
 ```rust
 for input in &edge.inputs {
     node_paths.entry(input.clone()).or_insert(NodeKind::Source);
-    ...
 }
 ```
 
-**Local verdict:** compiles under NLL; the write-only guard could even be
-`contains_key`+`insert` today. Not a workaround in itself.
+**Local finding:** this write-only insertion already works under NLL. A
+`contains_key` guard followed by insertion can avoid owning the key on hits
+without returning a borrow. It trades hit-path key construction against
+additional miss-path lookup work; measure the relevant workload.
 
-**Evolution verdict:** the loop clones a `Utf8PathBuf` key per input per
-edge, hit-dominant once the graph is dense — pure §1.1 pressure. Give the
-node-path registry a `fn ensure(&mut self, path: &Utf8Path, kind: NodeKind)
--> &mut NodeKind` accessor in the get-or-create form (clone on miss only)
-and route the three sibling `entry(x.clone())` sites (lines ~194, ~213,
-~227) through it. The accessor's early-return form fails NLL and passes
-Polonius — tag `POLONIUS(case-3)`. Later classification logic that
-re-looks-up node kinds can then mutate through the same accessor instead
-of re-hashing.
+**API hypothesis:** a reference-returning get-or-create helper may be useful
+if real callers subsequently need access to the stored node kind. Its early
+borrowed-return implementation is a candidate for an explicit off/next
+comparison. Do not add an unused `&mut NodeKind` result merely to manufacture
+a Polonius dependency, or tag the helper as verified without compiling it.
 
-## W2 — weaver, `crates/weaver-plugins/src/registry/mod.rs`: register
+## W2: weaver plugin registry, registration and duplicate errors
 
-```rust
-pub fn register(
-    &mut self,
-    mut manifest: PluginManifest,
-) -> Result<(), PluginError> {
-    manifest.validate()?;
-    let name = manifest.name().to_owned();
-    if self.manifests.contains_key(&name) {
-        return Err(PluginError::Manifest {
-            message: format!("plugin '{name}' is already registered"),
-        });
-    }
-    manifest.normalise_languages();
-    self.manifests.insert(name, manifest);
-    Ok(())
-}
-```
+The historical `crates/weaver-plugins/src/registry/mod.rs` example validated
+a manifest, rejected an existing name, normalized languages, and inserted
+the manifest. It returned `Result<(), PluginError>`.
 
-**Local verdict:** compiles under NLL; the double lookup is a
-duplicate-detection idiom.
+**Local finding:** duplicate detection followed by insertion does not itself
+need Polonius.
 
-**Evolution verdict:** the registry is the textbook §1.1 aggregate. The
-NLL-era shape returns `()` and forces every caller that wants the
-registered manifest to call `get` again (a second hash) or to have cloned
-what it needed before handing the manifest over. Evolve to:
+**API hypothesis:** returning the inserted manifest might simplify callers
+that actually need it. An entry-based implementation can return a reference
+under NLL. Likewise, a lookup whose occupied branch returns only an **owned
+error**, rather than a reference into the registry, does not establish the
+conditional-escaping-borrow problem. Compile the complete proposed method.
 
-```rust
-pub fn register(&mut self, mut manifest: PluginManifest)
-    -> Result<&mut PluginManifest, PluginError>
-{
-    manifest.validate()?;
-    let name = manifest.name().to_owned();
-    if let Some(_existing) = self.manifests.get(&name) {
-        return Err(PluginError::Manifest {
-            message: format!("plugin '{name}' is already registered"),
-        });
-    }
-    manifest.normalise_languages();
-    self.manifests.insert(name.clone(), manifest);
-    Ok(self.manifests.get_mut(&name).expect("just inserted"))
-}
-```
+Do not change duplicate errors into idempotent `get_or_register` behaviour
+as an ownership cleanup. Preserve validation order, error details, and
+normalization semantics in both alternatives. A different error type that
+borrows registry state is a separate proposal requiring its own evidence.
 
-and audit callers for post-registration re-lookups and pre-registration
-clones that the returned borrow now supplies. Whether the final form needs
-Polonius depends on how the error arm evolves (an error type borrowing
-registry context is §1.2); run the phase-4 classification per the
-workflow and tag accordingly. A `get_or_register` variant for idempotent
-plugin loading is the natural follow-on and is unambiguously
-fail-NLL/pass-Polonius.
+## W3: netsuke action interning, an identity that is data
 
-## W3 — netsuke, `src/ir/from_manifest_support.rs`: action interning
+The historical `src/ir/from_manifest_support.rs` example was:
 
 ```rust
 if !actions.contains_key(hash.as_str()) {
@@ -101,20 +63,17 @@ if !actions.contains_key(hash.as_str()) {
 Ok(hash)
 ```
 
-**Local verdict:** compiles under NLL.
+**Local finding:** no escaping map borrow appears in this expression.
 
-**Evolution verdict:** the hash *is* data — it goes into the IR as the
-action's persistent identity — so by §1.2 of the playbook the id-returning
-shape is correct and stays. The evolution is narrower: an
-`fn intern(&mut self, action: Action) -> Result<(&ActionHash, &Action)>`
-form would return the canonical entry and stop the caller-side re-lookups,
-but only if callers actually need the interned value back; at present they
-need only the hash. **Refuse for now**, tag
-`POLONIUS-REFUSED(id-is-data)`, revisit if the interner grows lookup
-traffic. Refusals like this one are what keep mode E from becoming
-reference-mania.
+**API finding:** the hash serves as the action's persistent identity in the
+intermediate representation. Returning a reference is not a substitute for
+that identity. An additional borrowed accessor needs a demonstrated caller,
+not a desire to eliminate ID-shaped results. Retain the semantic reason in
+the audit; do not invent a compiler rejection for a design choice.
 
-## W4 — weaver, `crates/weaver-lsp-host/src/host.rs`: session access
+## W4: weaver session access, absence is an error
+
+The historical `crates/weaver-lsp-host/src/host.rs` example was:
 
 ```rust
 let session = self.sessions.get_mut(&language)
@@ -122,53 +81,88 @@ let session = self.sessions.get_mut(&language)
 Self::ensure_initialized(language, session, overrides)
 ```
 
-**Local verdict:** compiles under NLL — `language` is Copy, the error
-closure borrows nothing from `self`, and absent sessions are an error
-rather than a creation trigger.
+**Local finding:** the error construction in this sketch does not borrow
+`self`; an absent session produces an error rather than triggering creation.
+It is not evidence of a workaround.
 
-**Evolution verdict:** this is the site closest to the canonical target
-shape, held back only by its error-not-create policy. The moment the host
-gains lazy session spawning — the obvious direction for an LSP host that
-currently requires pre-registration — the natural form is exactly
-api-evolution.md §1.1:
+**Future-feature hypothesis:** lazy session creation could introduce a
+conditional borrowed return followed by insertion. That would need a real
+feature requirement, a compatible alternative, and paired compiler evidence.
+Do not change pre-registration policy as part of this audit. A possible future
+feature is not a current benefit justifying compiler adoption.
 
-```rust
-fn session(&mut self, lang: Language) -> Result<&mut Session, LspHostError> {
-    if let Some(s) = self.sessions.get_mut(&lang) {
-        return Ok(s);
-    }
-    let s = Session::spawn(lang, &self.overrides)?;
-    self.sessions.insert(lang, s);
-    Ok(self.sessions.get_mut(&lang).expect("just inserted"))
-}
-```
+## W5: lille framework write queries and independently scheduled work
 
-fail-NLL/pass-Polonius (the early return extends the loan across the
-spawn-and-insert under NLL). Record as a design note in the tracking
-document so the lazy-spawn feature lands in the direct form rather than
-recapitulating the double-lookup era.
+The historical `src/dbsp_sync/output.rs` notes described ECS write queries
+interleaved with world-handle operations. Inspect the framework's access and
+guard contracts before changing references: an apparent workaround may enforce
+aliasing or scheduling invariants. The notes alone do not prove that every
+borrowed alternative fails.
 
-## W5 — lille, `src/dbsp_sync/output.rs`: framework write-queries
+Owned messages can preserve lifetimes across a daemon turn or detached job.
+That does not imply references are forbidden across every `.await` or thread
+boundary. Scoped borrowing remains available when owners outlive their users.
+Name the actual lifetime, overlap, or snapshot requirement in any refusal.
 
-ECS write-queries (`write_query.get_mut(entity)`) interleaved with world-
-handle mutation.
+## W6: Peregrine design PR, controlled checker and solver comparisons
 
-**Local and evolution verdict:** refuse both. The framework's query and
-handle types mediate aliasing between systems — api-evolution.md §2.1.
-Introducing long-lived references across DBSP handle operations fights the
-framework's own discipline. Tag any tempting site
-`POLONIUS-REFUSED(aliasing)` and move on. Likewise weaverd's daemon paths:
-owned messages across event-loop turns are §2.2, permanent.
+[Peregrine PR #6][pr] proposed an ownership experiment and archived eight
+complete compiler fixtures. Read the [ownership comparison][experiment]
+and [probe archive][archive] at immutable commit
+`3d9a2bd9f7137e38d3f5eb5835f0364be9a82036`.
+
+The archive records results observed on 2026-09-20 using
+`nightly-2026-08-27`, `rustc 1.100.0-nightly`
+(`bff8e12ff5e6bcd53dfb1dbccdcec80a60a856ed`), edition 2024. It explicitly
+selected `off`/`next` and `no`/`globally`, producing 32 outcomes. The summary
+below reports that historical evidence; it is not a new execution by this
+skill update.
+
+| Fixture | NLL, either solver | Alpha, either solver |
+| --- | --- | --- |
+| Fallible optional cache, branch before borrow | Pass | Pass |
+| Fallible optional cache, early returned borrow | E0502 | Pass |
+| Map cache, standard entry API | Pass | Pass |
+| Map cache, early borrowed hit and entry on miss | E0499 | Pass |
+| Map cache, contains-key then get-mut | Pass | Pass |
+| Disjoint-field async phase view | Pass | Pass |
+| Native async method through a trait object | E0038 | E0038 |
+| Overlapping mutable borrows | E0499 | E0499 |
+
+The archive also records failure/retry/hit assertions for the successful
+paired cache programs. The contains-key alternative and phase-view example
+are compile-only controls. These runs do not validate a full framework,
+executor `Send` guarantees, consumer support, or runtime performance.
+
+**What the experiment demonstrated:** particular early-return cache
+implementations gained acceptance under Alpha. Neither the phase-view
+architecture nor the new trait solver caused that acceptance difference.
+
+**What the alternatives reveal:** standard `Entry` already returns a borrow
+without cloning the stored payload. The early-return map implementation
+avoids owning a key on a hit but adds a lookup on a miss. Both optional-cache
+implementations return a borrow without copying the payload; for infallible
+initialization, `get_or_insert_with` is an additional compatible alternative.
+Do not present these controls as a clone-heavy baseline defeated by a wholly
+new ownership model.
+
+**Rules carried into this skill:** give both compiler candidates the same
+architectural improvements; select both experimental dimensions explicitly;
+retain negative controls; separate compile, behaviour, support, and performance
+evidence. An unflagged current nightly is not an old-checker baseline.
+Comparison fixtures do not require two maintained production implementations.
 
 ## Method summary
 
-1. The scanner produces local suspects and design-pressure hotspots.
-2. Local classification (patterns.md §5) settles what the *existing code*
-   needs — in NLL-built codebases, usually nothing.
-3. Evolution classification (api-evolution.md's organizing question)
-   settles what the *owning API* becomes. Expect the split seen above:
-   two direct targets (W1, W2), one design note for a future feature
-   (W4), two principled refusals (W3, W5).
-4. Every verdict — especially the refusals — goes into the tracking
-   document with the constraint named, so the next pass starts from
-   conclusions rather than re-running the argument.
+1. Use source inspection and the scanner to locate candidates, not diagnose
+   NLL pressure from clone counts or API shapes alone.
+2. Establish actual caller requirements and the best compatible alternative.
+3. Compare the replacement under explicit controls and inspect diagnostics.
+4. Keep checker-independent improvements, genuine checker-dependent gains,
+   unsupported formulations, and untested ideas in separate categories.
+5. Preserve contracts and report scope limitations. An audit can find useful
+   work without finding a reason to change compiler support.
+
+[pr]: https://github.com/leynos/peregrine-web/pull/6
+[experiment]: https://github.com/leynos/peregrine-web/blob/3d9a2bd9f7137e38d3f5eb5835f0364be9a82036/docs/polonius-ownership-experiment.md
+[archive]: https://github.com/leynos/peregrine-web/blob/3d9a2bd9f7137e38d3f5eb5835f0364be9a82036/docs/compiler-probe-evidence.md

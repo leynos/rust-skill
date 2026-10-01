@@ -237,12 +237,17 @@ _Figure 2: Selecting a state representation by transition ownership._
 
 ### `nll-to-polonius` — migrate beyond NLL constraints
 
-Use this skill when adopting `-Zpolonius=next`, auditing code for confirmed
-NLL workarounds, or redesigning internal lookup and caching APIs around
-returned borrows. It distinguishes lifetime limitations that Polonius can
-remove from aliasing, async, and thread-boundary constraints that still
-require ownership. Routine borrow errors continue to route to
-`rust-memory-and-state`.
+Use this skill to assess Polonius adoption, audit suspected NLL workarounds,
+or improve ownership and borrow-centric APIs. Treat ownership/API
+improvements as independent of compiler adoption: establish checker-dependent
+gains by comparing the proposed replacement with explicit
+`-Zpolonius=off` and `-Zpolonius=next` on one pinned compiler, and decide
+compiler-support policy separately. See the
+[verification protocol](../skills/nll-to-polonius/references/verification.md)
+for reproducible controls and attribution rules. It distinguishes borrow
+limitations Polonius may remove from aliasing, async, and thread-boundary
+constraints that still require ownership. Routine borrow errors continue to
+route to `rust-memory-and-state`.
 
 ### `rust-verification` — pick the right adversarial tool
 

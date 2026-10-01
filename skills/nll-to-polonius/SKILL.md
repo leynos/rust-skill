@@ -1,184 +1,175 @@
 ---
 name: nll-to-polonius
 description: >-
-  Migrate a Rust codebase to the Polonius borrow checker (location-sensitive
-  analysis, nightly flag -Zpolonius=next) and evolve owned-value internal
-  APIs into the reference-returning, borrow-centric designs that NLL
-  discouraged. Use this skill whenever the user mentions Polonius, NLL
-  limitations, borrow-checker workarounds, defensive clones, double map
-  lookups, get-or-insert helpers, lending iterators, reducing clone counts,
-  or asks to audit, simplify, de-clone, or redesign Rust APIs around
-  borrowing. Also use it when reviewing Rust code containing
-  clone-to-appease-borrowck patterns, entry() calls with cloned keys,
-  id/index indirection standing in for references, or clone-modify-writeback
-  sequences — even if the user does not name Polonius. Provides two modes
-  (workaround retirement; ownership-model evolution), a pattern catalogue
-  with lifetime-versus-aliasing discriminators, an API evolution playbook,
-  worked examples, and a documentation strategy.
+  Evaluate Polonius adoption, audit suspected NLL workarounds, and evolve
+  Rust ownership APIs where useful. Use for Polonius migration, defensive
+  clones, double lookups, get-or-insert helpers, lending iterators, or
+  borrow-centric API reviews. Separate ordinary ownership improvements
+  from demonstrated checker-dependent changes using explicit off/next
+  comparisons on one pinned nightly. Includes API evolution, semantic
+  constraints, reproducible compiler controls, and documentation guidance.
 ---
 
 # NLL to Polonius migration
 
-Migrate a Rust codebase to Polonius and, where the codebase's stability
-posture allows, evolve its internal APIs from the owned-value style NLL
-pushed everyone into toward the borrow-centric model Polonius makes
-natural. Retire the workarounds, redesign the accommodations, refuse the
-rewrites that borrow checking was never the reason for, and document the
-result so neither humans nor coding agents regress it.
+Find the best ownership design, then establish whether it needs Polonius.
+Retiring a workaround, improving an API, and changing the supported toolchain
+are separate decisions. A valid audit can recommend useful refactors and no
+compiler migration.
 
 ## Status and framing (read before touching code)
 
-Polonius "alpha" is the location-sensitive borrow-checking analysis on
-nightly behind `-Zpolonius=next`. As of mid-2026 it is a Rust project goal
-for stabilization, not yet stable. Four facts govern the migration:
+Status checked on 2026-09-26: the Rust project's
+[tracking issue](https://github.com/rust-lang/rust/issues/160456) records
+Polonius Alpha enabled by default starting with `nightly-2026-08-06`, ahead
+of stabilization. `-Zpolonius=next` explicitly selects Alpha and
+`-Zpolonius=off` selects the NLL control on a supporting nightly. Recheck
+upstream status and the exact compiler before relying on these switches.
+A moving channel name is not evidence of checker behaviour.
 
-1. **Polonius accepts a strict superset of NLL.** Nothing that compiles
-   today breaks. There is no porting cost, only a toolchain binding.
-2. **NLL shaped architecture, not just local code.** A codebase that is
-   clean under NLL is not evidence of nothing to do — it is evidence the
-   design bent around NLL before any error could appear. The tells are
-   structural: lookups returning owned values or ids instead of
-   references, clone-modify-writeback sequences, eager error context,
-   clone counts in the hundreds. The deepest value of the migration is
-   unbending these, not deleting `contains_key` calls.
-3. **Polonius fixes lifetime problems, not aliasing problems.** It relaxes
-   how long a loan is considered live, not who may hold borrows
-   simultaneously. Aliasing constraints — and the related pressures from
-   async, event loops, and thread boundaries — are permanent features of
-   Rust, and some owned-value style exists because of *them*.
-   Distinguishing NLL residue from these permanent constraints is the
-   skill's central judgement call.
-4. **Simplified code stops compiling under plain NLL.** Every rewrite
-   binds the crate to a Polonius-enabled toolchain. Decide the posture
-   first.
+Four rules govern the work:
 
-The old datalog implementation (`-Zpolonius=legacy`) accepted more exotic
-flow-sensitive patterns but has no path to stabilization. Target the alpha
-analysis only.
+1. **An omitted flag is not an NLL control.** Defaults change, and Cargo
+   configuration or environment variables may still select a checker. Use
+   explicit `off` and `next` on the same pinned compiler, holding other
+   inputs fixed. Read [the verification protocol](references/verification.md).
+2. **A clone is a lead, not a diagnosis.** Owned results, IDs, snapshots,
+   and reference counts may implement identity, lock release, transactional
+   staging, or asynchronous hand-off. Compiling under NLL does not prove
+   that a design bent around NLL; clone counts do not establish causation.
+3. **Improved borrow analysis does not change ownership contracts.**
+   Polonius may accept a loan that only escapes on another path. It does
+   not permit overlapping exclusive borrows, extend an owner's lifetime,
+   or change `Send`, `Sync`, dyn compatibility, or serialization. Borrowing
+   across `.await` and scoped threads can already work under NLL.
+4. **Not every improvement needs a new checker.** Test the proposed
+   replacement, not merely the existing code. Accept/accept is ordinary
+   refactoring; a relevant NLL borrow error plus Alpha acceptance is a
+   checker-dependent candidate. Neither establishes a runtime speedup.
+   Do not promise that an experimental compiler has no regressions.
 
-## Choose a mode
+Target Alpha, not the legacy datalog implementation. A result obtained with
+`-Zpolonius=legacy` does not establish acceptance under `next`.
 
-**Mode E — model evolution (default for applications, pre-1.0 crates, and
-crates whose only API consumers are themselves).** Internal APIs are
-malleable; the goal is the better design, and call-site churn is part of
-the work, not a cost to minimize. Redesign lookup, caching, traversal, and
-error-path APIs around returned borrows; retire the id/clone indirection
-they replace.
+## Choose API scope independently of compiler policy
 
-**Mode R — workaround retirement (for published libraries, MSRV-bound
-crates, or code the user marks stable).** Only local rewrites of confirmed
-NLL workarounds; API signatures stay fixed; anything requiring signature
-change is flagged, not performed.
+**Mode E: model evolution.** Default for private/internal APIs, applications,
+and pre-1.0 APIs. Change signatures and all relevant callers together where
+that improves the design. Returned borrows are one option; consuming an owned
+value, splitting fields, retaining a shared handle, or moving instead of
+cloning may be better. Read [the API playbook](references/api-evolution.md).
 
-Ask the user which applies if the repository does not make it obvious
-(version numbers below 0.1.0, absence of external dependents, and
-`publish = false` all point to mode E). The phases below are shared; mode
-determines how phase 3's findings are acted on.
+**Mode R: workaround retirement.** Use where a released, externally consumed
+API or explicit maintainer instruction constrains signature changes. Preserve
+that contract and report broader redesigns separately. An MSRV constrains
+compiler use; it does not by itself freeze private API signatures.
+
+Do not retain obsolete private APIs or add dual production implementations
+merely to conduct the comparison. Comparison fixtures are experimental
+controls, not a promise of maintained compatibility products. Preserve any
+actual released support contract separately from the experimental design.
+
+Neither Mode E, `publish = false`, nor an existing nightly build for a
+helper tool authorizes changing the crate's compiler support contract.
+When policy is unclear, audit without changing it and record the assumption.
 
 ## Workflow
 
-### Phase 1: verify the toolchain
+### Phase 1: establish the actual build
 
-```bash
-rustc +nightly --version
-RUSTFLAGS="-Zpolonius=next" cargo +nightly check 2>&1 | tail -5
-```
+Inspect the crate's toolchain, MSRV, features, targets, CI, release and
+consumer builds, editor configuration, and compiler wrappers. Distinguish
+building a helper on nightly from building the product on nightly.
 
-No nightly available → prepare-only posture (phase 4b): annotate and
-design on paper, rewrite nothing.
+Record the source revision, `rustc +nightly-YYYY-MM-DD -Vv`, Cargo version,
+edition, dependency lockfile, target, and effective flags. Inspect project,
+ancestor, and Cargo-home configuration as well as `RUSTFLAGS`,
+`CARGO_ENCODED_RUSTFLAGS`, target-specific flags, and relevant rustdoc flags.
+Do not classify an infrastructure failure as a borrow-checker rejection.
 
-### Phase 2: decide the deployment posture
+### Phase 2: choose a provisional deployment posture
 
-**Adopt now.** Pin nightly in `rust-toolchain.toml` and set
-`-Zpolonius=next` in `.cargo/config.toml` under `[build] rustflags`. Use this
-for mode E codebases and anything already on nightly.
+**Retain support.** Default while assessing benefit. Apply independently
+justified refactors that pass the existing support gates. Keep genuine
+checker-dependent alternatives as isolated probes or documented proposals.
+This does not require retaining obsolete private APIs in production.
 
-**Prepare only.** Audit, annotate, and record target designs; execute on
-stabilization. Use this for MSRV-bound crates and teams unwilling to pin
-nightly.
+**Evaluate adoption.** Use when the maintainer requests an experiment or a
+specific candidate warrants one. Set a bounded effort budget, representative
+specimen, and acceptance/rejection criteria. Change the compiler support
+contract only after evidence and an explicit adoption decision.
 
-For "adopt now", also thread the flag into CI and rust-analyzer
-(`rust-analyzer.cargo.extraEnv` or the checked-in `.cargo/config.toml`);
-otherwise editors show phantom errors on correct code and invite
-regression.
+**Prepare only.** When execution is unavailable, distinguish source-review
+hypotheses from verified results. Do not claim a migration or invent a
+compiler run, acceptance result, or verification date.
 
-### Phase 3: audit — two passes
+### Phase 3: audit in two passes
 
-**3a. Workaround scan.** Run the bundled scanner:
+From the installed skill directory, run:
 
 ```bash
 bash scripts/audit_candidates.sh /path/to/repo
 ```
 
-Output is suspects, not rewrites. Classify each against
-`references/patterns.md` (§5 discriminator, §4 acceptance matrix).
+**3a. Local candidates.** Treat scanner output as suspects. Use
+[patterns.md](references/patterns.md) to identify the exact escaping loan
+and the semantic purpose of the current ownership. Audit caller needs.
 
-**3b. Design-pressure scan (mode E).** The scanner's later sections
-surface structural accommodation: lookup-shaped functions returning owned
-values or ids, clone-modify-writeback sequences, clone-count hotspots.
-These feed the API evolution playbook in `references/api-evolution.md` —
-read it now in mode E. For each hotspot, identify the owning API and ask
-the playbook's question: *would the natural borrow-returning design of
-this API fail NLL but pass Polonius?* If yes, it is an evolution target.
-If it would fail both (aliasing, loop-carried reborrow, borrows across
-await), the owned style is load-bearing; record why and move on.
+**3b. Owning APIs (Mode E).** Compare the proposed interface with the
+strongest compatible alternative, not an artificially clone-heavy baseline.
+Consider standard `Entry`/`Option` APIs, field splitting, consuming signatures,
+and moving the final owned value. Do not invent lazy creation, mutable
+access, or new consumers merely to manufacture a Polonius use case.
 
-When acceptance is uncertain, compile a minimal reproduction under the
-flag. Never assert acceptance from memory; the alpha's boundary is
-documented in `references/patterns.md` §4 but the compiler is the oracle.
+A failure under both checkers rejects that formulation, not every possible
+borrowed design. Narrow the conflict before deciding ownership must remain.
 
-### Phase 4: execute
+### Phase 4: verify and execute one change at a time
 
-**Local rewrites (both modes):** apply the before/after forms in
-`references/patterns.md`. **API evolution (mode E):** follow the
-sequencing guidance in `references/api-evolution.md` — leaf helpers first,
-then let call-site simplification cascade outward; one API per commit so
-test failures localize.
+Follow [verification.md](references/verification.md) before applying tags:
 
-After each change:
+1. Compile the baseline and replacement under explicit `off` and `next`
+   on one pinned nightly. Hold the solver fixed. If a new-solver benefit
+   is claimed, run the independent two-by-two checker/solver matrix.
+2. Preserve full commands, compiler identities, statuses, and diagnostics.
+   Attribute failure only to a relevant borrow error in the replacement.
+   Existing Alpha-only code elsewhere requires an isolated reproducer;
+   a failing whole-crate NLL check cannot classify every later edit.
+3. Run the actual stable/MSRV support gates separately when promised.
+   Nightly with `off` is not a stable compiler support test.
+4. For accepted changes, run the full behavioural tests and relevant
+   lint, docs/doctest, packaging, consumer, and editor checks. Preserve
+   hit/miss behaviour, fallible initialization, retry, error precedence,
+   lock duration, snapshot semantics, cancellation, and drop timing.
+   Do not waive a test merely because it asserts identity or clone counts;
+   establish whether that observation belongs to the contract.
+5. Measure claimed performance changes, including miss-path costs and
+   compile-time/tooling costs. Acceptance and fewer source-level clones
+   are not measurements.
 
-1. `RUSTFLAGS="-Zpolonius=next" cargo +nightly check` — must pass.
-2. `cargo +nightly check` without the flag — the outcome *classifies* the
-   change for documentation: failure means the design genuinely exploits
-   Polonius (tag `POLONIUS(...)`); success means it was reachable under
-   NLL all along (keep it, but document without the toolchain caveat, and
-   note that the old form was habit rather than necessity).
-3. Full test suite. These changes remove work; behaviour must be
-   identical. A test that needs "updating" is a defect signal, with one
-   exception: tests that asserted on clone-dependent identities
-   (pointer/address comparisons, clone counters) legitimately change.
-4. Tag the site per `references/documentation.md`.
+For adoption, pin the compiler and align CI, editor, docs, release, and
+consumer builds. Alpha-default nightlies need no extra flag merely to enable
+Alpha; explicit selection remains useful for attribution. A dependency's
+`.cargo/config.toml` does not automatically configure its consumers.
 
-### Phase 4b: annotate (prepare-only posture)
+### Phase 5: document evidence and limits
 
-No rewrites. Tag candidates in place:
-
-```rust
-// POLONIUS-CANDIDATE(case-3): single-lookup get-or-insert once
-// -Zpolonius=next stabilizes. Verified accepted on nightly 2026-07.
-```
-
-For mode-E evolution targets, additionally record the target signature and
-rationale in the tracking document — the design work is toolchain-
-independent and worth doing now even when the rewrite must wait.
-
-### Phase 5: document
-
-Follow `references/documentation.md`: toolchain requirement in
-README/CONTRIBUTING, site tags, the tracking document, and — most
-important — the CLAUDE.md/AGENTS.md block that stops coding agents from
-"fixing" borrow-centric code back into defensive form or padding new code
-with clones out of NLL-era habit.
+Use [documentation.md](references/documentation.md). Separate confirmed
+checker-dependent sites, checker-independent improvements, untested
+hypotheses, and retained ownership with its concrete reason. Tag only what
+was demonstrated. Do not describe stabilization of an unstable flag as a
+promised language feature or infer a stabilization date.
 
 ## Bundled resources
 
-- `references/patterns.md` — local pattern catalogue, discriminators,
-  acceptance matrix. Read during phase 3a classification.
-- `references/api-evolution.md` — target API shapes, permanent-constraint
-  counterlist, migration sequencing. Read during phase 3b in mode E.
-- `references/worked-examples.md` — audit and evolution transcripts from
-  five production codebases. Read before the first classification pass.
-- `references/documentation.md` — documentation and agent-guidance
-  strategy. Read during phase 5.
-- `scripts/audit_candidates.sh` — heuristic scanner for both audit
-  passes. Execute without reading unless it needs adaptation.
+- [Verification protocol](references/verification.md): explicit controls,
+  Cargo flag precedence, solver isolation, and evidence requirements.
+- [Pattern catalogue](references/patterns.md): local borrowing shapes and
+  the lifetime-versus-aliasing discriminator.
+- [API evolution playbook](references/api-evolution.md): compatible
+  alternatives, ownership contracts, and sequencing.
+- [Worked examples](references/worked-examples.md): corrected historical
+  interpretations and the pinned Peregrine design-PR evidence.
+- [Documentation strategy](references/documentation.md): support policy,
+  evidence-backed tags, and agent guidance.
+- `scripts/audit_candidates.sh`: heuristic scanner, not an acceptance test.

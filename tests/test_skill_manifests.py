@@ -54,7 +54,9 @@ def _run_make(target: str, *skill_dirs: Path) -> subprocess.CompletedProcess[str
     """Run a Makefile manifest target over shipped skills or given fixtures."""
     arguments = ["make", target]
     if skill_dirs:
-        arguments.append("SKILL_DIRS=" + " ".join(f"{directory}/" for directory in skill_dirs))
+        arguments.append(
+            "SKILL_DIRS=" + " ".join(f"{directory}/" for directory in skill_dirs)
+        )
     return subprocess.run(
         arguments,
         cwd=REPO_ROOT,
@@ -64,15 +66,21 @@ def _run_make(target: str, *skill_dirs: Path) -> subprocess.CompletedProcess[str
     )
 
 
-def _run_manifest_check(skill_dir: Path | None = None) -> subprocess.CompletedProcess[str]:
+def _run_manifest_check(
+    skill_dir: Path | None = None,
+) -> subprocess.CompletedProcess[str]:
     """Run the Makefile contract check for shipped skills or one fixture."""
-    return _run_make("skill-manifest-check", *([skill_dir] if skill_dir is not None else []))
+    return _run_make(
+        "skill-manifest-check", *([skill_dir] if skill_dir is not None else [])
+    )
 
 
 def _frontmatter(manifest: Path) -> dict[str, object]:
     """Parse the YAML frontmatter block of a skill manifest."""
     lines = manifest.read_text(encoding="utf-8").splitlines()
-    assert lines and lines[0] == "---", f"{manifest} does not open with a frontmatter fence"
+    assert lines and lines[0] == "---", (
+        f"{manifest} does not open with a frontmatter fence"
+    )
     closing = lines.index("---", 1)
     return yaml.safe_load("\n".join(lines[1:closing])) or {}
 
@@ -124,7 +132,9 @@ def test_shipped_skill_manifests_satisfy_the_contract() -> None:
         ("empty", 'name: ""\ndescription: A fixture whose discovery name is empty.\n'),
     ],
 )
-def test_manifest_check_rejects_an_unusable_name(tmp_path: Path, case: str, frontmatter: str) -> None:
+def test_manifest_check_rejects_an_unusable_name(
+    tmp_path: Path, case: str, frontmatter: str
+) -> None:
     """A strict loader cannot discover a skill without a usable discovery name.
 
     An absent `name` and an empty `name` fail discovery identically, so the
@@ -140,7 +150,9 @@ def test_manifest_check_rejects_an_unusable_name(tmp_path: Path, case: str, fron
     assert result.returncode != 0, result.stdout + result.stderr
 
 
-def test_manifest_check_rejects_a_name_that_disagrees_with_its_directory(tmp_path: Path) -> None:
+def test_manifest_check_rejects_a_name_that_disagrees_with_its_directory(
+    tmp_path: Path,
+) -> None:
     """A discovery name that differs from the directory name fails the gate.
 
     `skills-ref` resolves a skill by directory and then checks the manifest
@@ -157,10 +169,14 @@ def test_manifest_check_rejects_a_name_that_disagrees_with_its_directory(tmp_pat
     result = _run_manifest_check(skill_dir)
 
     assert result.returncode != 0, result.stdout + result.stderr
-    assert "must match skill name" in result.stdout + result.stderr, result.stdout + result.stderr
+    assert "must match skill name" in result.stdout + result.stderr, (
+        result.stdout + result.stderr
+    )
 
 
-@pytest.mark.parametrize("manifest", SHIPPED_MANIFESTS, ids=lambda path: path.parent.name)
+@pytest.mark.parametrize(
+    "manifest", SHIPPED_MANIFESTS, ids=lambda path: path.parent.name
+)
 def test_shipped_metadata_values_are_strings(manifest: Path) -> None:
     """Metadata carries only string values, which `skills-ref` silently coerces.
 
@@ -171,8 +187,12 @@ def test_shipped_metadata_values_are_strings(manifest: Path) -> None:
     """
     metadata = _frontmatter(manifest).get("metadata", {})
 
-    assert isinstance(metadata, dict), f"metadata must be a mapping, got {type(metadata).__name__}"
-    non_strings = {key: value for key, value in metadata.items() if not isinstance(value, str)}
+    assert isinstance(metadata, dict), (
+        f"metadata must be a mapping, got {type(metadata).__name__}"
+    )
+    non_strings = {
+        key: value for key, value in metadata.items() if not isinstance(value, str)
+    }
     assert not non_strings, f"metadata values must be strings: {non_strings}"
 
 
@@ -238,11 +258,21 @@ def test_openai_policy_reads_an_absent_file_as_no_policy(tmp_path: Path) -> None
 @pytest.mark.parametrize(
     ("case", "config", "error", "message"),
     [
-        ("malformed-yaml", "policy: [unclosed\n", yaml.YAMLError, "expected ',' or ']'"),
+        (
+            "malformed-yaml",
+            "policy: [unclosed\n",
+            yaml.YAMLError,
+            "expected ',' or ']'",
+        ),
         ("empty-document", "", AssertionError, "is not a YAML mapping"),
         ("scalar-document", "false\n", AssertionError, "is not a YAML mapping"),
         ("sequence-document", "- policy\n", AssertionError, "is not a YAML mapping"),
-        ("scalar-policy", "policy: false\n", AssertionError, "carries no policy mapping"),
+        (
+            "scalar-policy",
+            "policy: false\n",
+            AssertionError,
+            "carries no policy mapping",
+        ),
         (
             "sequence-policy",
             "policy:\n  - allow_implicit_invocation\n",
@@ -288,13 +318,18 @@ def test_relocated_manifests_keep_every_globs_pattern(skill: str) -> None:
     ("case", "metadata"),
     [
         ("sequence-value", "metadata:\n  globs: [Cargo.toml, Cargo.lock]\n"),
-        ("block-sequence-value", "metadata:\n  globs:\n    - Cargo.toml\n    - Cargo.lock\n"),
+        (
+            "block-sequence-value",
+            "metadata:\n  globs:\n    - Cargo.toml\n    - Cargo.lock\n",
+        ),
         ("mapping-value", "metadata:\n  globs:\n    nested: mapping\n"),
         ("scalar-value", "metadata:\n  globs: 7\n"),
         ("non-string-key", "metadata:\n  7: Cargo.toml\n"),
     ],
 )
-def test_metadata_lint_rejects_non_string_entries(tmp_path: Path, case: str, metadata: str) -> None:
+def test_metadata_lint_rejects_non_string_entries(
+    tmp_path: Path, case: str, metadata: str
+) -> None:
     """A metadata key or value that is not a string fails the metadata target.
 
     `skills_ref.parser` rewrites both with `str()` rather than rejecting them,
@@ -323,7 +358,9 @@ def test_metadata_lint_rejects_non_string_entries(tmp_path: Path, case: str, met
         ("untyped-mapping", "metadata:\n  globs:\n    nested: mapping\n"),
     ],
 )
-def test_lint_rejects_an_untyped_metadata_shape(tmp_path: Path, case: str, metadata: str) -> None:
+def test_lint_rejects_an_untyped_metadata_shape(
+    tmp_path: Path, case: str, metadata: str
+) -> None:
     """`make lint` fails on a list or mapping metadata value, not just on YAML.
 
     `skills-ref` coerces such a value with `str(v)`, so schema validation alone
@@ -352,7 +389,9 @@ def test_frontmatter_lint_reports_an_early_failure(tmp_path: Path) -> None:
     The shell `for` loop otherwise exits with the status of its last iteration,
     letting a conformant trailing skill mask a malformed earlier one.
     """
-    broken = _write_manifest(tmp_path / "a-broken", "---\nname: [unclosed\n---\n\n# Broken\n")
+    broken = _write_manifest(
+        tmp_path / "a-broken", "---\nname: [unclosed\n---\n\n# Broken\n"
+    )
     valid = _write_manifest(
         tmp_path / "z-valid",
         "---\nname: z-valid\ndescription: A conformant trailing fixture.\n---\n\n# Valid\n",
