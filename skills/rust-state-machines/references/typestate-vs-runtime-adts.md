@@ -118,7 +118,7 @@ Ask:
    compile?
 
 Answers 1 and 2 favour typestate. Answers 3 to 5 favour a runtime ADT. A yes to
-6 is the type system asking you to put the marker structs back in the drawer.
+6 is a sign that marker structs add no useful compile-time constraint.
 
 ## Evidence and restraint
 

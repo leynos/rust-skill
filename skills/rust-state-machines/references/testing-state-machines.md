@@ -87,8 +87,16 @@ well suited to:
 - conservation properties over small buffers,
 - cleanup flags and exactly-once finalization.
 
-State the unwind bound deliberately. A successful harness that silently stops
-before the longest meaningful transition path proves less than it appears to.
+Keep unwinding assertions enabled, and state the unwind bound deliberately. The
+bound must be one greater than the longest loop the harness can execute; with
+the assertions on, a bound that is too low fails the harness rather than
+passing it quietly.
+
+A harness can also bound itself, through its input alphabet, a fixed-size
+command buffer, or `kani::assume` on a sequence length. Those bounds, not the
+unwind bound, decide how many transitions a successful proof actually covers.
+State them as concrete numbers beside the harness and record which sequences
+they exclude.
 
 ## Concurrency and event order
 
