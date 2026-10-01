@@ -7,7 +7,8 @@ struct UserId(u64);
 struct OrderId(u64);
 ```
 
-Use typestate when order matters and a state transition is the point:
+Use typestate at an API boundary when a caller-selected operation order matters
+and a state transition is the point:
 
 ```rust
 struct Draft;
@@ -16,4 +17,6 @@ struct Message<State> { state: State }
 ```
 
 Do not use typestate just to look clever. If the state machine is open-ended,
-data-driven, or mostly runtime, an enum is usually cleaner.
+data-driven, or mostly runtime, an enum is usually cleaner. Load
+`rust-state-machines` when the main question is the state model, transition
+driver, or choice between typestate and a runtime ADT.

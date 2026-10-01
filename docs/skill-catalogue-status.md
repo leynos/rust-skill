@@ -28,10 +28,13 @@ skills:
   `domain-embedded-and-iot`.
 - **Verification**: `rust-verification` (routes between tools), with
   deep dives in `proptest`, `kani`, and `verus`.
-- **Focused**: `rust-unit-testing` for unit-test helper shape, fixtures,
-  parameterization, serialization, and assertions; `rust-unused-code` for
-  `dead_code` and `unused_imports` decisions; `nll-to-polonius` for Polonius
-  adoption, NLL workaround retirement, and borrow-centric API evolution.
+- **Focused**: `rust-state-machines` for parsers, protocols, actors, device
+  lifecycles, runtime ADTs, and typestate choices; `rust-unit-testing` for
+  unit-test helper shape, fixtures, parameterization, serialization, and
+  assertions; `rust-unused-code` for `dead_code` and `unused_imports`
+  decisions.
+- **Migration**: `nll-to-polonius` for Polonius adoption, NLL workaround
+  retirement, and borrow-centric API evolution.
 
 `proptest`, `kani`, and `verus` carry larger size envelopes than the
 rest because they are procedural deep dives. `proptest` installs as
