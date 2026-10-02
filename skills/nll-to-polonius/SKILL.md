@@ -17,6 +17,12 @@ Retiring a workaround, improving an API, and changing the supported toolchain
 are separate decisions. A valid audit can recommend useful refactors and no
 compiler migration.
 
+Start from the router's shared
+[Polonius Alpha project posture](../rust-router/references/polonius-alpha.md)
+reference: it defines how to detect the project's borrow-checker posture, the
+compile canary for ambiguous toolchains, and the boundary the ordinary Rust
+skills consume. This skill builds on that posture rather than restating it.
+
 ## Status and framing (read before touching code)
 
 Status checked on 2026-09-26: the Rust project's
@@ -86,6 +92,12 @@ edition, dependency lockfile, target, and effective flags. Inspect project,
 ancestor, and Cargo-home configuration as well as `RUSTFLAGS`,
 `CARGO_ENCODED_RUSTFLAGS`, target-specific flags, and relevant rustdoc flags.
 Do not classify an infrastructure failure as a borrow-checker rejection.
+
+When the flags do not settle the posture, use the router's compile canary
+rather than guessing from the channel name. The canary appends to the
+project's effective flags, so it reports the configured posture; use the
+protocol in [verification.md](references/verification.md) when you need an
+isolated comparison instead.
 
 ### Phase 2: choose a provisional deployment posture
 
@@ -162,6 +174,8 @@ promised language feature or infer a stabilization date.
 
 ## Bundled resources
 
+- [Polonius Alpha project posture](../rust-router/references/polonius-alpha.md):
+  posture detection, the compile canary, and the Alpha semantic boundary.
 - [Verification protocol](references/verification.md): explicit controls,
   Cargo flag precedence, solver isolation, and evidence requirements.
 - [Pattern catalogue](references/patterns.md): local borrowing shapes and
