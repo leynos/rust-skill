@@ -112,6 +112,12 @@ The format is based on [Common Changelog](https://common-changelog.org).
 
 ### Changed
 
+- `make fmt` and `make check-fmt` run `mdtablefix` 0.6.1 or later directly with
+  `--git --include-untracked --wrap --renumber --breaks --ellipsis --fences`,
+  `make fmt` then runs `markdownlint-cli2 --fix`, and a `markdownlint` workflow
+  lints `**/*.md` with the pinned markdownlint-cli2-action. The Markdown was
+  rewrapped once with its rendered text unchanged.
+
 - `rust-router/SKILL.md` and `references/routing-matrix.md`: route parser,
   protocol, actor, and device lifecycle state to `rust-state-machines`, with
   async and embedded pairing rules.
