@@ -29,21 +29,50 @@ Use the first decisive signal and record one of four values:
    doubt, compile the canary rather than encoding a date table in the skill.
 
 Use the compiler selected by the project, not whichever `rustc` happens to be
-first on `PATH`:
+first on `PATH`. Add the canary as an example target so Cargo compiles it with
+the project's toolchain, wrapper, and rustflags:
 
 ```rust
 fn reborrow(a: &mut u8) -> &mut u8 {
     let b = &mut *a;
     if true { b } else { a }
 }
+
+fn main() {
+    let mut n = 0u8;
+    let _ = reborrow(&mut n);
+}
 ```
 
-The canary is accepted by Polonius Alpha and rejected by NLL. For a current
-nightly, an NLL control run can be made explicit:
+```bash
+cargo rustc --example polonius_canary
+cargo rustc --example polonius_canary -- -Zpolonius=off
+```
+
+Keep the `main` function: an example without one fails on its missing entry
+point before borrow checking runs, and the canary would prove nothing. In a
+workspace, add `-p <member>` to select the package that owns the example.
+
+The canary is accepted by Polonius Alpha and rejected by NLL, so the first
+command reports the configured posture and the second forces the control.
+`cargo rustc` appends its trailing arguments to Cargo's effective rustflags,
+which preserves the project's compiler, `RUSTC_WRAPPER`, and flags. Prefer it
+to two forms that look equivalent but are not: setting `RUSTFLAGS` replaces
+every project-supplied flag and is itself outranked by
+`CARGO_ENCODED_RUSTFLAGS`, and calling `rustc` directly bypasses the project's
+configuration altogether. `cargo check` accepts no trailing `rustc` flags, so
+a control run must go through `cargo rustc`.
+
+One limit is worth knowing. Cargo emits a project-supplied `-Zpolonius` flag
+*after* the trailing arguments, and `rustc` honours the last occurrence, so a
+project that selects the checker in its own flags masks the control. A project
+already set to `-Zpolonius=off` is `nll` and needs no control. Against one set
+to `-Zpolonius=next`, append the control through configuration instead, which
+Cargo also emits after the project's own flags while leaving the rest intact:
 
 ```bash
-rustc --crate-type=lib polonius_canary.rs
-rustc -Zpolonius=off --crate-type=lib polonius_canary.rs
+cargo rustc --example polonius_canary \
+  --config 'build.rustflags=["-Zpolonius=off"]'
 ```
 
 If execution is unavailable, keep the posture `unknown` and make any
