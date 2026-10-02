@@ -67,13 +67,23 @@ One limit is worth knowing. Cargo emits a project-supplied `-Zpolonius` flag
 *after* the trailing arguments, and `rustc` honours the last occurrence, so a
 project that selects the checker in its own flags masks the control. A project
 already set to `-Zpolonius=off` is `nll` and needs no control. Against one set
-to `-Zpolonius=next`, append the control through configuration instead, which
-Cargo also emits after the project's own flags while leaving the rest intact:
+to `-Zpolonius=next`, force the control through configuration instead,
+writing the override under the same key that supplies the project's flag.
+Target-scoped projects are the trap: Cargo ignores a `--config` override of
+`build.rustflags` outright, so it never reaches `rustc` and the control is
+silently skipped. The mechanism is key precedence, not last-occurrence
+masking. Write the override under the target-scoped key instead:
 
 ```bash
 cargo rustc --example polonius_canary \
-  --config 'build.rustflags=["-Zpolonius=off"]'
+  --config 'target."cfg(all())".rustflags=["-Zpolonius=off"]'
 ```
+
+This form is additive: it appends to the project's array rather than replacing
+it, so the project's other flags survive. The `"cfg(all())"` key must be
+quoted inside the TOML, and it works even when the project scopes its flags by
+an explicit target triple, which makes it a safe universal selector for this
+override.
 
 If execution is unavailable, keep the posture `unknown` and make any
 borrow-sensitive recommendation conditional. Do not infer Alpha merely from a

@@ -121,11 +121,11 @@ questions to `rust-memory-and-state`, async boundaries to
 `rust-performance-and-layout`. The migration skill is loaded only when
 adoption, NLL-residue auditing, or API evolution is itself the task.
 
-**Figure 1. How the router establishes borrow-checker posture and selects a
-skill.** The posture is determined once as ambient context. Borrow-sensitive
-ownership, async, and performance questions then go to the ordinary language
-skills, which consume that posture; only adoption, audit, and migration work
-reaches the migration skill.
+For screen readers: The following flowchart shows the router establishing
+borrow-checker posture once as ambient context, then selecting a skill.
+Borrow-sensitive ownership, async, and performance questions go to the
+ordinary language skills, which consume that posture; only adoption, audit,
+and migration work reaches the migration skill.
 
 ```mermaid
 flowchart TD
@@ -161,6 +161,9 @@ flowchart TD
   style posture fill:#e3f2fd,stroke:#1565c0
   style polonius fill:#fce4ec,stroke:#ad1457
 ```
+
+_Figure 1: How the router establishes borrow-checker posture and selects a
+skill._
 
 A short version of the decision table:
 
