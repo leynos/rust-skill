@@ -31,6 +31,10 @@ The format is based on [Common Changelog](https://common-changelog.org).
   `prover-tools` targets, layout, the two production bridges (spec mirror
   and `#[path]` import) with their maintenance duties, lint policy, and
   the lemma-structure and refinement findings.
+- `rust-router/references/polonius-alpha.md`: shared detection of project
+  borrow-checker posture (`nll`, `polonius-alpha`, `polonius-legacy`, or
+  `unknown`), a compile canary, the Alpha semantic delta, and guidance for
+  ordinary ownership, async, and performance work.
 - `rust-state-machines` skill: chooses between caller-driven typestate and
   event-driven runtime ADTs; identifies correlated flags, `Option` fields,
   sentinels, and unencapsulated transition ceremony; and covers parser,
@@ -176,6 +180,19 @@ The format is based on [Common Changelog](https://common-changelog.org).
 - `rust-verification/SKILL.md`: added "When reviewers expect
   verification": the estate trigger rule, the pre-merge check behaviour,
   and the three accepted responses.
+- `rust-router/SKILL.md` and `references/routing-matrix.md`: establish
+  borrow-checker posture as ambient context before borrow-sensitive routing
+  and keep Alpha-enabled projects on the ordinary language-skill paths.
+- `rust-memory-and-state`, `rust-async-and-concurrency`, and
+  `rust-performance-and-layout`: consume the shared Polonius Alpha posture
+  without creating parallel versions of the skills.
+- `nll-to-polonius/SKILL.md`: cross-link the shared Polonius Alpha posture
+  reference and note the compile canary where the flags leave posture
+  ambiguous; the migration skill's own compiler controls remain in
+  `references/verification.md`.
+- `README.md` and `docs/users-guide.md`: explain ambient compiler posture,
+  the distinction between ordinary Alpha-aware work and migration, and the
+  refreshed nightly guidance.
 - `rust-unsafe-and-ffi/SKILL.md`: added the missing-`UnsafeCell` red
   flag, a reference to the new interior-mutability material, and a
   cross-link to the `rust-verification` skill.
@@ -209,12 +226,16 @@ The format is based on [Common Changelog](https://common-changelog.org).
   living ExecPlan governing this changelog block. Progress, surprises,
   and decisions are recorded inline as work advances.
 - `docs/users-guide.md`: operator-facing guide covering catalogue
-  installation, router invocation, and when to reach for the new
-  verification, supply-chain, decision-record, and state-machine skills.
+  installation, router invocation, Polonius-aware compiler posture, and when
+  to reach for the new verification, supply-chain, decision-record, and
+  state-machine skills.
   Linked from the README. Also explains that a manifest `name` is the
   discovery name, that the install copy performs no validation of its own,
   and that `make lint` is the contributor gate which validates every
-  shipped manifest before it is published.
+  shipped manifest before it is published. The router section carries a
+  Mermaid diagram of the posture-then-route decision, in which the posture
+  node feeds the ordinary language skills while adoption and audit work
+  reaches `nll-to-polonius`.
 - `AGENTS.md`: commit-gate guidance for agents, covering the manifest
   contract and what to do when changing anything under `skills/`. Points
   tooling and dependency changes at the developers' guide.

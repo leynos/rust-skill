@@ -2,7 +2,8 @@
 
 This guide explains how to use the Rust skill catalogue in day-to-day Rust
 work: where to install it, how to invoke skills, how the router decides which
-skill to load, and what each focused or advanced skill is for.
+skill to load, how borrow-checker posture informs ordinary Rust reasoning, and
+what each focused or advanced skill is for.
 
 The companion document [`skill-catalogue-status.md`](skill-catalogue-status.md)
 lists the catalogue contents and tier shape. This guide is the operator-facing
@@ -27,9 +28,14 @@ The tiers are:
 - three **focused** skills — `rust-state-machines` for logical state and
   transition design, `rust-unit-testing` for unit-test shape and assertions,
   and `rust-unused-code` for `dead_code` and `unused_imports` decisions,
-- one **migration** skill — `nll-to-polonius` for adopting the Polonius borrow
-  checker and retiring designs imposed by non-lexical lifetime (NLL)
-  limitations.
+- one **migration** skill — `nll-to-polonius` for adopting Polonius Alpha,
+  retiring designs imposed by non-lexical lifetime (NLL) limitations, and
+  evolving internal APIs towards borrow-centric forms.
+
+For borrow-sensitive work, the router also establishes an ambient
+borrow-checker posture: `nll`, `polonius-alpha`, `polonius-legacy`, or
+`unknown`. That posture modifies the assumptions used by the ordinary
+language skills without loading a separate Polonius edition of each skill.
 
 ## Installing the catalogue
 
@@ -99,8 +105,67 @@ router first and let it pick the pairing.
 
 ## How the router decides
 
-`rust-router` routes by the concrete problem at hand, not by the file
-being edited. A short version of its decision table:
+`rust-router` routes by the concrete problem at hand, not by the file being
+edited.
+
+For borrow-sensitive ownership, API, async, or performance work, it first
+inspects `rust-toolchain.toml`, Cargo configuration, CI commands, and
+Polonius flags. Current nightly enables Polonius Alpha by default unless the
+project uses `-Zpolonius=off`; explicit `next`, `off`, or `legacy` selection
+wins. For dated nightlies, wrappers, or future stable compilers, the router
+uses a small compile canary rather than guessing from a channel name.
+
+This is ambient context. A project using Alpha still routes ordinary ownership
+questions to `rust-memory-and-state`, async boundaries to
+`rust-async-and-concurrency`, and hot paths to
+`rust-performance-and-layout`. The migration skill is loaded only when
+adoption, NLL-residue auditing, or API evolution is itself the task.
+
+For screen readers: The following flowchart shows the router establishing
+borrow-checker posture once as ambient context, then selecting a skill.
+Borrow-sensitive ownership, async, and performance questions go to the
+ordinary language skills, which consume that posture; only adoption, audit,
+and migration work reaches the migration skill.
+
+```mermaid
+flowchart TD
+  start([User invokes rust-router])
+  posture["Determine borrow-checker posture via polonius-alpha reference
+  (nll, polonius-alpha, polonius-legacy, unknown)"]
+  question["Identify concrete problem:
+  ownership/async/performance vs migration/adoption/audit"]
+
+  start --> posture --> question
+
+  subgraph ordinary_skills[Ordinary language skills]
+    mem[rust-memory-and-state]
+    async[rust-async-and-concurrency]
+    perf[rust-performance-and-layout]
+  end
+
+  subgraph migration_skill[Migration skill]
+    polonius[nll-to-polonius]
+  end
+
+  question -->|"Borrow-sensitive ownership / async / performance"| mem
+  question -->|"Borrow-sensitive ownership / async / performance"| async
+  question -->|"Borrow-sensitive ownership / async / performance"| perf
+
+  question -->|"Polonius adoption, NLL workaround audits,
+  borrow-centric API migration"| polonius
+
+  posture --> mem
+  posture --> async
+  posture --> perf
+
+  style posture fill:#e3f2fd,stroke:#1565c0
+  style polonius fill:#fce4ec,stroke:#ad1457
+```
+
+_Figure 1: How the router establishes borrow-checker posture and selects a
+skill._
+
+A short version of the decision table:
 
 - ownership, borrowing, aliasing, or interior mutability →
   `rust-memory-and-state`,
@@ -137,8 +202,11 @@ being edited. A short version of its decision table:
 - `no_std`, firmware, devices, or edge nodes →
   `domain-embedded-and-iot`.
 
-The router's pairing rules and escalation triggers live in its
-`SKILL.md`; the
+The router's pairing rules and escalation triggers live in its `SKILL.md`.
+The
+[Polonius Alpha project-posture reference](../skills/rust-router/references/polonius-alpha.md)
+defines checker detection and the semantic boundary consumed by ordinary
+skills. The
 [routing matrix](../skills/rust-router/references/routing-matrix.md)
 covers the residual ambiguous cases.
 
@@ -174,7 +242,8 @@ unclear; a clear lightweight invariant goes straight to `proptest`.
 ## When to reach for the new skills
 
 The recent catalogue extensions cover state-machine modelling, verification,
-supply chain, decision records, and Polonius migration. The short versions:
+supply chain, decision records, and Polonius migration. The short versions
+follow.
 
 ### `rust-state-machines` — model transitions and invalid states
 
@@ -210,7 +279,7 @@ stateDiagram-v2
     }
 ```
 
-_Figure 1: Device lifecycle — caller-driven configuration wrapping an
+_Figure 2: Device lifecycle — caller-driven configuration wrapping an
 event-driven transfer state machine._
 
 The decisive question is who chooses the next transition. A caller-selected
@@ -233,7 +302,7 @@ flowchart TD
     Stable --> Verify
 ```
 
-_Figure 2: Selecting a state representation by transition ownership._
+_Figure 3: Selecting a state representation by transition ownership._
 
 ### `nll-to-polonius` — migrate beyond NLL constraints
 
@@ -328,6 +397,9 @@ A few habits make the catalogue earn its keep:
 
 - **Route before you load.** A short prompt to `rust-router` costs
   little and avoids loading skills you will not use.
+- **Establish checker posture before preserving a workaround.** Under
+  Polonius Alpha, try the direct borrowing form and compile it before
+  accepting NLL-era clones or indirection.
 - **Prefer one language skill plus at most one domain or architecture
   skill** for any single task.
 - **Stop when the answer is turning into a tutorial.** Cut back to the
@@ -349,6 +421,8 @@ A few habits make the catalogue earn its keep:
   extension.
 - [`rust-router` SKILL.md](../skills/rust-router/SKILL.md) — the
   authoritative routing rules.
+- [Polonius Alpha project posture](../skills/rust-router/references/polonius-alpha.md)
+  — checker detection, the Alpha semantic delta, and ordinary-skill guidance.
 - [`rust-state-machines` SKILL.md](../skills/rust-state-machines/SKILL.md)
   — state representation, transition design, and verification.
 - [Routing matrix](../skills/rust-router/references/routing-matrix.md)
