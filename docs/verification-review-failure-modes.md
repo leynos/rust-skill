@@ -178,7 +178,7 @@ substantive invariant across a range of inputs, states, orderings, or
 transitions", and `netsuke` #540 recorded a durable learning that
 "property-based tests are reserved for domains with genuine combinatorial
 state. For small input grammars… use focused deterministic tests". `rstest-bdd`
-# 686 replaced a `prop::sample::select` over six permutations with six `rstest`
+\#686 replaced a `prop::sample::select` over six permutations with six `rstest`
 cases. `mdtablefix` #295 passed the check by documenting why the invariants
 were "bounded, deterministic … property testing unnecessary". `podbot` #99
 shows the bot enforcing an ExecPlan decision against an unsolicited proptest,

@@ -51,6 +51,8 @@ in types, traits, and public signatures.
 - typestate multiplies boilerplate without enforcing a real rule,
 - crate features change core semantics rather than optional integration.
 
+<!-- markdownlint-disable MD013 -->
+
 Read
 [generics-vs-dyn.md](references/generics-vs-dyn.md), [newtypes-and-typestate.md](references/newtypes-and-typestate.md), [public-api-boundaries.md](references/public-api-boundaries.md),
 and [misuse-resistant-apis.md](references/misuse-resistant-apis.md) when one
@@ -59,3 +61,5 @@ hidden-inner newtypes, anti-boolean-blindness, relevant API Guidelines tags,
 and SemVer tooling (`cargo-semver-checks`, `cargo-public-api`). Use
 `rust-state-machines` for parser, protocol, actor, and device lifecycle state
 or for choosing between typestate and a runtime ADT.
+
+<!-- markdownlint-enable MD013 -->
