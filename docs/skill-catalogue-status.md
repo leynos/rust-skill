@@ -3,8 +3,8 @@
 `skills/` is the active Rust skill catalogue on this branch.
 
 `current-skills/` is retained only as local source material used during the
-reduction and rewrite. It is intentionally not part of the committed skill
-tree for this branch.
+reduction and rewrite. It is intentionally not part of the committed skill tree
+for this branch.
 
 When updating the Rust skill set from this point forward:
 
@@ -14,8 +14,8 @@ When updating the Rust skill set from this point forward:
 
 ## Catalogue contents
 
-The catalogue is split into a router, six language skills, six architecture
-or domain skills, three deep-dive verification skills, and focused specialist
+The catalogue is split into a router, six language skills, six architecture or
+domain skills, three deep-dive verification skills, and focused specialist
 skills:
 
 - **Router**: `rust-router`.
@@ -23,33 +23,31 @@ skills:
   `rust-errors`, `rust-async-and-concurrency`, `rust-unsafe-and-ffi`,
   `rust-performance-and-layout`.
 - **Architecture and domain**: `arch-crate-design`,
-  `arch-supply-chain`, `arch-decision-records`,
-  `domain-web-services`, `domain-cli-and-daemons`,
-  `domain-embedded-and-iot`.
+  `arch-supply-chain`, `arch-decision-records`, `domain-web-services`,
+  `domain-cli-and-daemons`, `domain-embedded-and-iot`.
 - **Verification**: `rust-verification` (routes between tools), with
   deep dives in `proptest`, `kani`, and `verus`.
 - **Focused**: `rust-state-machines` for parsers, protocols, actors, device
   lifecycles, runtime ADTs, and typestate choices; `rust-unit-testing` for
   unit-test helper shape, fixtures, parameterization, serialization, and
-  assertions; `rust-unused-code` for `dead_code` and `unused_imports`
-  decisions.
+  assertions; `rust-unused-code` for `dead_code` and `unused_imports` decisions.
 - **Migration**: `nll-to-polonius` for Polonius adoption, NLL workaround
   retirement, and borrow-centric API evolution.
 
-`proptest`, `kani`, and `verus` carry larger size envelopes than the
-rest because they are procedural deep dives. `proptest` installs as
-a regular Cargo dev-dependency; `kani` and `verus` install and run
-via [`rust-prover-tools`](https://github.com/leynos/rust-prover-tools)
-so the catalogue does not carry forked install scripts. Each of the three
-carries a `references/review-failure-modes.md` checklist derived from
+`proptest`, `kani`, and `verus` carry larger size envelopes than the rest
+because they are procedural deep dives. `proptest` installs as a regular Cargo
+dev-dependency; `kani` and `verus` install and run via
+[`rust-prover-tools`](https://github.com/leynos/rust-prover-tools) so the
+catalogue does not carry forked install scripts. Each of the three carries a
+`references/review-failure-modes.md` checklist derived from
 [`docs/verification-review-failure-modes.md`](verification-review-failure-modes.md),
 and `kani` and `verus` carry a `references/project-on-ramp.md`.
 
-Size note (2026-09-10): after the review-failure-modes update the three
-deep dives sit at roughly 13–16 KB each and
-`proptest/references/review-failure-modes.md` at about 9 KB, above the
-8 KB reference envelope. The growth is deliberate: each added section
-maps to a cluster of recurring review findings in the compendium, and
-the review references are checklists meant to be read in full before a
-PR is opened rather than browsed for one edge case. Trim them only when
-the estate's review findings change.
+Size note (2026-09-10): after the review-failure-modes update the three deep
+dives sit at roughly 13–16 KB each and
+`proptest/references/review-failure-modes.md` at about 9 KB, above the 8 KB
+reference envelope. The growth is deliberate: each added section maps to a
+cluster of recurring review findings in the compendium, and the review
+references are checklists meant to be read in full before a PR is opened rather
+than browsed for one edge case. Trim them only when the estate's review
+findings change.

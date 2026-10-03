@@ -37,9 +37,13 @@ Use this when the code must uphold invariants the compiler cannot check.
 - manual `Send` or `Sync` impls appear without a crisp argument,
 - shared mutation is built without `UnsafeCell` or a wrapper that uses it.
 
-Read [safety-comment-template.md](references/safety-comment-template.md),
-[ffi-boundaries.md](references/ffi-boundaries.md),
-[maybeuninit-and-nonnull.md](references/maybeuninit-and-nonnull.md), and
+<!-- markdownlint-disable MD013 -->
+
+Read
+[safety-comment-template.md](references/safety-comment-template.md), [ffi-boundaries.md](references/ffi-boundaries.md), [maybeuninit-and-nonnull.md](references/maybeuninit-and-nonnull.md),
+and
 [unsafecell-and-interior-mutability.md](references/unsafecell-and-interior-mutability.md)
-before adding new unsafe blocks or reviewing old ones. The verification
-skill (`rust-verification`) covers when to reach for Miri and `loom`.
+before adding new unsafe blocks or reviewing old ones. The verification skill
+(`rust-verification`) covers when to reach for Miri and `loom`.
+
+<!-- markdownlint-enable MD013 -->

@@ -37,8 +37,8 @@ to end a local borrow, compile the direct form with the project's configured
 compiler.
 
 Do not infer that a locally accepted form can cross an `.await`, task, thread,
-channel, callback, or event-loop boundary. Suspension-point lifetimes,
-future self-reference, `Send`/`Sync`, supervision, and ownership transfer are
+channel, callback, or event-loop boundary. Suspension-point lifetimes, future
+self-reference, `Send`/`Sync`, supervision, and ownership transfer are
 unchanged. Read
 [polonius-alpha.md](../rust-router/references/polonius-alpha.md) for the shared
 project-posture test and semantic boundary.
@@ -52,7 +52,7 @@ project-posture test and semantic boundary.
 - blocking DB, filesystem, or compression work runs on the async executor,
 - `!Send` state leaks into multithreaded runtime code by accident.
 
-Read [send-sync-checklist.md](references/send-sync-checklist.md),
-[task-ownership.md](references/task-ownership.md), and
-[blocking-and-backpressure.md](references/blocking-and-backpressure.md) when
-the runtime contract is the hard part.
+Read
+[send-sync-checklist.md](references/send-sync-checklist.md), [task-ownership.md](references/task-ownership.md),
+and [blocking-and-backpressure.md](references/blocking-and-backpressure.md)
+when the runtime contract is the hard part.

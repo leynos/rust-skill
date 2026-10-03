@@ -1,15 +1,14 @@
 # Verus proof examples
 
-Three worked patterns: canonicalization of an unordered pair, an
-inductive concat lemma over `Seq`, and the total-ordering composition
-skeleton. They are intentionally generic — adapt the names to the
-production module being mirrored.
+Three worked patterns: canonicalization of an unordered pair, an inductive
+concat lemma over `Seq`, and the total-ordering composition skeleton. They are
+intentionally generic — adapt the names to the production module being mirrored.
 
 ## Canonicalization: ordering an unordered pair
 
-A common pattern is normalizing an edge or pair so the smaller endpoint
-is stored first. The spec function is total and the lemma is trivial,
-but it sets up the spec types the rest of the proofs depend on.
+A common pattern is normalizing an edge or pair so the smaller endpoint is
+stored first. The spec function is total and the lemma is trivial, but it sets
+up the spec types the rest of the proofs depend on.
 
 ```rust
 use vstd::prelude::*;
@@ -54,10 +53,10 @@ proof fn lemma_canonicalise_is_ordered(e: EdgeSpec)
 ## Inductive proof over a `Seq`
 
 When proving that a property is preserved as edges are prepended or
-concatenated, do the induction explicitly with `decreases` and call a
-glue lemma that closes the inductive step. The `broadcast use` line is
-required whenever the proof manipulates sequences with `add`, `push`, or
-indexing across concatenations.
+concatenated, do the induction explicitly with `decreases` and call a glue
+lemma that closes the inductive step. The `broadcast use` line is required
+whenever the proof manipulates sequences with `add`, `push`, or indexing across
+concatenations.
 
 ```rust
 verus! {
@@ -121,10 +120,9 @@ proof fn lemma_extract_invariant(items: Seq<EdgeSpec>, source: ItemId)
 
 ## Total-ordering composition
 
-`vstd::relations::total_ordering` is opaque; reveal it before composing
-the four sub-lemmas (reflexive, antisymmetric, transitive, strongly
-connected). Each sub-lemma is small and case-splits over the comparator
-chain.
+`vstd::relations::total_ordering` is opaque; reveal it before composing the
+four sub-lemmas (reflexive, antisymmetric, transitive, strongly connected).
+Each sub-lemma is small and case-splits over the comparator chain.
 
 ```rust
 verus! {
@@ -159,10 +157,10 @@ proof fn lemma_edge_leq_total_ordering()
 } // verus!
 ```
 
-Once `lemma_edge_leq_total_ordering` is in scope, downstream proofs can
-invoke `edges.lemma_sort_by_ensures(...)` to obtain a sorted-multiset
-guarantee for `edges.sort_by(edge_leq)` without re-deriving the
-comparator properties at each call site.
+Once `lemma_edge_leq_total_ordering` is in scope, downstream proofs can invoke
+`edges.lemma_sort_by_ensures(...)` to obtain a sorted-multiset guarantee for
+`edges.sort_by(edge_leq)` without re-deriving the comparator properties at each
+call site.
 
 ## Cross-references
 

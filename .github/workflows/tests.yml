@@ -1,0 +1,43 @@
+name: Tests
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  tests:
+    # The suite takes seconds; the ceiling is a generous multiple, so a hang cannot
+    # hold a runner. The Polonius compiler controls have their own workflow.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+
+      # The Markdown formatting tests run the real mdtablefix against scratch
+      # repositories; 0.6.1 is the first release that supports --git selection.
+      - name: Install mdtablefix
+        uses: >-
+          leynos/shared-actions/.github/actions/install-mdtablefix@a5765019912a8ab6882b12db049c7cde635f3a85
+        with:
+          version: '0.6.1'
+
+      # Only the Markdown formatting tests run here. The manifest and Polonius
+      # tests call `make lint`, which needs markdownlint-cli2 and nixie, and a
+      # recipe that uses `set -o pipefail` under the runner's dash `/bin/sh`;
+      # neither was ever exercised in CI, so widening this is its own change.
+      - name: Run the Markdown formatting tests
+        run: uv run --group dev pytest tests/test_markdown_wiring.py

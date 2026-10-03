@@ -22,14 +22,14 @@ shape belongs at this boundary?"
 
 ## Decision surface
 
-| Boundary | Default move |
-| --- | --- |
-| library or reusable crate | typed error enum |
-| binary, tool, integration glue | `anyhow`-style reporting is fine |
-| expected invalid input | `Result` |
-| impossible state if invariants hold | panic or debug assertion with care |
-| need source preservation | wrap and chain |
-| retry policy depends on cause | classify explicitly, do not parse strings |
+| Boundary                            | Default move                              |
+| ----------------------------------- | ----------------------------------------- |
+| library or reusable crate           | typed error enum                          |
+| binary, tool, integration glue      | `anyhow`-style reporting is fine          |
+| expected invalid input              | `Result`                                  |
+| impossible state if invariants hold | panic or debug assertion with care        |
+| need source preservation            | wrap and chain                            |
+| retry policy depends on cause       | classify explicitly, do not parse strings |
 
 ## Red flags
 

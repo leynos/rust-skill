@@ -26,7 +26,8 @@ it only in those configurations.
 That usually means:
 
 - put `#[cfg(...)]` on the item that is actually conditional,
-- move related items into a narrowly scoped inline module guarded by `#[cfg(...)]`,
+- move related items into a narrowly scoped inline module guarded by
+  `#[cfg(...)]`,
 - move an import down into the function or test that uses it,
 - split common API from conditional implementation details.
 

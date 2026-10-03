@@ -12,8 +12,8 @@ its state, lifetime, and clean-up. Two modules that exchange owned values do
 not share state; they exchange responsibility.
 
 Borrowing is the opposite: it couples the borrower's scope to the owner's
-liveness. Long-lived borrows in public APIs are a coupling decision and
-deserve the same scrutiny as any other shared mutable state.
+liveness. Long-lived borrows in public APIs are a coupling decision and deserve
+the same scrutiny as any other shared mutable state.
 
 Practical consequences:
 
@@ -34,11 +34,10 @@ state, and it is built from three cooperating pieces:
   [`unsafecell-and-interior-mutability.md`](../../rust-unsafe-and-ffi/references/unsafecell-and-interior-mutability.md)
   for the aliasing rules that make this necessary.
 - `MutexGuard<'a, T>` is a borrow-bound smart pointer returned by `lock`. It
-  carries the lock state and dereferences to `&mut T` for the guard's
-  lifetime.
+  carries the lock state and dereferences to `&mut T` for the guard's lifetime.
 - `Drop for MutexGuard` releases the lock when the guard goes out of scope.
-  Release is tied to scope, not to a `release()` call the caller might
-  forget on an unwind or early return.
+  Release is tied to scope, not to a `release()` call the caller might forget
+  on an unwind or early return.
 
 The same shape (acquire returns a guard; the guard's `Drop` releases the
 resource) generalizes to transaction handles, file locks, span guards,
@@ -54,6 +53,6 @@ bug.
 - A type holds `&'a mut T` for convenience and forces every caller to thread
   `'a` through unrelated APIs.
 
-When these appear, the encapsulation is leaking. Wrap the resource in an
-owning type whose `Drop` does the right thing, and return guards for any
-operation that must be paired with a release.
+When these appear, the encapsulation is leaking. Wrap the resource in an owning
+type whose `Drop` does the right thing, and return guards for any operation
+that must be paired with a release.

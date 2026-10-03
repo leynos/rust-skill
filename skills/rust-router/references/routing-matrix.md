@@ -3,11 +3,10 @@
 Use this when the first skill is not obvious.
 
 Borrow-checker posture is ambient context, not a route of its own. For
-borrow-sensitive work, establish `nll`, `polonius-alpha`,
-`polonius-legacy`, or `unknown` using
-[polonius-alpha.md](polonius-alpha.md), then route by the concrete problem.
-A project using Polonius Alpha still uses the ordinary language skills;
-`nll-to-polonius` is for adoption, audits, and migration work.
+borrow-sensitive work, establish `nll`, `polonius-alpha`, `polonius-legacy`, or
+`unknown` using [polonius-alpha.md](polonius-alpha.md), then route by the
+concrete problem. A project using Polonius Alpha still uses the ordinary
+language skills; `nll-to-polonius` is for adoption, audits, and migration work.
 
 - `E0382`, `E0502`, `E0597`, moved value, or borrow overlap:
   `rust-memory-and-state`, then `rust-types-and-apis` if the local fix still
@@ -27,8 +26,8 @@ A project using Polonius Alpha still uses the ordinary language skills;
 - `Result` shape, `thiserror`, `anyhow`, retryability, or panic policy:
   `rust-errors`, then `arch-crate-design` if crates or binaries disagree.
 - Unit-test fixtures, table tests, assertion helper refactors, snapshot
-  assertions, or serialized tests: `rust-unit-testing`, then `rust-errors`
-  if the helper is primarily about error source shape.
+  assertions, or serialized tests: `rust-unit-testing`, then `rust-errors` if
+  the helper is primarily about error source shape.
 - `dead_code`, `unused_imports`, feature-gated reachability, or an apparently
   unused item whose removal is uncertain: `rust-unused-code`.
 - `Send`, `Sync`, `spawn`, channel choice, or async shutdown:
@@ -44,22 +43,22 @@ A project using Polonius Alpha still uses the ordinary language skills;
   `domain-embedded-and-iot` (Internet of Things (IoT)) when hardware or edge
   constraints matter.
 - A `#[case]` table that samples one relation over a range, or a cheap
-  repeatable invariant with no obvious edge: `proptest` directly; no
-  selector step is needed.
+  repeatable invariant with no obvious edge: `proptest` directly; no selector
+  step is needed.
 - A property must be proved rather than tested (UB sweep, schedule
-  chaos, structural invariant, algebraic property), or the testing rung
-  is unclear: `rust-verification` to pick the tool, then `proptest` for
-  randomized property tests, `kani` for bounded model checking, or
-  `verus` for deductive proofs. Add `cargo-mutants` only when the
-  separate question is suite sensitivity.
+  chaos, structural invariant, algebraic property), or the testing rung is
+  unclear: `rust-verification` to pick the tool, then `proptest` for randomized
+  property tests, `kani` for bounded model checking, or `verus` for deductive
+  proofs. Add `cargo-mutants` only when the separate question is suite
+  sensitivity.
 - Do not replace a finite standards table or named regression with
   generated values merely because `proptest` is available.
 - Dependency audit, lockfile policy, banned crates, or breaking-change
-  detection: `arch-supply-chain`, then `arch-crate-design` if the fix
-  touches public surface.
+  detection: `arch-supply-chain`, then `arch-crate-design` if the fix touches
+  public surface.
 - A decision is hard to reverse (typestate edges, `unsafe` invariants,
-  runtime choice, verification-tool choice): `arch-decision-records`
-  alongside the language or architecture skill that owns the design.
+  runtime choice, verification-tool choice): `arch-decision-records` alongside
+  the language or architecture skill that owns the design.
 
 Domain pairings:
 

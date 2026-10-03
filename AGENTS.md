@@ -19,11 +19,15 @@ make test
 ```
 
 `make lint` runs `markdownlint`, `nixie`, and `skill-manifest-check`.
-`make check-fmt` checks Ruff formatting in `tests` and `tools`.
-`make typecheck` runs strict mypy on `tests/test_polonius_protocol.py` and
-`tests/polonius_compile_matrix.py`; both tools come from the pinned `dev`
-dependency group through `uv`.
-`make test` requires `rustup`'s `rustc` proxy on `PATH` and the installed
+`make fmt` formats Python in `tests` and `tools` with Ruff, formats Markdown
+with `mdtablefix`, and runs `markdownlint-cli2 --fix`. `make check-fmt` checks
+Ruff formatting in `tests` and `tools` and runs `mdtablefix --check` over the
+tracked and unignored untracked Markdown files. Both targets need `mdtablefix`
+0.6.1 or later, and `make markdownlint` lints `**/*.md`, the scope `make fmt`
+and CI use. `make typecheck` runs strict mypy on
+`tests/test_polonius_protocol.py` and `tests/polonius_compile_matrix.py`; both
+tools come from the pinned `dev` dependency group through `uv`. `make test`
+requires `rustup`'s `rustc` proxy on `PATH` and the installed
 `nightly-2026-08-27` toolchain for its Polonius fixture matrix.
 
 ## Changes under `skills/`
@@ -37,11 +41,11 @@ already enforced by the gate sequence above. When adding, renaming, or editing
 anything under `skills/`, the following are required:
 
 - Run all four commit gates above. `make lint` runs
-  `skill-frontmatter-lint` (`yamllint` over each
-  extracted frontmatter block) and `skill-manifest-validate` (`skills-ref
-  validate` over each skill directory). `make test` runs
-  `tests/test_skill_manifests.py`, which asserts that every shipped manifest
-  satisfies the contract and that `make lint` still enforces it.
+  `skill-frontmatter-lint` (`yamllint` over each extracted frontmatter block)
+  and `skill-manifest-validate` (`skills-ref validate` over each skill
+  directory). `make test` runs `tests/test_skill_manifests.py`, which asserts
+  that every shipped manifest satisfies the contract and that `make lint` still
+  enforces it.
 - Keep the directory name equal to the manifest `name`.
 - Keep the frontmatter to the keys the Agent Skills schema admits: `name`,
   `description`, `license`, `allowed-tools`, `metadata`, and `compatibility`.
@@ -70,5 +74,5 @@ Changes that alter skill discovery, installation, or naming belong in
 [the users' guide](docs/users-guide.md). Changes to validation tooling,
 Makefile targets, or development dependencies belong in
 [the developers' guide](docs/developers-guide.md), alongside the manifest
-contract they serve. Record notable changes in
-[the changelog](CHANGELOG.md), which follows the Common Changelog format.
+contract they serve. Record notable changes in [the changelog](CHANGELOG.md),
+which follows the Common Changelog format.

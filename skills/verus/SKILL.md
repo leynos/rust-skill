@@ -5,10 +5,10 @@ description: Write and maintain Verus deductive proofs for Rust code. Use for fo
 
 # Verus deductive verification for Rust
 
-Verus uses the Z3 SMT solver to statically verify that executable Rust
-code satisfies user-provided specifications, with zero runtime cost. Load
-the `rust-verification` skill first for the selection rules; load this
-skill once Verus is the chosen tool.
+Verus uses the Z3 SMT solver to statically verify that executable Rust code
+satisfies user-provided specifications, with zero runtime cost. Load the
+`rust-verification` skill first for the selection rules; load this skill once
+Verus is the chosen tool.
 
 ## When to apply
 
@@ -23,20 +23,19 @@ Apply when:
 - a Kani harness keeps growing because the bounded state space is too
   large — extract the pure helper and prove it in Verus instead.
 
-Do not apply when bounded symbolic execution (Kani) would suffice, the
-code is dominated by I/O or concurrency, a property test would give
-enough confidence, or the code uses features Verus does not support
-(`async`, most `unsafe`, raw concurrency). Verus arrives last in a
-repository's verification stack: "only after there is something small
-and stable enough to prove". Proofs that depend on collection internals
-or bit-level mixing become expensive quickly; pick semantic seams.
+Do not apply when bounded symbolic execution (Kani) would suffice, the code is
+dominated by I/O or concurrency, a property test would give enough confidence,
+or the code uses features Verus does not support (`async`, most `unsafe`, raw
+concurrency). Verus arrives last in a repository's verification stack: "only
+after there is something small and stable enough to prove". Proofs that depend
+on collection internals or bit-level mixing become expensive quickly; pick
+semantic seams.
 
 ## Installation and runs
 
-Use [`rust-prover-tools`](https://github.com/leynos/rust-prover-tools) as
-the canonical installer and runner. The tool handles version pinning,
-checksum verification, toolchain installation, and proof execution
-through a single CLI:
+Use [`rust-prover-tools`](https://github.com/leynos/rust-prover-tools) as the
+canonical installer and runner. The tool handles version pinning, checksum
+verification, toolchain installation, and proof execution through a single CLI:
 
 ```bash
 # Install the pinned Verus release for this target.
@@ -46,18 +45,18 @@ prover-tools verus install --repo-root .
 prover-tools verus run --repo-root . --proof-file verus/my_proofs.rs
 ```
 
-`install` reads the pinned version and checksum from in-tree files
-(defaults: `tools/verus/VERSION` and `tools/verus/SHA256SUMS`; overridden
-with `--version-file` and `--checksum-file`). `run` resolves the binary
-(from `--verus-bin`, the install directory, or `PATH`), ensures the
-required Rust toolchain is installed via `rustup`, and executes the
-proof. Repeatable `--extra-arg` is appended after the proof file. Do not
-reintroduce shell wrappers; every retired script drew review findings
-(missing checksums, swallowed exit codes, flag passthrough breakage).
-See [`references/installation-note.md`](references/installation-note.md)
-for the rationale and
-[`references/project-on-ramp.md`](references/project-on-ramp.md) for the
-pin files, Makefile targets, layout, and contract tests reviewers expect.
+`install` reads the pinned version and checksum from in-tree files (defaults:
+`tools/verus/VERSION` and `tools/verus/SHA256SUMS`; overridden with
+`--version-file` and `--checksum-file`). `run` resolves the binary (from
+`--verus-bin`, the install directory, or `PATH`), ensures the required Rust
+toolchain is installed via `rustup`, and executes the proof. Repeatable
+`--extra-arg` is appended after the proof file. Do not reintroduce shell
+wrappers; every retired script drew review findings (missing checksums,
+swallowed exit codes, flag passthrough breakage). See
+[`references/installation-note.md`](references/installation-note.md) for the
+rationale and [`references/project-on-ramp.md`](references/project-on-ramp.md)
+for the pin files, Makefile targets, layout, and contract tests reviewers
+expect.
 
 ## Core concepts
 
@@ -90,18 +89,18 @@ proof fn lemma_in_range_is_bounded(id: ItemId)
 } // verus!
 ```
 
-`requires` and `ensures` form the contract between functions; callers
-satisfy `requires`, callees rely on `ensures`. Recursive `spec fn` and
-`proof fn` need a `decreases` clause.
+`requires` and `ensures` form the contract between functions; callers satisfy
+`requires`, callees rely on `ensures`. Recursive `spec fn` and `proof fn` need a
+`decreases` clause.
 
-`open spec fn` exposes the body to callers; `closed spec fn` hides it
-and forces callers to use the `ensures` clause. Most spec functions
-should be `open`.
+`open spec fn` exposes the body to callers; `closed spec fn` hides it and
+forces callers to use the `ensures` clause. Most spec functions should be
+`open`.
 
 ## Writing a good proof
 
-A proof is modular, trigger-aware, and context-disciplined. Compose
-small lemmas; scope auxiliary proofs aggressively.
+A proof is modular, trigger-aware, and context-disciplined. Compose small
+lemmas; scope auxiliary proofs aggressively.
 
 ### Composing sub-lemmas
 
@@ -117,11 +116,11 @@ proof fn lemma_edge_leq_total_ordering()
 }
 ```
 
-Each property has its own small lemma. The top-level lemma composes them
-after `reveal`ing the opaque `total_ordering` definition. A lemma that
-ensures a compound property by asserting that same property in one bare
-`assert` will not verify and reads as an admitted claim; reviewers ask
-for exactly this decomposition.
+Each property has its own small lemma. The top-level lemma composes them after
+`reveal`ing the opaque `total_ordering` definition. A lemma that ensures a
+compound property by asserting that same property in one bare `assert` will not
+verify and reads as an admitted claim; reviewers ask for exactly this
+decomposition.
 
 ### Inductive proofs over sequences
 
@@ -140,8 +139,8 @@ proof fn lemma_extract_from_sequence_invariants(items: Seq<ItemSpec>)
 }
 ```
 
-For a longer worked composition (canonicalisation, total-ordering, and
-the inductive extraction skeleton), see
+For a longer worked composition (canonicalisation, total-ordering, and the
+inductive extraction skeleton), see
 [`references/proof-examples.md`](references/proof-examples.md) and
 [`references/verus-proof-example.rs`](references/verus-proof-example.rs).
 
@@ -155,9 +154,9 @@ the inductive extraction skeleton), see
 - **`assume` left in a proof** is a soundness hole. A stray
   `assume(false)` proves anything. Use `assume` only as a temporary
   placeholder; eliminate it before declaring the proof complete.
-- **A lemma that restates its definition.** `spec_p(x) <==>
-  definition_of(spec_p)` proves nothing; assert something beyond the
-  spec function's own body.
+- **A lemma that restates its definition.**
+  `spec_p(x) <==> definition_of(spec_p)` proves nothing; assert something
+  beyond the spec function's own body.
 - **Axioms that stop at the leaf.** A trust-boundary axiom used by a
   helper lemma must appear in the `requires` of every wrapper lemma.
 - **Speculative generics.** Specialize scaffolding to the concrete type
@@ -165,10 +164,9 @@ the inductive extraction skeleton), see
 
 ## Triggers
 
-Triggers control how Z3 instantiates universal quantifiers. A trigger
-must contain all bound variables and may not contain equality,
-arithmetic, or boolean operators (function calls, indexing, and field
-access are valid).
+Triggers control how Z3 instantiates universal quantifiers. A trigger must
+contain all bound variables and may not contain equality, arithmetic, or
+boolean operators (function calls, indexing, and field access are valid).
 
 ```rust
 // Explicit:
@@ -186,9 +184,9 @@ forall|i: int, j: int|
 
 ### The trigger trap
 
-If `requires forall|i: int| 0 <= i < s.len() ==> #[trigger] is_even(s[i])`,
-then `assert(s[3] % 2 == 0)` fails because `is_even` never appears in
-the assertion. Assert the trigger-matching expression first:
+If `requires forall|i: int| 0 <= i < s.len() ==> #[trigger] is_even(s[i])`, then
+`assert(s[3] % 2 == 0)` fails because `is_even` never appears in the
+assertion. Assert the trigger-matching expression first:
 
 ```rust
 assert(is_even(s[3]));    // Instantiates for i = 3.
@@ -199,9 +197,9 @@ assert(s[3] % 2 == 0);   // Now uses the fact above.
 
 A matching loop instantiates a trigger and produces a new expression that
 matches the same trigger again, growing without bound. The classic shape
-`#[trigger] s[i] <= s[i + 1]` is unsafe: matching `i = 2` produces
-`s[3]`, which matches `i = 3` producing `s[4]`, and so on. Prefer two
-already-present indices:
+`#[trigger] s[i] <= s[i + 1]` is unsafe: matching `i = 2` produces `s[3]`,
+which matches `i = 3` producing `s[4]`, and so on. Prefer two already-present
+indices:
 
 ```rust
 forall|i: int, j: int|
@@ -209,10 +207,10 @@ forall|i: int, j: int|
     0 <= i <= j < s.len() ==> s[i] <= s[j]
 ```
 
-Workflow: start with `#![auto]`, review the auto-trigger note Verus
-prints, check the concrete assertions against the trigger, and add
-explicit `#[trigger]` annotations when the match fails or loops. Do not
-ignore trigger warnings; treat each one as a review item.
+Workflow: start with `#![auto]`, review the auto-trigger note Verus prints,
+check the concrete assertions against the trigger, and add explicit
+`#[trigger]` annotations when the match fails or loops. Do not ignore trigger
+warnings; treat each one as a review item.
 
 ## `assert(F) by { ... }`
 
@@ -262,40 +260,38 @@ project/
         └── SHA256SUMS
 ```
 
-Sub-files use `mod` declarations from the root and `use super::*` to
-share spec types and definitions. Run via `prover-tools verus run
---proof-file verus/my_proofs.rs`.
+Sub-files use `mod` declarations from the root and `use super::*` to share spec
+types and definitions. Run via
+`prover-tools verus run --proof-file verus/my_proofs.rs`.
 
-Verus is not a Cargo dependency: it compiles its own files. Production
-crate modules cannot be `use`d directly. Two bridges exist and both
-decay unless maintained:
+Verus is not a Cargo dependency: it compiles its own files. Production crate
+modules cannot be `use`d directly. Two bridges exist and both decay unless
+maintained:
 
 - **Spec mirror.** Mirror production structs as `spec` structs and keep
-  them in sync by code review. Document, on each spec item, which
-  runtime type and function it models; spec items are public API.
+  them in sync by code review. Document, on each spec item, which runtime type
+  and function it models; spec items are public API.
 - **`#[path]` import.** Pull the production type in directly, and add a
-  CI check that the path and the referenced type still exist, because
-  Verus will not notice a rename until the proof is next run.
+  CI check that the path and the referenced type still exist, because Verus
+  will not notice a rename until the proof is next run.
 
 A proof over an idealized structure (`Seq<nat>`) says nothing about a
-differently shaped runtime structure (`BTreeMap`) until an explicit
-refinement lemma connects them. Reviewers look for that bridge; "the
-lemmas here do not justify the shipped implementation" is the finding
-when it is absent.
+differently shaped runtime structure (`BTreeMap`) until an explicit refinement
+lemma connects them. Reviewers look for that bridge; "the lemmas here do not
+justify the shipped implementation" is the finding when it is absent.
 
 ## Project integration
 
 - Keep `make verus` out of `make test`, `make lint`, `make all`, and
-  the pull-request gate until the proofs have been stable; run it on a
-  schedule or on demand. Until real proofs exist, ship the target as an
-  explicit `FORMAL-SKIP` stub rather than a silently green one.
+  the pull-request gate until the proofs have been stable; run it on a schedule
+  or on demand. Until real proofs exist, ship the target as an explicit
+  `FORMAL-SKIP` stub rather than a silently green one.
 - `#[allow]` is forbidden in `verus/` exactly as in production; use
-  `#[expect(dead_code, reason = "...")]` on the specific spec-only item.
-  Every file starts with `//!`; every `pub(super) proof fn` carries
-  `///`.
+  `#[expect(dead_code, reason = "...")]` on the specific spec-only item. Every
+  file starts with `//!`; every `pub(super) proof fn` carries `///`.
 - Record in the developers' guide which properties each proof file
-  covers and which it does not, and keep ExecPlan `Status:` and ADR
-  text in agreement with the proofs.
+  covers and which it does not, and keep ExecPlan `Status:` and ADR text in
+  agreement with the proofs.
 - The full pre-submission checklist is in
   [`references/review-failure-modes.md`](references/review-failure-modes.md).
 
@@ -304,34 +300,31 @@ when it is absent.
 - **Triggers are not optional.** When a logically obvious proof fails,
   check the trigger before the logic.
 - **`assert` in Verus is not `assert!` in Rust.** Inside `verus! { }`,
-  `assert` is a verification request; outside, `assert!` is a runtime
-  panic.
+  `assert` is a verification request; outside, `assert!` is a runtime panic.
 - **`broadcast use vstd::seq::group_seq_axioms;`** is required for
-  proofs that manipulate sequences with `add`, `push`, or indexing
-  across concatenations. Without it, proofs fail mysteriously.
+  proofs that manipulate sequences with `add`, `push`, or indexing across
+  concatenations. Without it, proofs fail mysteriously.
 - **Proof context pollution causes timeouts.** Wrap helper lemma calls
   in `assert(...) by { ... }`.
 - **The Z3 timeout cliff is nonlinear.** One extra `forall` can push a
-  half-second proof past the timeout. Split into smaller lemmas before
-  raising the timeout.
+  half-second proof past the timeout. Split into smaller lemmas before raising
+  the timeout.
 - **Index arithmetic in quantifiers** (`i - 1`, `i + 1`) defeats trigger
   matching. Bind an auxiliary variable and assert its bounds first.
 - **`reveal(name)`** is required before reasoning about opaque `vstd`
   definitions such as `total_ordering`.
 - **The mirror is part of the proof.** A spec struct or `#[path]` import
-  that has drifted from production makes every lemma downstream a
-  statement about nothing.
+  that has drifted from production makes every lemma downstream a statement
+  about nothing.
 
 ## References
 
+<!-- markdownlint-disable MD013 -->
+
 - [Verus Guide](https://verus-lang.github.io/verus/guide/),
-  [GitHub](https://github.com/verus-lang/verus),
-  [releases](https://github.com/verus-lang/verus/releases),
-  [vstd docs](https://verus-lang.github.io/verus/verusdoc/vstd/),
-  [playground](https://play.verus-lang.org/).
+  [GitHub](https://github.com/verus-lang/verus), [releases](https://github.com/verus-lang/verus/releases), [vstd docs](https://verus-lang.github.io/verus/verusdoc/vstd/), [playground](https://play.verus-lang.org/).
 - [`references/project-on-ramp.md`](references/project-on-ramp.md) for
-  pins, Makefile targets, layout, the production bridge, and contract
-  tests.
+  pins, Makefile targets, layout, the production bridge, and contract tests.
 - [`references/review-failure-modes.md`](references/review-failure-modes.md)
   for the pre-submission checklist drawn from estate review history.
 - [`references/proof-examples.md`](references/proof-examples.md) for a
@@ -342,3 +335,5 @@ when it is absent.
   structs, and lemma composition.
 - The survey behind this guidance:
   `docs/verification-review-failure-modes.md` in the catalogue repository.
+
+<!-- markdownlint-enable MD013 -->

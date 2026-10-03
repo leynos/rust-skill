@@ -7,8 +7,8 @@ metadata:
 
 # Rust Crate Design
 
-Use this when the hard part is where a Rust responsibility should live, not
-how to write the next function.
+Use this when the hard part is where a Rust responsibility should live, not how
+to write the next function.
 
 ## Working stance
 
@@ -66,13 +66,12 @@ how to write the next function.
 - For internal app crates, do not stop work to demand full crates.io discovery
   metadata unless the user signals distribution or publishability.
 - If a binary should support `cargo-binstall`, make release artifacts stable
-  and predictable, then add `[package.metadata.binstall]` only once the
-  release URL, archive format, and binary path are known. Use overrides when
-  some targets ship different artifact names.
+  and predictable, then add `[package.metadata.binstall]` only once the release
+  URL, archive format, and binary path are known. Use overrides when some
+  targets ship different artifact names.
 - For dependency auditing, SemVer guardrails, and trust delegation across
-  third-party crates, load the `arch-supply-chain` skill; it covers
-  `cargo-vet`, `cargo-audit`, `cargo-deny`, `cargo-semver-checks`, and
-  `cargo-public-api`.
+  third-party crates, load the `arch-supply-chain` skill; it covers `cargo-vet`,
+  `cargo-audit`, `cargo-deny`, `cargo-semver-checks`, and `cargo-public-api`.
 
 ## Example workspace layout
 

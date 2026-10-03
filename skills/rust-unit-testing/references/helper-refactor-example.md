@@ -77,8 +77,8 @@ fn extract_source(
 }
 ```
 
-Then compare data with a pure function. This function has no panic path and
-can be table-tested.
+Then compare data with a pure function. This function has no panic path and can
+be table-tested.
 
 ```rust
 fn source_matches(
@@ -182,6 +182,6 @@ fn compares_sources(
 }
 ```
 
-If `FramingError` is cheap and cloneable, an owned `ActualSource::Codec {
-error: FramingError }` may be simpler. Keep the borrowed version when it avoids
-adding clone bounds only for tests.
+If `FramingError` is cheap and cloneable, an owned
+`ActualSource::Codec { error: FramingError }` may be simpler. Keep the borrowed
+version when it avoids adding clone bounds only for tests.

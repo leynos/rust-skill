@@ -5,9 +5,9 @@ description: Audit and curate a Rust project's dependency graph. Use for `cargo-
 
 # Rust supply-chain hygiene
 
-A Rust project's attack surface is the union of every crate in its
-dependency graph, recursively. Shape, audit, and shrink the graph
-deliberately; do not let it grow as a side effect of `cargo add`.
+A Rust project's attack surface is the union of every crate in its dependency
+graph, recursively. Shape, audit, and shrink the graph deliberately; do not let
+it grow as a side effect of `cargo add`.
 
 ## Working stance
 
@@ -19,17 +19,17 @@ deliberately; do not let it grow as a side effect of `cargo add`.
 
 ## Decision surface
 
-| Question                                             | Tool                  |
-| ---------------------------------------------------- | --------------------- |
-| Any dependencies in the RustSec advisory DB?         | `cargo-audit`         |
-| Any dependencies violating project policy?           | `cargo-deny`          |
-| Has this crate been reviewed by someone I trust?     | `cargo-vet`           |
-| Does this PR break my public API?                    | `cargo-semver-checks` |
-| What is the precise public surface of this crate?    | `cargo-public-api`    |
+| Question                                          | Tool                  |
+| ------------------------------------------------- | --------------------- |
+| Any dependencies in the RustSec advisory DB?      | `cargo-audit`         |
+| Any dependencies violating project policy?        | `cargo-deny`          |
+| Has this crate been reviewed by someone I trust?  | `cargo-vet`           |
+| Does this PR break my public API?                 | `cargo-semver-checks` |
+| What is the precise public surface of this crate? | `cargo-public-api`    |
 
-`cargo-vet` is the decentralised audit format. Imports from peer
-projects (Mozilla, Google, Bytecode Alliance) widen the trusted set
-without forcing each team to audit everything from scratch.
+`cargo-vet` is the decentralised audit format. Imports from peer projects
+(Mozilla, Google, Bytecode Alliance) widen the trusted set without forcing each
+team to audit everything from scratch.
 [`references/cargo-vet-and-trust.md`](references/cargo-vet-and-trust.md)
 expands on the trust model.
 
@@ -44,23 +44,23 @@ expands on the trust model.
 
 ## SemVer at the publishing boundary
 
-Public crates owe their callers stability. Two tools make breakage
-visible before publication:
+Public crates owe their callers stability. Two tools make breakage visible
+before publication:
 
 - **`cargo-semver-checks`** compares the working tree against the most
-  recently published version and reports breaking changes at the type
-  and trait level.
+  recently published version and reports breaking changes at the type and trait
+  level.
 - **`cargo-public-api`** prints the full public surface so reviewers
-  can see the diff. Commit a snapshot file; fail CI when the snapshot
-  changes without a corresponding version bump.
+  can see the diff. Commit a snapshot file; fail CI when the snapshot changes
+  without a corresponding version bump.
 
 Use both: `cargo-semver-checks` catches the violations it knows about;
 `cargo-public-api` catches the rest.
 
 ## Dependency hygiene patterns
 
-See [`references/dependency-hygiene.md`](references/dependency-hygiene.md)
-for worked patterns:
+See [`references/dependency-hygiene.md`](references/dependency-hygiene.md) for
+worked patterns:
 
 - shrinking the graph (default-features off, single-feature crates),
 - detecting duplication (`cargo tree -d`),
