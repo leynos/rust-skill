@@ -4,7 +4,7 @@
 # Both modes need mdtablefix 0.6.1 or later.
 MDLINT ?= markdownlint-cli2
 MDTABLEFIX ?= mdtablefix
-MDTABLEFIX_SELECT = --git
+MDTABLEFIX_SELECT = --git --include-untracked
 MDTABLEFIX_RULES = --wrap --renumber --breaks --ellipsis --fences
 
 .PHONY: fmt check-fmt typecheck markdownlint nixie lint skill-frontmatter-lint skill-metadata-lint skill-manifest-validate skill-manifest-check test test-polonius
