@@ -32,7 +32,7 @@ typecheck:
 	$(UV_DEV) mypy --strict tests/test_polonius_protocol.py tests/polonius_compile_matrix.py
 
 markdownlint:
-	markdownlint-cli2 'docs/**/*.md' 'skills/**/*.md' README.md CHANGELOG.md AGENTS.md
+	$(MDLINT) '**/*.md'
 
 nixie:
 	nixie .

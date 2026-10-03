@@ -64,7 +64,7 @@ def _run_make(
     make = shutil.which("make")
     assert make, "make must be installed to run these tests"
     bin_dir = tmp_path / "bin"
-    bin_dir.mkdir()
+    bin_dir.mkdir(parents=True)
     (bin_dir / "make").symlink_to(make)
     for tool in ("uv", "mdtablefix", "markdownlint-cli2"):
         if tool == without:
@@ -110,6 +110,21 @@ def test_fmt_rewrites_then_runs_the_linter_with_fix_last(tmp_path: Path) -> None
         f"mdtablefix --in-place {SHARED_FLAGS}",
         "markdownlint-cli2 --fix **/*.md",
     ]
+
+
+def test_markdownlint_and_fmt_lint_the_same_files(tmp_path: Path) -> None:
+    """`make markdownlint` and `make fmt` give the linter the same file scope.
+
+    A narrower lint target would let `make fmt` rewrite files that `make lint`
+    never checks; CI lints the same `**/*.md` glob.
+    """
+    lint, lint_calls = _run_make(tmp_path / "lint", "markdownlint")
+    fmt, fmt_calls = _run_make(tmp_path / "fmt", "fmt")
+
+    assert lint.returncode == 0, lint.stderr
+    assert fmt.returncode == 0, fmt.stderr
+    assert lint_calls == ["markdownlint-cli2 **/*.md"]
+    assert fmt_calls[-1] == "markdownlint-cli2 --fix **/*.md"
 
 
 @pytest.mark.parametrize(

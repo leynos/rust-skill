@@ -19,12 +19,16 @@ make test
 ```
 
 `make lint` runs `markdownlint`, `nixie`, and `skill-manifest-check`.
-`make check-fmt` checks Ruff formatting in `tests` and `tools`.
-`make typecheck` runs strict mypy on `tests/test_polonius_protocol.py` and
-`tests/polonius_compile_matrix.py`; both tools come from the pinned `dev`
-dependency group through `uv`. `make test` requires `rustup`'s `rustc` proxy on
-`PATH` and the installed `nightly-2026-08-27` toolchain for its Polonius
-fixture matrix.
+`make fmt` formats Python in `tests` and `tools` with Ruff, formats Markdown
+with `mdtablefix`, and runs `markdownlint-cli2 --fix`. `make check-fmt` checks
+Ruff formatting in `tests` and `tools` and runs `mdtablefix --check` over the
+tracked and unignored untracked Markdown files. Both targets need `mdtablefix`
+0.6.1 or later, and `make markdownlint` lints `**/*.md`, the scope `make fmt`
+and CI use. `make typecheck` runs strict mypy on
+`tests/test_polonius_protocol.py` and `tests/polonius_compile_matrix.py`; both
+tools come from the pinned `dev` dependency group through `uv`. `make test`
+requires `rustup`'s `rustc` proxy on `PATH` and the installed
+`nightly-2026-08-27` toolchain for its Polonius fixture matrix.
 
 ## Changes under `skills/`
 
