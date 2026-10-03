@@ -7,6 +7,9 @@ does not cover using the skills; see [Users' guide](users-guide.md) for that.
 ## Prerequisites
 
 - `uv`, for resolving and running the pinned `dev` dependency group.
+- `mdtablefix` 0.6.1 or later on `PATH`, for `make fmt` and `make check-fmt`.
+  Install it with `cargo binstall --no-confirm mdtablefix@0.6.1` or
+  `cargo install --locked mdtablefix@0.6.1`.
 - `markdownlint-cli2` and `nixie` on `PATH`. These are external tools, not
   Python dependencies, and the lint gates call them directly.
 - `rustup` with `rustc` on `PATH` and `nightly-2026-08-27` installed. The
@@ -46,19 +49,20 @@ make typecheck
 make test
 ```
 
-| Target                         | What it does                                             |
-| ------------------------------ | -------------------------------------------------------- |
-| `make check-fmt`               | Run `ruff format --check tests tools` through `uv`       |
-| `make typecheck`               | Run strict mypy on both Polonius Python modules via `uv` |
-| `make markdownlint`            | Lint every Markdown file                                 |
-| `make nixie`                   | Validate every Mermaid diagram                           |
-| `make lint`                    | Run markdownlint, nixie, and manifests                   |
-| `make skill-frontmatter-lint`  | Lint each manifest's YAML frontmatter                    |
-| `make skill-metadata-lint`     | Reject non-string metadata keys and values               |
-| `make skill-manifest-validate` | Run `skills-ref validate` per skill                      |
-| `make skill-manifest-check`    | Aggregate the three manifest targets                     |
-| `make test-polonius`           | Compile the fixture matrix with `nightly-2026-08-27`     |
-| `make test`                    | Run `test-polonius`, then `pytest` via `uv`              |
+| Target                         | What it does                                              |
+| ------------------------------ | --------------------------------------------------------- |
+| `make fmt`                     | Format Python and Markdown, then run `markdownlint --fix` |
+| `make check-fmt`               | Check Python with `ruff` and Markdown with `mdtablefix`   |
+| `make typecheck`               | Run strict mypy on both Polonius Python modules via `uv`  |
+| `make markdownlint`            | Lint every Markdown file                                  |
+| `make nixie`                   | Validate every Mermaid diagram                            |
+| `make lint`                    | Run markdownlint, nixie, and manifests                    |
+| `make skill-frontmatter-lint`  | Lint each manifest's YAML frontmatter                     |
+| `make skill-metadata-lint`     | Reject non-string metadata keys and values                |
+| `make skill-manifest-validate` | Run `skills-ref validate` per skill                       |
+| `make skill-manifest-check`    | Aggregate the three manifest targets                      |
+| `make test-polonius`           | Compile the fixture matrix with `nightly-2026-08-27`      |
+| `make test`                    | Run `test-polonius`, then `pytest` via `uv`               |
 
 `make check-fmt` and `make typecheck` use the `ruff` and `mypy` packages from
 the pinned `dev` dependency group. The mypy target covers
@@ -101,6 +105,33 @@ test fixture:
 ```bash
 make skill-manifest-check SKILL_DIRS=skills/kani/
 ```
+
+## Markdown formatting
+
+`make fmt` runs
+`mdtablefix --in-place --git --include-untracked --wrap
+--renumber --breaks --ellipsis --fences`,
+then `markdownlint-cli2 --fix "**/*.md"`. `make check-fmt` runs the same
+`mdtablefix` command with `--check`. `--git` selects the Markdown files Git
+tracks and `--include-untracked` adds the untracked files Git does not ignore,
+so a new document is formatted before it is staged and an ignored one is left
+alone. `.markdownlint-cli2.jsonc` carries the canonical markdownlint
+configuration; keep its entries and add repository-specific ones beside them.
+CI lints `**/*.md` with the pinned `markdownlint-cli2-action` in
+`.github/workflows/markdownlint.yml`.
+
+`tests/test_markdown_wiring.py` holds this wiring. It runs the real `make fmt`
+and `make check-fmt` against recording stubs, so the arguments, their order and
+the propagation of a failing tool's exit status are observed. It parses the
+workflows as YAML, and checks the canonical rule settings. It also runs the real
+`mdtablefix` against a scratch Git repository holding an unformatted file that
+is tracked, one that is untracked and one that is ignored, showing that
+`make check-fmt` refuses the first two and not the third and that `make fmt`
+wraps the first two and leaves the third alone. Those tests skip locally when
+`mdtablefix` is not installed and fail when `CI` is set, so CI cannot stop
+running them. `.github/workflows/tests.yml` runs the Python suite with
+`uv run --group dev pytest` after installing mdtablefix 0.6.1; the Polonius
+compiler controls keep their own workflow.
 
 ## What the tests cover
 
