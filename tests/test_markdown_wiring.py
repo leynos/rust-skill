@@ -27,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SHARED_FLAGS = (
     "--git --include-untracked --wrap --renumber --breaks --ellipsis --fences"
 )
+PYTEST_COMMAND = "uv run --group dev pytest tests/test_markdown_wiring.py"
 INSTALL_ACTION = "leynos/shared-actions/.github/actions/install-mdtablefix@"
 LINT_ACTION = "DavidAnson/markdownlint-cli2-action@"
 MINIMUM_VERSION = (0, 6, 1)
@@ -307,7 +308,7 @@ def test_the_test_workflow_installs_mdtablefix_at_the_minimum_before_pytest() ->
     """The end-to-end tests need mdtablefix 0.6.1+ on PATH before pytest runs."""
     steps = _tests_steps()
     install = _index_of(steps, INSTALL_ACTION)
-    pytest_step = _index_of(steps, "uv run --group dev pytest")
+    pytest_step = _index_of(steps, PYTEST_COMMAND)
 
     assert install < pytest_step, "mdtablefix must be installed before pytest runs"
     pinned = _version(str(steps[install]["with"]["version"]))

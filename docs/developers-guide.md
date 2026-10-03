@@ -129,9 +129,12 @@ is tracked, one that is untracked and one that is ignored, showing that
 `make check-fmt` refuses the first two and not the third and that `make fmt`
 wraps the first two and leaves the third alone. Those tests skip locally when
 `mdtablefix` is not installed and fail when `CI` is set, so CI cannot stop
-running them. `.github/workflows/tests.yml` runs the Python suite with
-`uv run --group dev pytest` after installing mdtablefix 0.6.1; the Polonius
-compiler controls keep their own workflow.
+running them. `.github/workflows/tests.yml` runs this file with
+`uv run --group dev pytest tests/test_markdown_wiring.py` after installing
+mdtablefix 0.6.1, the first release that supports `--git` selection, which the
+end-to-end tests use. The rest of the suite is not run in CI yet: it calls
+`make lint`, which needs `markdownlint-cli2` and `nixie`. The Polonius compiler
+controls keep their own workflow.
 
 ## What the tests cover
 
