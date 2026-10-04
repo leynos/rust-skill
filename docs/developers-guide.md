@@ -49,20 +49,20 @@ make typecheck
 make test
 ```
 
-| Target                         | What it does                                              |
-| ------------------------------ | --------------------------------------------------------- |
-| `make fmt`                     | Format Python and Markdown, then run `markdownlint --fix` |
-| `make check-fmt`               | Check Python with `ruff` and Markdown with `mdtablefix`   |
-| `make typecheck`               | Run strict mypy on both Polonius Python modules via `uv`  |
-| `make markdownlint`            | Lint every Markdown file                                  |
-| `make nixie`                   | Validate every Mermaid diagram                            |
-| `make lint`                    | Run markdownlint, nixie, and manifests                    |
-| `make skill-frontmatter-lint`  | Lint each manifest's YAML frontmatter                     |
-| `make skill-metadata-lint`     | Reject non-string metadata keys and values                |
-| `make skill-manifest-validate` | Run `skills-ref validate` per skill                       |
-| `make skill-manifest-check`    | Aggregate the three manifest targets                      |
-| `make test-polonius`           | Compile the fixture matrix with `nightly-2026-08-27`      |
-| `make test`                    | Run `test-polonius`, then `pytest` via `uv`               |
+| Target                         | What it does                                                   |
+| ------------------------------ | -------------------------------------------------------------- |
+| `make fmt`                     | Format Python and Markdown, then run `markdownlint-cli2 --fix` |
+| `make check-fmt`               | Check Python with `ruff` and Markdown with `mdtablefix`        |
+| `make typecheck`               | Run strict mypy on both Polonius Python modules via `uv`       |
+| `make markdownlint`            | Lint every Markdown file                                       |
+| `make nixie`                   | Validate every Mermaid diagram                                 |
+| `make lint`                    | Run markdownlint, nixie, and manifests                         |
+| `make skill-frontmatter-lint`  | Lint each manifest's YAML frontmatter                          |
+| `make skill-metadata-lint`     | Reject non-string metadata keys and values                     |
+| `make skill-manifest-validate` | Run `skills-ref validate` per skill                            |
+| `make skill-manifest-check`    | Aggregate the three manifest targets                           |
+| `make test-polonius`           | Compile the fixture matrix with `nightly-2026-08-27`           |
+| `make test`                    | Run `test-polonius`, then `pytest` via `uv`                    |
 
 `make check-fmt` and `make typecheck` use the `ruff` and `mypy` packages from
 the pinned `dev` dependency group. The mypy target covers
