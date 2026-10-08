@@ -5,15 +5,14 @@ description: Capture architectural decisions in Rust projects using the Y-Statem
 
 # Architecture Decision Records for Rust
 
-An Architecture Decision Record (ADR) captures one decision and the
-reason behind it. ADRs exist so that six months later, when the
-original engineer has left or forgotten, the next reader can rebuild
-the constraints rather than guess at them.
+An Architecture Decision Record (ADR) captures one decision and the reason
+behind it. ADRs exist so that six months later, when the original engineer has
+left or forgotten, the next reader can rebuild the constraints rather than
+guess at them.
 
-In Rust, decisions worth recording tend to encode invariants the
-compiler is already enforcing — typestate edges, trait bounds, lifetime
-annotations, `unsafe` contracts. The ADR is the cover letter the type
-signature cannot carry.
+In Rust, decisions worth recording tend to encode invariants the compiler is
+already enforcing — typestate edges, trait bounds, lifetime annotations,
+`unsafe` contracts. The ADR is the cover letter the type signature cannot carry.
 
 ## Working stance
 
@@ -39,8 +38,8 @@ Write an ADR when any of the following is true:
 - The decision introduces a load-bearing typestate machine or
   trait-object boundary.
 
-Do not write an ADR for ordinary refactors, bug fixes, or local
-implementation choices.
+Do not write an ADR for ordinary refactors, bug fixes, or local implementation
+choices.
 
 ## The Y-Statement template
 
@@ -53,10 +52,10 @@ to achieve <quality>,
 accepting <downside>.
 ```
 
-Six clauses, no more. Each clause is a sentence; the whole record is
-typically under a page. See
-[`references/y-statement-template.md`](references/y-statement-template.md)
-for a fully worked example and three Rust-specific variations.
+Six clauses, no more. Each clause is a sentence; the whole record is typically
+under a page. See
+[`references/y-statement-template.md`](references/y-statement-template.md) for
+a fully worked example and three Rust-specific variations.
 
 ## File shape
 

@@ -1,16 +1,14 @@
 # Dependency hygiene patterns
 
 The dependency graph is shaped by every `Cargo.toml` edit. A handful of
-repeatable patterns keep the graph small, auditable, and consistent
-across CI.
+repeatable patterns keep the graph small, auditable, and consistent across CI.
 
 ## Shrink the graph
 
 ### Default features off
 
-Many widely used crates pull in surprising transitive dependencies
-through their default features. Switch them off and re-enable only what
-you need.
+Many widely used crates pull in surprising transitive dependencies through
+their default features. Switch them off and re-enable only what you need.
 
 ```toml
 [dependencies]
@@ -21,22 +19,20 @@ tokio = { version = "1", default-features = false, features = [
 ] }
 ```
 
-A `cargo tree --edges normal` before and after shows the effect; a
-diff of `Cargo.lock` shows the dependency churn the default features
-hide.
+A `cargo tree --edges normal` before and after shows the effect; a diff of
+`Cargo.lock` shows the dependency churn the default features hide.
 
 ### Single-feature crates
 
-Some "convenience" crates pull a kitchen sink behind a single useful
-function. Inline ten lines of code rather than importing a hundred KB
-of transitive dependencies.
+Some "convenience" crates pull a kitchen sink behind a single useful function.
+Inline ten lines of code rather than importing a hundred KB of transitive
+dependencies.
 
 ### One implementation, one feature flag
 
-When two dependencies provide the same logical capability (TLS, async
-runtime, hash algorithm), expose the choice as a feature flag and pick
-exactly one. The build that ends up with both is the build that links
-two TLS stacks.
+When two dependencies provide the same logical capability (TLS, async runtime,
+hash algorithm), expose the choice as a feature flag and pick exactly one. The
+build that ends up with both is the build that links two TLS stacks.
 
 ## Detect duplication
 
@@ -52,13 +48,13 @@ Common causes:
 - feature unification failing because one path requires
   `default-features = false`.
 
-Resolve by raising the lower version in your direct `[dependencies]`,
-patching upstream, or filing an issue with the laggard.
+Resolve by raising the lower version in your direct `[dependencies]`, patching
+upstream, or filing an issue with the laggard.
 
 ## Isolate risk behind features
 
-Treat heavyweight or under-audited dependencies as optional. Expose
-their capability behind a feature flag that the binary opts into:
+Treat heavyweight or under-audited dependencies as optional. Expose their
+capability behind a feature flag that the binary opts into:
 
 ```toml
 [features]
@@ -66,8 +62,8 @@ default = []
 postgres = ["dep:tokio-postgres"]
 ```
 
-This keeps the trust burden on the consumers who actually want the
-capability, and lets `cargo-vet` exemptions narrow naturally.
+This keeps the trust burden on the consumers who actually want the capability,
+and lets `cargo-vet` exemptions narrow naturally.
 
 ## Pin the MSRV
 
@@ -76,9 +72,9 @@ capability, and lets `cargo-vet` exemptions narrow naturally.
 rust-version = "1.76"
 ```
 
-Verify in CI on the oldest supported toolchain. `cargo-msrv` can find
-the current MSRV when it has drifted; `cargo +1.76.0 build` proves the
-declared MSRV still works.
+Verify in CI on the oldest supported toolchain. `cargo-msrv` can find the
+current MSRV when it has drifted; `cargo +1.76.0 build` proves the declared
+MSRV still works.
 
 ## Record policy in-tree
 
@@ -109,8 +105,8 @@ Run `cargo deny check` in CI and on every PR.
 ### `supply-chain/`
 
 `cargo-vet`'s home. The two files most worth reviewing in a PR are
-`audits.toml` (this project's reviews) and `config.toml` (which peers
-it trusts).
+`audits.toml` (this project's reviews) and `config.toml` (which peers it
+trusts).
 
 ## Renovate or Dependabot configuration
 

@@ -22,15 +22,15 @@ transition, and which invalid combinations the representation should exclude.
 
 ## Decision surface
 
-| Pressure | Default move |
-| --- | --- |
-| caller picks a small, finite operation sequence | typestate or state types |
-| parser input, frame, socket, or event | runtime enum with state payloads |
-| nesting or history is unbounded | runtime ADT plus explicit stack |
-| values in a collection or behind `dyn Trait` | stable owner, internal ADT |
-| several fields encode one exclusive phase | collapse into one enum |
-| one scalar carries a validated invariant | newtype at the boundary |
-| conditions are independent and may coexist | ordinary fields or booleans |
+| Pressure                                        | Default move                     |
+| ----------------------------------------------- | -------------------------------- |
+| caller picks a small, finite operation sequence | typestate or state types         |
+| parser input, frame, socket, or event           | runtime enum with state payloads |
+| nesting or history is unbounded                 | runtime ADT plus explicit stack  |
+| values in a collection or behind `dyn Trait`    | stable owner, internal ADT       |
+| several fields encode one exclusive phase       | collapse into one enum           |
+| one scalar carries a validated invariant        | newtype at the boundary          |
+| conditions are independent and may coexist      | ordinary fields or booleans      |
 
 ## Representation audit
 
@@ -70,8 +70,8 @@ Look for:
 - Test duplicate, cancellation, shutdown, partial-input, and finalization paths,
   not only the happy path.
 
-Read [typestate-vs-runtime-adts.md](references/typestate-vs-runtime-adts.md) for
-the central representation choice,
+Read [typestate-vs-runtime-adts.md](references/typestate-vs-runtime-adts.md)
+for the central representation choice,
 [parsers-protocols-and-gadgets.md](references/parsers-protocols-and-gadgets.md)
 for domain patterns, and
 [testing-state-machines.md](references/testing-state-machines.md) for a

@@ -1,12 +1,12 @@
 # Typestate versus Runtime ADTs
 
-The first question is not whether Rust can encode a transition in a type. It
-is who knows the next state when the code is compiled.
+The first question is not whether Rust can encode a transition in a type. It is
+who knows the next state when the code is compiled.
 
 ## Choose typestate for caller-driven protocols
 
-Typestate fits when the caller deliberately selects a small, finite sequence
-of operations:
+Typestate fits when the caller deliberately selects a small, finite sequence of
+operations:
 
 ```text
 Unbound -> Bound -> Running
@@ -23,9 +23,9 @@ data or APIs. Prefer `Thing<State>` when they share meaningful representation
 or behaviour and the generic parameter remains simple.
 
 Typestate earns its boilerplate when an out-of-order call would corrupt data,
-leak a resource, violate a protocol, or otherwise fail too late at runtime.
-It earns less in a long but mostly linear pipeline where each state exists only
-to name the next function call.
+leak a resource, violate a protocol, or otherwise fail too late at runtime. It
+earns less in a long but mostly linear pipeline where each state exists only to
+name the next function call.
 
 ## Choose a runtime ADT for event-driven machines
 
@@ -90,14 +90,14 @@ enum Scanner {
 ```
 
 Apply the same test to typestate. A state type should carry the data produced
-and required by that phase, rather than merely decorating unchanged storage
-with `PhantomData`.
+and required by that phase, rather than merely decorating unchanged storage with
+`PhantomData`.
 
 ## Resist enum inflation
 
-A boolean is correct when it records one independent fact. Several booleans
-are also correct when every combination is meaningful and may coexist, such
-as independent readiness guards in a `select!` loop.
+A boolean is correct when it records one independent fact. Several booleans are
+also correct when every combination is meaningful and may coexist, such as
+independent readiness guards in a `select!` loop.
 
 Introduce an ADT when it removes impossible combinations, associates payloads
 with valid states, or forces exhaustive handling of real alternatives. Do not

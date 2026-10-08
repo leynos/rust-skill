@@ -8,13 +8,13 @@ not merely replay three attractive examples.
 Write down each state, input, result, next state, and side effect. Turn the
 important rows into parameterized tests:
 
-| State | Input | Outcome | Next state |
-| --- | --- | --- | --- |
-| idle | first fragment | accepted | assembling |
-| assembling | next fragment | accepted | assembling |
-| assembling | final fragment | complete | complete |
-| complete | duplicate final fragment | duplicate | complete |
-| complete | new fragment | rejected | complete |
+| State      | Input                    | Outcome   | Next state |
+| ---------- | ------------------------ | --------- | ---------- |
+| idle       | first fragment           | accepted  | assembling |
+| assembling | next fragment            | accepted  | assembling |
+| assembling | final fragment           | complete  | complete   |
+| complete   | duplicate final fragment | duplicate | complete   |
+| complete   | new fragment             | rejected  | complete   |
 
 Include rejection paths. A machine tested only through legal happy paths says
 nothing about the invalid transitions its representation or methods claim to
@@ -53,8 +53,8 @@ public-boundary assertion will do.
 
 ## Property and model-based tests
 
-Use `proptest` when sequences or inputs matter more than individual examples.
-A useful pattern is a small reference model plus generated commands:
+Use `proptest` when sequences or inputs matter more than individual examples. A
+useful pattern is a small reference model plus generated commands:
 
 1. Generate a bounded sequence of commands or tokens.
 2. Apply each command to the model and implementation.
@@ -111,8 +111,8 @@ Test:
 - cancellation after setup when teardown is still owed.
 
 Use `loom`, `shuttle`, or `turmoil` when the defect depends on task scheduling,
-memory ordering, or simulated network behaviour. Keep deterministic model
-state separate from the executor or transport harness so failures can shrink or
+memory ordering, or simulated network behaviour. Keep deterministic model state
+separate from the executor or transport harness so failures can shrink or
 replay.
 
 ## Fault injection

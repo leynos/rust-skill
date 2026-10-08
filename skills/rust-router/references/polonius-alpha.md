@@ -6,15 +6,15 @@ parallel Polonius editions of the ordinary language skills.
 
 As of 4 August 2026, current Rust nightly enables Polonius Alpha by default
 while the Rust project prepares it for stabilization. Nightly users can opt
-back into NLL with `-Zpolonius=off`. The explicit
-`-Zpolonius=next` spelling still selects the Alpha implementation and remains
-useful for older pinned nightlies or deliberate comparison, but current
-nightly projects do not need to add it mechanically.
+back into NLL with `-Zpolonius=off`. The explicit `-Zpolonius=next` spelling
+still selects the Alpha implementation and remains useful for older pinned
+nightlies or deliberate comparison, but current nightly projects do not need to
+add it mechanically.
 
 ## Determine the project posture
 
-Use the first decisive signal and record one of four values:
-`polonius-alpha`, `nll`, `polonius-legacy`, or `unknown`.
+Use the first decisive signal and record one of four values: `polonius-alpha`,
+`nll`, `polonius-legacy`, or `unknown`.
 
 1. Inspect `rust-toolchain.toml`, `rust-toolchain`, `.cargo/config.toml`,
    `.cargo/config`, CI commands, compiler wrappers, `RUSTFLAGS`, and
@@ -60,19 +60,19 @@ which preserves the project's compiler, `RUSTC_WRAPPER`, and flags. Prefer it
 to two forms that look equivalent but are not: setting `RUSTFLAGS` replaces
 every project-supplied flag and is itself outranked by
 `CARGO_ENCODED_RUSTFLAGS`, and calling `rustc` directly bypasses the project's
-configuration altogether. `cargo check` accepts no trailing `rustc` flags, so
-a control run must go through `cargo rustc`.
+configuration altogether. `cargo check` accepts no trailing `rustc` flags, so a
+control run must go through `cargo rustc`.
 
 One limit is worth knowing. Cargo emits a project-supplied `-Zpolonius` flag
 *after* the trailing arguments, and `rustc` honours the last occurrence, so a
 project that selects the checker in its own flags masks the control. A project
 already set to `-Zpolonius=off` is `nll` and needs no control. Against one set
-to `-Zpolonius=next`, force the control through configuration instead,
-writing the override under the same key that supplies the project's flag.
-Target-scoped projects are the trap: Cargo ignores a `--config` override of
-`build.rustflags` outright, so it never reaches `rustc` and the control is
-silently skipped. The mechanism is key precedence, not last-occurrence
-masking. Write the override under the target-scoped key instead:
+to `-Zpolonius=next`, force the control through configuration instead, writing
+the override under the same key that supplies the project's flag. Target-scoped
+projects are the trap: Cargo ignores a `--config` override of `build.rustflags`
+outright, so it never reaches `rustc` and the control is silently skipped. The
+mechanism is key precedence, not last-occurrence masking. Write the override
+under the target-scoped key instead:
 
 ```bash
 cargo rustc --example polonius_canary \
@@ -80,9 +80,9 @@ cargo rustc --example polonius_canary \
 ```
 
 This form is additive: it appends to the project's array rather than replacing
-it, so the project's other flags survive. The `"cfg(all())"` key must be
-quoted inside the TOML, and it works even when the project scopes its flags by
-an explicit target triple, which makes it a safe universal selector for this
+it, so the project's other flags survive. The `"cfg(all())"` key must be quoted
+inside the TOML, and it works even when the project scopes its flags by an
+explicit target triple, which makes it a safe universal selector for this
 override.
 
 If execution is unavailable, keep the posture `unknown` and make any

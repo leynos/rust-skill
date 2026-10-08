@@ -20,13 +20,13 @@ Use this when performance matters enough to justify design pressure.
 
 ## Decision surface
 
-| Pressure | First move |
-| --- | --- |
-| repeated allocation | reuse buffers, pre-size collections |
-| large enum or struct footprint | inspect layout, box rare large fields |
-| string and byte churn | borrow or use slices/bytes where lifetimes allow |
-| clone-heavy hot path | revisit ownership and API boundaries |
-| "faster" rewrite with no numbers | benchmark first |
+| Pressure                         | First move                                       |
+| -------------------------------- | ------------------------------------------------ |
+| repeated allocation              | reuse buffers, pre-size collections              |
+| large enum or struct footprint   | inspect layout, box rare large fields            |
+| string and byte churn            | borrow or use slices/bytes where lifetimes allow |
+| clone-heavy hot path             | revisit ownership and API boundaries             |
+| "faster" rewrite with no numbers | benchmark first                                  |
 
 ## Polonius Alpha posture
 
@@ -54,10 +54,13 @@ project-posture test and semantic boundary.
 - data layout changes happen without measuring access patterns,
 - unsafe code is introduced before safe structural fixes are tried.
 
-Read [allocation-and-reuse.md](references/allocation-and-reuse.md),
-[data-layout.md](references/data-layout.md),
-[benchmark-discipline.md](references/benchmark-discipline.md), and
-[rigorous-benchmarking.md](references/rigorous-benchmarking.md) for the
+<!-- markdownlint-disable MD013 -->
+
+Read
+[allocation-and-reuse.md](references/allocation-and-reuse.md), [data-layout.md](references/data-layout.md), [benchmark-discipline.md](references/benchmark-discipline.md),
+and [rigorous-benchmarking.md](references/rigorous-benchmarking.md) for the
 common forks. The last covers paired benchmarking (Tango), deterministic
-profiling (`iai-callgrind`), open-versus-closed load models, tail latency
-and goodput.
+profiling (`iai-callgrind`), open-versus-closed load models, tail latency and
+goodput.
+
+<!-- markdownlint-enable MD013 -->

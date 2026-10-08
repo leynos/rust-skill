@@ -1,40 +1,39 @@
 # Kani review failure modes
 
-What reviewers actually flagged on Kani harnesses across the estate
-(159 findings; see `docs/verification-review-failure-modes.md` for the
-method and counts). Use this as a pre-submission checklist.
+What reviewers actually flagged on Kani harnesses across the estate (159
+findings; see `docs/verification-review-failure-modes.md` for the method and
+counts). Use this as a pre-submission checklist.
 
 ## Vacuous harnesses (the most common quality finding)
 
 - **Placeholder proofs.** A `kani::assert(true)` scaffold left in to
   validate `cargo kani --list` must be replaced before merge.
 - **Harness builds the expected value directly.** A harness that
-  constructs the error it expects instead of calling the production
-  function under a symbolic input proves the harness.
+  constructs the error it expects instead of calling the production function
+  under a symbolic input proves the harness.
 - **Hand-written mirror.** Calling a re-implementation of the production
-  function, or asserting against a hand-rolled model helper, proves the
-  model is self-consistent. Drive the production function; if a mirror is
-  unavoidable, add an explicit equivalence proof or exhaustive
-  equivalence tests, and record why.
+  function, or asserting against a hand-rolled model helper, proves the model
+  is self-consistent. Drive the production function; if a mirror is
+  unavoidable, add an explicit equivalence proof or exhaustive equivalence
+  tests, and record why.
 - **Swallowed failure paths.** `if let Ok(x) = f(...) { assert... }`
   skips verification on `Err`; `opt.unwrap_or(false)` before
-  `kani::assert(!x, ..)` passes on `None`. Assert `Ok`/`Some` first, and
-  on an unexpected arm fail loudly: `kani::assert(false, "reason")`.
+  `kani::assert(!x, ..)` passes on `None`. Assert `Ok`/`Some` first, and on an
+  unexpected arm fail loudly: `kani::assert(false, "reason")`.
 - **Global assumptions.** `kani::assume(false)` or a blanket
-  `kani::assume` inside production code prunes every path for every
-  harness, present and future. State preconditions at each harness's
-  call site through typed symbolic inputs.
+  `kani::assume` inside production code prunes every path for every harness,
+  present and future. State preconditions at each harness's call site through
+  typed symbolic inputs.
 - **Pointer-identity selection.** Choosing an assertion by comparing
-  `&'static str` addresses relies on unspecified string-literal
-  interning, so it may select the wrong assertion or none at all; with
-  an `assume(false)` fallback the harness becomes vacuous.
+  `&'static str` addresses relies on unspecified string-literal interning, so
+  it may select the wrong assertion or none at all; with an `assume(false)`
+  fallback the harness becomes vacuous.
 - **Missing `kani::cover!`.** Every branch the harness claims to reach
-  needs a `cover!`; a harness that never reaches the interesting branch
-  is green and worthless. `theoremc` enforces a non-empty witness list at
-  schema level for this reason.
+  needs a `cover!`; a harness that never reaches the interesting branch is
+  green and worthless. `theoremc` enforces a non-empty witness list at schema
+  level for this reason.
 - **Assertions that cannot fail.** Bounds-checking a type that cannot
-  violate the bound gives false assurance; exercise a data-dependent
-  branch.
+  violate the bound gives false assurance; exercise a data-dependent branch.
 - **Inclusion without exclusion.** "Every output traces to an input" is
   not "no output lacks an input"; prove both directions.
 - **Claims wider than the inputs.** A harness documented as covering all
@@ -63,22 +62,20 @@ method and counts). Use this as a pre-submission checklist.
 ## Solver cliffs
 
 - Collections and strings dominate the proof budget: real `HashMap`,
-  serde, hashing, `Utf8PathBuf`, and `BTreeMap` internals are lowered
-  before your invariant is reached. Prefer fixed-size arrays, an explicit
-  degree cap, or a bounded array with an O(n²) linear scan in place of a
-  `HashSet`.
+  serde, hashing, `Utf8PathBuf`, and `BTreeMap` internals are lowered before
+  your invariant is reached. Prefer fixed-size arrays, an explicit degree cap,
+  or a bounded array with an O(n²) linear scan in place of a `HashSet`.
 - Extract a generic kernel and prove it over a minimal symbolic type
-  (`u8`) with a thin adapter harness for the production wrapper; this
-  turned a proof that exhausted 8 GiB at N=3 into 7.6 s.
+  (`u8`) with a thin adapter harness for the production wrapper; this turned a
+  proof that exhausted 8 GiB at N=3 into 7.6 s.
 - Nested loops need N² unwind, not N. Recompute after any refactor.
 - Bounded inputs can hide branches (overflow handling) that only fire
   outside the bound; add a smoke harness or document the gap.
 - Bind unwind literals, array capacities, and production constants with
-  `const` assertions; where `#[kani::unwind]` forbids it, document the
-  coupling.
+  `const` assertions; where `#[kani::unwind]` forbids it, document the coupling.
 - Code-health refactors (closures, generic wrappers) can push CBMC past
-  the SAT solver's variable-index limit; validate against `make
-  kani-full` in isolation before accepting one.
+  the SAT solver's variable-index limit; validate against `make kani-full` in
+  isolation before accepting one.
 - When a requested harness is intractable, measure it (record the
   timeout and aborted-path count), substitute an equivalence or unit-test
   proxy, open a tracked issue, and say so in the PR. Reviewers accept a
@@ -86,8 +83,8 @@ method and counts). Use this as a pre-submission checklist.
 
 ## `cfg(kani)` is a different build
 
-The normal gates do not see harness code. Expect the following at review
-time unless you check them yourself:
+The normal gates do not see harness code. Expect the following at review time
+unless you check them yourself:
 
 - Unused imports and dead code under `cfg(kani)` survive `-D warnings`;
   only a Kani build (or a lint pass built with `--cfg kani`) finds them.
@@ -106,13 +103,13 @@ time unless you check them yourself:
 - `cargo-mutants` ignores the cfg; exclude harness modules or their
   survivors are noise.
 - Kani bundles its own nightly. A `const fn` or borrow that compiles on
-  the workspace toolchain can fail under Kani; setting `RUSTUP_TOOLCHAIN`
-  does not upgrade Kani and can produce a mismatched driver and sysroot.
-  Kani 0.67.0's nightly predates Polonius by default.
+  the workspace toolchain can fail under Kani; setting `RUSTUP_TOOLCHAIN` does
+  not upgrade Kani and can produce a mismatched driver and sysroot. Kani
+  0.67.0's nightly predates Polonius by default.
 - Kani cannot model FFI into an embedded interpreter, real syscalls,
-  async I/O boundaries, or (on some versions) default `HashSet` entropy.
-  Fail the gate closed and track the blocker, refactor to a pure state
-  machine over an event enum, or use proptest.
+  async I/O boundaries, or (on some versions) default `HashSet` entropy. Fail
+  the gate closed and track the blocker, refactor to a pure state machine over
+  an event enum, or use proptest.
 
 ## Documentation that reviewers cross-check
 

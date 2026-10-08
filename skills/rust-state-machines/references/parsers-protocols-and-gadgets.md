@@ -19,8 +19,8 @@ enum ParseState {
 ```
 
 For nested or recursively structured input, an enum alone is not enough. Add an
-explicit stack, queue, arena, or map whose size is determined at runtime. Do not
-attempt to express arbitrary nesting depth through recursive typestate
+explicit stack, queue, arena, or map whose size is determined at runtime. Do
+not attempt to express arbitrary nesting depth through recursive typestate
 parameters.
 
 Useful parser smells include:

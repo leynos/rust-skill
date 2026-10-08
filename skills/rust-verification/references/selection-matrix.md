@@ -1,9 +1,9 @@
 # Verification selection matrix
 
-Use this after the testing hierarchy in `rust-router` has ruled out a
-named unit test, a finite `rstest` table, and an obvious lightweight
-`proptest` property. The matrix chooses an escalation target; it is not
-a reason to escalate.
+Use this after the testing hierarchy in `rust-router` has ruled out a named
+unit test, a finite `rstest` table, and an obvious lightweight `proptest`
+property. The matrix chooses an escalation target; it is not a reason to
+escalate.
 
 ## Enter at the right level
 
@@ -38,11 +38,11 @@ a reason to escalate.
 ## Pick by question
 
 - "The same relation should hold over many values, and ranges or regex
-  literals describe them." → Lightweight `proptest`; no selector ceremony
-  is needed.
+  literals describe them." → Lightweight `proptest`; no selector ceremony is
+  needed.
 - "Valid fields depend on one another, data is recursive, or the bug
-  needs a sequence of operations." → Advanced `proptest` with
-  `prop_compose!`, a derive crate, or `proptest-state-machine`.
+  needs a sequence of operations." → Advanced `proptest` with `prop_compose!`,
+  a derive crate, or `proptest-state-machine`.
 - "I want to know whether a small bounded function can reach this failed
   assertion." → `kani` with a tight `#[kani::unwind]`.
 - "I refactored a pure kernel and want to know it is equivalent within a
@@ -75,8 +75,8 @@ a reason to escalate.
 - A `proptest` block driving a real database or process once per case
   without rollback or a tight integration-test budget.
 - Kani on heap-heavy or string-heavy code without a kernel extraction and
-  a bound; Kani for invariants the type system already enforces; Kani
-  across an FFI or async I/O boundary.
+  a bound; Kani for invariants the type system already enforces; Kani across an
+  FFI or async I/O boundary.
 - Verus before a pure kernel exists, or over an idealized structure with
   no refinement lemma to the runtime one.
 - `cargo-mutants` on a slow or flaky suite, or over `cfg(kani)` modules it

@@ -25,10 +25,9 @@ clearly explain defects, rather than how to run `cargo test`.
 
 - Repeated setup object: `#[fixture]` from `rstest`.
 - Behaviour matrix: `#[rstest]` plus named `#[case]` inputs. Keep the
-  table when each row carries distinct semantic meaning; when every row
-  samples the same relation over a range and another bug would add
-  another row, the test is a property in disguise and belongs in
-  `proptest`.
+  table when each row carries distinct semantic meaning; when every row samples
+  the same relation over a range and another bug would add another row, the
+  test is a property in disguise and belongs in `proptest`.
 - Fallible setup: fixture or helper returns `Result<T, E>`; test returns
   `Result<()>` or calls `.expect("specific setup context")`.
 - Global env, cwd, process state, singleton, or shared port: `#[serial]` from
@@ -162,8 +161,8 @@ for the worked dynamic-error-source example.
 - A table test has ten columns and only two rows; a named scenario test would
   be clearer.
 - A table test keeps growing with "representative" or "edge" rows that all
-  assert one relation; reviewers read it as "only N hardcoded cases" and
-  ask for a property test.
+  assert one relation; reviewers read it as "only N hardcoded cases" and ask
+  for a property test.
 
 ## References
 

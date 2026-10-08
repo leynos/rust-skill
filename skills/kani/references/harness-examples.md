@@ -1,15 +1,15 @@
 # Kani harness examples
 
-Two worked harnesses, with the four-phase pattern flagged. Both target a
-graph with bidirectional links; the same shape transfers to any data
-structure that maintains a paired invariant.
+Two worked harnesses, with the four-phase pattern flagged. Both target a graph
+with bidirectional links; the same shape transfers to any data structure that
+maintains a paired invariant.
 
 ## Smoke test (deterministic)
 
-A deterministic smoke test is the first thing to write for a new harness.
-It exercises the production code on a known input and proves that the
-harness, helpers, and `is_bidirectional` predicate agree before any
-symbolic exploration is added.
+A deterministic smoke test is the first thing to write for a new harness. It
+exercises the production code on a known input and proves that the harness,
+helpers, and `is_bidirectional` predicate agree before any symbolic exploration
+is added.
 
 ```rust
 #[cfg(kani)]
@@ -34,8 +34,8 @@ fn verify_bidirectional_smoke_2_nodes() {
 ## Reconciliation (nondeterministic)
 
 This harness adds a single nondeterministic decision (whether to seed the
-forward edge), then drives the real production reconciliation function
-and asserts the invariant.
+forward edge), then drives the real production reconciliation function and
+asserts the invariant.
 
 ```rust
 #[cfg(kani)]
@@ -60,10 +60,10 @@ fn verify_reverse_edge_reconciliation_2_nodes() {
 
 ## Eviction cascade
 
-A more involved harness that drives a commit-path routine which can evict
-an existing edge and trigger a deferred clean-up. Verifies a positive
-invariant (new edge exists) and a negative one (the evicted edge is gone)
-on the same final state.
+A more involved harness that drives a commit-path routine which can evict an
+existing edge and trigger a deferred clean-up. Verifies a positive invariant
+(new edge exists) and a negative one (the evicted edge is gone) on the same
+final state.
 
 ```rust
 #[cfg(kani)]
@@ -89,8 +89,8 @@ fn verify_eviction_deferred_cleanup() {
 
 ## Helper patterns
 
-Keep helpers in the same `#[cfg(kani)]` module as the harnesses. They
-should be small and named after the production assertion they paraphrase:
+Keep helpers in the same `#[cfg(kani)]` module as the harnesses. They should be
+small and named after the production assertion they paraphrase:
 
 ```rust
 #[cfg(kani)]
@@ -112,6 +112,6 @@ fn assert_no_link(graph: &Graph, src: usize, dst: usize, msg: &str) {
 }
 ```
 
-Bundle multi-step setup behind a helper too. `setup_eviction_test_graph`
-above hides the four-node, single-level construction so the harness body
-reads as the scenario, not the bookkeeping.
+Bundle multi-step setup behind a helper too. `setup_eviction_test_graph` above
+hides the four-node, single-level construction so the harness body reads as the
+scenario, not the bookkeeping.

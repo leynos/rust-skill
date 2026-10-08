@@ -1,9 +1,8 @@
 # Proptest review failure modes
 
-What reviewers actually flagged on property tests across the estate
-(550 findings; method and counts in
-`docs/verification-review-failure-modes.md`). Use it as a pre-submission
-checklist. The categories are ordered by frequency.
+What reviewers actually flagged on property tests across the estate (550
+findings; method and counts in `docs/verification-review-failure-modes.md`).
+Use it as a pre-submission checklist. The categories are ordered by frequency.
 
 ## 1. The property is missing (197 findings)
 
@@ -14,30 +13,29 @@ The trigger rule reviewers apply, quoted in at least ten repositories:
 > CrossHair (Python), should be recommended when the change introduces an
 > invariant over a range of inputs, states, orderings, or transitions.
 
-Typical wording of the CodeRabbit "Testing (Property / Proof)" row:
-"relies solely on concrete example tests", "proptest available but
-unused; only 2 hardcoded test cases", "`proptest` was already available
-in `Cargo.toml`, and no new property test appears in the changed files".
-The row is a warning, it recurs verbatim each round until satisfied, and
-it can regress from Passed to Warning inside one PR as the invariant
-surface grows.
+Typical wording of the CodeRabbit "Testing (Property / Proof)" row: "relies
+solely on concrete example tests", "proptest available but unused; only 2
+hardcoded test cases", "`proptest` was already available in `Cargo.toml`, and
+no new property test appears in the changed files". The row is a warning, it
+recurs verbatim each round until satisfied, and it can regress from Passed to
+Warning inside one PR as the invariant surface grows.
 
 Answers reviewers accept:
 
 - the property test, in the same PR;
 - a tracked issue, when the human reviewer's standing instruction allows
-  ("Where a change is out of scope for this PR, propose a GitHub issue
-  unless one exists already");
+  ("Where a change is out of scope for this PR, propose a GitHub issue unless
+  one exists already");
 - a written scope statement in the PR body, ExecPlan, or developers'
-  guide explaining why the invariant is bounded and deterministic enough
-  for enumerated cases ("exhaustive hand-written matrices are appropriate
-  only when the invariant input space is small and finite enough to
-  enumerate reliably"). An unsolicited property test where an ExecPlan
-  decided against one is also flagged.
+  guide explaining why the invariant is bounded and deterministic enough for
+  enumerated cases ("exhaustive hand-written matrices are appropriate only when
+  the invariant input space is small and finite enough to enumerate reliably").
+  An unsolicited property test where an ExecPlan decided against one is also
+  flagged.
 
-Answers reviewers reject: silence; claiming coverage that does not exist
-("PR claims proptest coverage for isolation marks but none exists");
-arguing enumerability for a space that is not exhaustively run each time.
+Answers reviewers reject: silence; claiming coverage that does not exist ("PR
+claims proptest coverage for isolation marks but none exists"); arguing
+enumerability for a space that is not exhaustively run each time.
 
 ## 2. Weak or unreachable strategies (86)
 
@@ -48,13 +46,13 @@ arguing enumerability for a space that is not exhaustively run each time.
   against a queue whose limits sit far higher).
 - Happy-path generators: reviewers expect a generator per documented
   input variant and per state-machine transition ("single-quoted titles,
-  angle-bracketed URLs, indentation (0-3), escaped content, and state
-  machine transitions not property-tested").
+  angle-bracketed URLs, indentation (0-3), escaped content, and state machine
+  transitions not property-tested").
 - Generators that emit impossible input, so the property fails on invalid
   samples: exclude the fence delimiter from body strategies; prefix path
-  segments so `[a-z]{1,5}` cannot produce Windows device names such as
-  `CON`. Transform the generator; do not `prop_filter` ("adds rejection
-  noise and can reduce test efficiency").
+  segments so `[a-z]{1,5}` cannot produce Windows device names such as `CON`.
+  Transform the generator; do not `prop_filter` ("adds rejection noise and can
+  reduce test efficiency").
 - Partial grammars (language-region only, not full BCP 47).
 - One-directional assertions: `if flag { prop_assert!(..) }` never
   constrains the false branch; use `prop_assert_eq!(actual, expected)`.
@@ -77,8 +75,8 @@ arguing enumerability for a space that is not exhaustively run each time.
   invariant (a SHA validator that accepted prefixes, and a property that
   accepted "prefix lengths from 7 through 40").
 - Re-deriving sort-and-compose logic instead of calling the production
-  function; reviewers require "an independent traversal oracle" or "a
-  trusted clamp reference".
+  function; reviewers require "an independent traversal oracle" or "a trusted
+  clamp reference".
 - Oracle helpers one token away from production (`source.len()` versus
   `source.len().max(1)`; `trim()` hiding CRLF handling).
 - A stubbed operation branch (`Ok(false)` for Delete) so an operation
@@ -89,11 +87,10 @@ arguing enumerability for a space that is not exhaustively run each time.
 - `prop_assume!` is a precondition. On the output it is a vacuous pass;
   it must run before the function under test.
 - It must not exclude cases the domain code must handle (duplicates);
-  it is for structurally invalid generator output only, and only when
-  rare.
+  it is for structurally invalid generator output only, and only when rare.
 - Environment preconditions ("is this dependency installed?") go in one
-  guard outside `proptest!`; inside the loop they reject every case and
-  abort with "Too many global rejects".
+  guard outside `proptest!`; inside the loop they reject every case and abort
+  with "Too many global rejects".
 - Assumptions must be side-effect-free; never gate on a mutating call.
 - Silent early returns hide rejection; use `prop_assume!` so the runner
   counts it.
@@ -128,20 +125,19 @@ Read the workspace `[lints]` table first. Beyond that:
 ## 6. Configuration, tiering, determinism (36 across categories)
 
 - `ProptestConfig { cases: 1, .. }` "reduces property-based testing to a
-  parameterised test with a single random parameter" and signals
-  unresettable global state; add a test-only reset hook.
+  parameterised test with a single random parameter" and signals unresettable
+  global state; add a test-only reset hook.
 - Documented budgets must be enforced by an explicit
-  `#![proptest_config(..)]`, and large budgets must come from an
-  environment variable so CI can tier them.
+  `#![proptest_config(..)]`, and large budgets must come from an environment
+  variable so CI can tier them.
 - `fork` and `cases` multiply; forking every case blew a 600 s CI
-  timeout. A cap only works if nothing downstream re-reads
-  `PROPTEST_CASES` and overrides it.
+  timeout. A cap only works if nothing downstream re-reads `PROPTEST_CASES` and
+  overrides it.
 - No wall-clock assertions inside a property; use a fuel budget and a
   separate watchdog.
 - `HashMap`'s `RandomState` is outside proptest's seed: "shrinking
   silently discards valid candidates and committed regression seeds are
-  decorative". Use a seeded or ordered map for anything the property
-  observes.
+  decorative". Use a seeded or ordered map for anything the property observes.
 - `ProptestConfig::default()` is not deterministic; do not say it is.
   When standardizing a fixed seed, keep `PROPTEST_RNG_SEED` overridable.
 - Properties that mutate the process environment take the environment
@@ -167,17 +163,17 @@ Read the workspace `[lints]` table first. Beyond that:
 
 - The estate's 400-line file cap is the most common reason a proptest
   addition triggers a mid-review refactor. Start in a sibling module:
-  `tests_proptest.rs` plus `tests_proptest_strategies.rs`, or
-  `prop_tests.rs` per module, following the repository's convention
-  (some repositories keep inline blocks so coverage tooling sees them).
+  `tests_proptest.rs` plus `tests_proptest_strategies.rs`, or `prop_tests.rs`
+  per module, following the repository's convention (some repositories keep
+  inline blocks so coverage tooling sees them).
 - Every module, including strategy modules, begins with a `//!` comment.
 - `proptest!` functions need `#[test]` inside the block; without it the
   block compiles, runs nothing, and passes.
 - `Box::leak` per case leaks per case; use a static sample pool.
 - An unused `proptest` dev-dependency is read as evidence of a gap.
 - Declare `proptest` once in `[workspace.dependencies]` and opt in with
-  `proptest = { workspace = true }`; pin to a current explicit version
-  where the repository requires exact pins.
+  `proptest = { workspace = true }`; pin to a current explicit version where
+  the repository requires exact pins.
 - Large deterministic fixtures go in an external file via `include_str!`.
 - Strategy chains and bodies are subject to the same Clippy thresholds
   as production code (cognitive complexity ≤ 9, args ≤ 4, nesting ≤ 4).
