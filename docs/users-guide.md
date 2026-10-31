@@ -362,8 +362,8 @@ run of one harness. The reviewer's command starts inside a `systemd-run` cgroup
 capped at 8 GiB, which applies a 20-minute `timeout`, which runs Kani, which
 starts CBMC's symbolic execution. If CBMC reports the size of its program
 expression, the proof result returns normally. If the reviewer detects a
-runaway, they stop the run: `timeout` sends CBMC `SIGTERM`, then `SIGKILL`
-after 30 seconds. Either way, the run exits under the resource cap.
+runaway, the reviewer stops the run: `timeout` sends CBMC `SIGTERM`, then
+`SIGKILL` after 30 seconds. Either way, the run exits under the resource cap.
 
 ```mermaid
 sequenceDiagram

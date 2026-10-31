@@ -4,7 +4,7 @@ A Kani harness has no memory budget of its own. CBMC keeps allocating until it
 finishes or the operating system stops it. On a developer machine that is an
 annoyance. On a shared host or a CI runner it starves every neighbouring
 process long before anything is killed for running out of memory. Treat the
-bounds as a resource budget that you choose, measure, and record. They are not
+bounds as a resource budget to be chosen, measured, and recorded. They are not
 a dial to turn up until the proof passes.
 
 ## Where the cost comes from
@@ -15,8 +15,8 @@ a dial to turn up until the proof passes.
   grows exponentially in the number of symbolic bytes, not linearly.
 - **Unwind depth.** `#[kani::unwind(n)]` applies to *every* loop the harness
   reaches, including loops inside `core` and `alloc` (`run_utf8_validation`,
-  `Vec` growth, `String` pushes, iterator adaptors). A bound sized for your own
-  loop is also the bound for every library loop under it.
+  `Vec` growth, `String` pushes, iterator adaptors). A bound sized for the
+  harness's own loop is also the bound for every library loop under it.
 - **Width times depth.** A library loop that iterates once per symbolic byte,
   unwound to a generous bound, inside code that branches on those bytes, is the
   usual recipe for a runaway. Each extra byte of width or level of depth
@@ -32,7 +32,7 @@ a dial to turn up until the proof passes.
    the claim, for example "every retained-tail length up to three needs three
    input bytes", and write that reasoning in the harness's doc comment next to
    the numbers.
-2. **Let the unwinding check tell you when the bound is too small.** Kani's
+2. **Let the unwinding check report when the bound is too small.** Kani's
    unwinding assertions are on by default. A bound one short of a loop's real
    trip count fails with an `unwinding assertion loop N` violation, naming the
    loop. Raise the bound one step at a time in response to that failure. Never
@@ -49,11 +49,11 @@ a dial to turn up until the proof passes.
    to every harness without an attribute. A raised command-line bound in a
    Makefile or an ad hoc rerun silently replaces the reviewed bound in the
    source.
-5. **Keep library internals out of the symbolic path where you can.** Push
+5. **Keep library internals out of the symbolic path where possible.** Push
    `core`/`alloc` calls onto concrete data. Assume the library's postcondition
-   (`kani::assume` on the result) when the library function is not what you are
-   proving. Stub it with `#[kani::stub]`. Or extract a kernel that works on a
-   fixed array or slice so that no `Vec`/`String` is built from symbolic
+   (`kani::assume` on the result) when the library function is not the subject
+   of the proof. Stub it with `#[kani::stub]`. Or extract a kernel that works
+   on a fixed array or slice so that no `Vec`/`String` is built from symbolic
    lengths.
 6. **Split, don't widen.** Two harnesses at width three with different
    preconditions are usually far cheaper than one at width four. Partition by
@@ -96,7 +96,7 @@ systemd-run --user --scope -p MemoryMax=8G -p MemorySwapMax=0 -- \
 - Run harnesses sequentially. `-j` multiplies peak memory by the number of
   harnesses solving at once.
 
-## Recognising a runaway early
+## Recognizing a runaway early
 
 With Kani's default `regular` output, CBMC reports its phases per harness. A
 healthy harness passes through them quickly:
@@ -119,7 +119,7 @@ Warning signs, in the order they usually appear:
   Many symbolic paths are reaching the unwind bound of one loop. That loop, and
   usually a library loop, is where width and depth are multiplying.
 - **Program-expression steps or clause counts growing by an order of magnitude
-  between N and N+1.** You have found the cliff; do not take the next step.
+  between N and N+1.** That step is the cliff; do not take the next one.
 
 Stop the run at the first sign, not after it has consumed the machine.
 

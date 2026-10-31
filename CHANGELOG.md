@@ -10,9 +10,9 @@ The format is based on [Common Changelog](https://common-changelog.org).
 
 - `kani/references/bounding-and-resources.md`: choosing symbolic width and
   unwind bounds as a measured resource budget, running harnesses under a memory
-  cap and a `SIGKILL`-escalating timeout, recognising runaway symbolic
+  cap and a `SIGKILL`-escalating timeout, recognizing runaway symbolic
   execution from CBMC's progress output, and never relaunching a killed proof
-  detached; summarised in a new section of the `kani` skill.
+  detached; summarized in a new section of the `kani` skill.
 - `docs/verification-review-failure-modes.md`: a compendium of recurring
   review findings on `proptest`, Kani, and Verus work across the `leynos`
   estate (57 repositories, 9,171 pull requests, 851 triaged findings), the

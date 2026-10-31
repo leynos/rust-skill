@@ -303,7 +303,7 @@ load.
 - [`references/harness-examples.md`](references/harness-examples.md) for
   worked harnesses with helpers.
 - [`references/bounding-and-resources.md`](references/bounding-and-resources.md)
-  for choosing bounds, running under memory and time caps, and recognising a
+  for choosing bounds, running under memory and time caps, and recognizing a
   runaway harness early.
 - [`references/kani-harness-example.rs`](references/kani-harness-example.rs)
   for a self-contained Rust source illustrating the four-phase shape.
