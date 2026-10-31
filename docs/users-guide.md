@@ -357,6 +357,42 @@ contract tests), the review checklist for vacuous harnesses, model drift,
 solver cliffs, and the `cfg(kani)` build, and guidance on bounding harnesses
 and running them under memory and time caps.
 
+For screen readers: The following sequence diagram shows an exploratory Kani
+run of one harness. The reviewer's command starts inside a `systemd-run` cgroup
+capped at 8 GiB, which applies a 20-minute `timeout`, which runs Kani, which
+starts CBMC's symbolic execution. If CBMC reports the size of its program
+expression, the proof result returns normally. If the reviewer detects a
+runaway, they stop the run: `timeout` sends CBMC `SIGTERM`, then `SIGKILL`
+after 30 seconds. Either way, the run exits under the resource cap.
+
+```mermaid
+sequenceDiagram
+    participant Reviewer
+    participant Shell
+    participant Cgroup as systemd_run
+    participant Timeout as timeout
+    participant Kani
+    participant CBMC
+    Reviewer->>Shell: cargo kani --harness NAME --exact
+    Shell->>Cgroup: Start with MemoryMax=8G
+    Cgroup->>Timeout: Apply 20m timeout
+    Timeout->>Kani: Run selected harness
+    Kani->>CBMC: Start symbolic execution
+    CBMC-->>Kani: regular progress output
+    alt Healthy progress
+        CBMC-->>Kani: size of program expression
+        Kani-->>Timeout: Proof result
+    else Runaway detected
+        Reviewer->>Timeout: Stop exploratory run
+        Timeout-->>CBMC: SIGTERM
+        Timeout-->>CBMC: SIGKILL after 30s
+    end
+    Timeout-->>Cgroup: Exit under resource cap
+```
+
+_Figure 4: Running one Kani harness under a memory cap and a
+`SIGKILL`-escalating timeout._
+
 ### `verus` — deductive verification
 
 Use this skill when the property must hold for unbounded inputs, when the
