@@ -50,11 +50,22 @@ a dial to turn up until the proof passes.
    Makefile or an ad hoc rerun silently replaces the reviewed bound in the
    source.
 5. **Keep library internals out of the symbolic path where possible.** Push
-   `core`/`alloc` calls onto concrete data. Assume the library's postcondition
-   (`kani::assume` on the result) when the library function is not the subject
-   of the proof. Stub it with `#[kani::stub]`. Or extract a kernel that works
-   on a fixed array or slice so that no `Vec`/`String` is built from symbolic
-   lengths.
+   `core`/`alloc` calls onto concrete data, or extract a kernel that works on a
+   fixed array or slice so that no `Vec`/`String` is built from symbolic
+   lengths. When the library function is not the subject of the proof, its
+   behaviour can be abstracted instead, but each abstraction narrows the claim
+   and the harness's doc comment must say so:
+   - Assuming the library's postcondition (`kani::assume` on the result) proves
+     the caller only for results that satisfy the assumption. A wrong or
+     over-strong assumption makes the proof vacuous for the excluded cases.
+   - An ordinary stub, `#[kani::stub(original, replacement)]` (run with
+     `-Z stubbing`), replaces the function wholesale. The proof then holds only
+     if the replacement over-approximates the original; record that trust
+     boundary next to the attribute.
+   - `#[kani::stub_verified(target)]` (run with `-Z function-contracts`) is
+     reserved for a target whose contract has its own
+     `#[kani::proof_for_contract]` harness. Ordinary stubs do not need a
+     verified contract.
 6. **Split, don't widen.** Two harnesses at width three with different
    preconditions are usually far cheaper than one at width four. Partition by
    the branch that matters (valid prefix versus malformed lead byte) using
