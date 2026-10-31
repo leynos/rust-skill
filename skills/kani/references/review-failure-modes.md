@@ -69,6 +69,10 @@ counts). Use this as a pre-submission checklist.
   (`u8`) with a thin adapter harness for the production wrapper; this turned a
   proof that exhausted 8 GiB at N=3 into 7.6 s.
 - Nested loops need N² unwind, not N. Recompute after any refactor.
+- Unwind bounds also apply to library loops; a symbolic input that reaches
+  `run_utf8_validation` or `Vec` growth under a generous bound can exhaust tens
+  of gigabytes. Widen symbolic inputs one byte at a time with recorded peak
+  memory; see `bounding-and-resources.md`.
 - Bounded inputs can hide branches (overflow handling) that only fire
   outside the bound; add a smoke harness or document the gap.
 - Bind unwind literals, array capacities, and production constants with

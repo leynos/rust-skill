@@ -353,8 +353,9 @@ alphabet. Kani is unwind-bounded by default; the skill describes how to set
 `#[kani::unwind(n)]`, when to use `kani::any` and `kani::assume`, and when to
 escalate to Verus instead. Its references carry the project on-ramp (pins,
 Makefile targets that delegate to `prover-tools`, smoke and nightly CI,
-contract tests) and the review checklist for vacuous harnesses, model drift,
-solver cliffs, and the `cfg(kani)` build.
+contract tests), the review checklist for vacuous harnesses, model drift,
+solver cliffs, and the `cfg(kani)` build, and guidance on bounding harnesses
+and running them under memory and time caps.
 
 ### `verus` — deductive verification
 
