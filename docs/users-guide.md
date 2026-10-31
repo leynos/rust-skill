@@ -393,6 +393,31 @@ sequenceDiagram
 _Figure 4: Running one Kani harness under a memory cap and a
 `SIGKILL`-escalating timeout._
 
+For screen readers: The following flowchart shows the loop for choosing Kani
+bounds. Start with the smallest reviewed symbolic width and unwind bound, then
+run one harness by exact name under a memory cap and a `timeout --kill-after`.
+If runaway signals appear, stop the run, split the harness or reduce its
+symbolic width, and run again. Otherwise, record peak memory and wall time. If
+the unwinding check fails, raise the relevant bound one step and run again; if
+it passes, keep the bound and review the proof.
+
+```mermaid
+flowchart TD
+    A[Start with smallest reviewed width and unwind bound] --> B[Run one harness with --harness NAME --exact]
+    B --> C[Apply MemoryMax and timeout --kill-after]
+    C --> D{Runaway signals?}
+    D -->|No| E[Record peak memory and wall time]
+    E --> F{Unwinding check fails?}
+    F -->|Yes| G[Raise the relevant bound one step]
+    G --> B
+    F -->|No| H[Keep the bound and review the proof]
+    D -->|Yes| I[Stop the run]
+    I --> J[Split harnesses or reduce symbolic width]
+    J --> B
+```
+
+_Figure 5: Choosing Kani bounds by measured, one-step increments._
+
 ### `verus` — deductive verification
 
 Use this skill when the property must hold for unbounded inputs, when the
