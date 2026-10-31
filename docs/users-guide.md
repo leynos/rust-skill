@@ -353,8 +353,70 @@ alphabet. Kani is unwind-bounded by default; the skill describes how to set
 `#[kani::unwind(n)]`, when to use `kani::any` and `kani::assume`, and when to
 escalate to Verus instead. Its references carry the project on-ramp (pins,
 Makefile targets that delegate to `prover-tools`, smoke and nightly CI,
-contract tests) and the review checklist for vacuous harnesses, model drift,
-solver cliffs, and the `cfg(kani)` build.
+contract tests), the review checklist for vacuous harnesses, model drift,
+solver cliffs, and the `cfg(kani)` build, and guidance on bounding harnesses
+and running them under memory and time caps.
+
+For screen readers: The following sequence diagram shows an exploratory Kani
+run of one harness. The reviewer's command starts inside a `systemd-run` cgroup
+capped at 8 GiB, which applies a 20-minute `timeout`, which runs Kani, which
+starts CBMC's symbolic execution. If CBMC reports the size of its program
+expression, the proof result returns normally. If the reviewer detects a
+runaway, the reviewer stops the run: `timeout` sends CBMC `SIGTERM`, then
+`SIGKILL` after 30 seconds. Either way, the run exits under the resource cap.
+
+```mermaid
+sequenceDiagram
+    participant Reviewer
+    participant Shell
+    participant Cgroup as systemd_run
+    participant Timeout as timeout
+    participant Kani
+    participant CBMC
+    Reviewer->>Shell: cargo kani --harness NAME --exact
+    Shell->>Cgroup: Start with MemoryMax=8G
+    Cgroup->>Timeout: Apply 20m timeout
+    Timeout->>Kani: Run selected harness
+    Kani->>CBMC: Start symbolic execution
+    CBMC-->>Kani: regular progress output
+    alt Healthy progress
+        CBMC-->>Kani: size of program expression
+        Kani-->>Timeout: Proof result
+    else Runaway detected
+        Reviewer->>Timeout: Stop exploratory run
+        Timeout-->>CBMC: SIGTERM
+        Timeout-->>CBMC: SIGKILL after 30s
+    end
+    Timeout-->>Cgroup: Exit under resource cap
+```
+
+_Figure 4: Running one Kani harness under a memory cap and a
+`SIGKILL`-escalating timeout._
+
+For screen readers: The following flowchart shows the loop for choosing Kani
+bounds. Start with the smallest reviewed symbolic width and unwind bound, then
+run one harness by exact name under a memory cap and a `timeout --kill-after`.
+If runaway signals appear, stop the run, split the harness or reduce its
+symbolic width, and run again. Otherwise, record peak memory and wall time. If
+the unwinding check fails, raise the relevant bound one step and run again; if
+it passes, keep the bound and review the proof.
+
+```mermaid
+flowchart TD
+    A[Start with smallest reviewed width and unwind bound] --> B[Run one harness with --harness NAME --exact]
+    B --> C[Apply MemoryMax and timeout --kill-after]
+    C --> D{Runaway signals?}
+    D -->|No| E[Record peak memory and wall time]
+    E --> F{Unwinding check fails?}
+    F -->|Yes| G[Raise the relevant bound one step]
+    G --> B
+    F -->|No| H[Keep the bound and review the proof]
+    D -->|Yes| I[Stop the run]
+    I --> J[Split harnesses or reduce symbolic width]
+    J --> B
+```
+
+_Figure 5: Choosing Kani bounds by measured, one-step increments._
 
 ### `verus` — deductive verification
 

@@ -194,6 +194,30 @@ unexpected_cfgs = { level = "warn", check-cfg = ["cfg(kani)"] }
   paths, memory), substitute an equivalence or unit-test proxy, open a tracked
   issue, and say so. Reviewers accept a measurement, not "too hard".
 
+## Bounding and resource budgets
+
+CBMC has no memory budget of its own; a runaway harness grows until the host
+stops it, starving everything nearby first. Read
+[`references/bounding-and-resources.md`](references/bounding-and-resources.md)
+before widening a symbolic input or raising an unwind bound.
+
+- Cost multiplies across symbolic width and unwind depth, and
+  `#[kani::unwind(n)]` also bounds every `core`/`alloc` loop the harness
+  reaches. One extra symbolic byte under a generous bound can turn seconds into
+  tens of gigabytes.
+- Start from the smallest bound that reaches the claim and let the default
+  unwinding check report when it is too small. Grow width one step at a time,
+  recording peak memory and wall time at each step. Cover the next length with
+  a concrete harness instead of a wider symbolic one.
+- Iterate with `--harness NAME --exact` under a memory cap and a
+  `SIGKILL`-escalating timeout (`systemd-run --user --scope -p MemoryMax=8G`,
+  `timeout --kill-after=30s 20m`). CBMC handles `SIGTERM` and may keep solving.
+- No `size of program expression` line after a minute or two, or a flood of
+  `Not unwinding loop … iteration N` for one loop, means symbolic execution is
+  running away. Stop it then.
+- A harness killed by a timeout, a memory cap, or an operator must be bounded,
+  not relaunched detached (`setsid`, `nohup`) to let it finish.
+
 ## What Kani detects and what it does not
 
 Detects: panics (including `unwrap` on `None` and out-of-bounds), debug
@@ -278,6 +302,9 @@ load.
   for the pre-submission checklist drawn from estate review history.
 - [`references/harness-examples.md`](references/harness-examples.md) for
   worked harnesses with helpers.
+- [`references/bounding-and-resources.md`](references/bounding-and-resources.md)
+  for choosing bounds, running under memory and time caps, and recognizing a
+  runaway harness early.
 - [`references/kani-harness-example.rs`](references/kani-harness-example.rs)
   for a self-contained Rust source illustrating the four-phase shape.
 - The survey behind this guidance:
