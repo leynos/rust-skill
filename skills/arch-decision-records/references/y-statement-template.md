@@ -11,7 +11,8 @@ to achieve <quality>,
 accepting <downside>.
 ```
 
-Each clause is one sentence. The record is one file under `docs/adr/`.
+Each clause is one sentence. The record is one file under `docs/adrs/`, named
+`adr-nnnn-slug.md`.
 
 ## File template
 

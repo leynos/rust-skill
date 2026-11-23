@@ -23,7 +23,7 @@ already enforcing — typestate edges, trait bounds, lifetime annotations,
 - Number ADRs sequentially; never renumber.
 - An ADR is immutable. Supersede it with a new ADR; do not edit the
   superseded one beyond a "Superseded by ADR-NNN" header.
-- Keep ADRs in-tree under `docs/adr/` (or similar). They are reviewable
+- Keep ADRs in-tree under `docs/adrs/`. They are reviewable
   code-adjacent artefacts.
 
 ## When to write one
@@ -60,9 +60,9 @@ a fully worked example and three Rust-specific variations.
 ## File shape
 
 ```text
-docs/adr/0001-use-rustls-not-openssl.md
-docs/adr/0002-typestate-for-request-builder.md
-docs/adr/0003-verus-for-edge-ordering-proof.md
+docs/adrs/adr-0001-use-rustls-not-openssl.md
+docs/adrs/adr-0002-typestate-for-request-builder.md
+docs/adrs/adr-0003-verus-for-edge-ordering-proof.md
 ```
 
 Each file:
